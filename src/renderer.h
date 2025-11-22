@@ -15,7 +15,7 @@
 #include "GLExternalUtils/opengl_util.h"
 
 #include "shader_builder.h"
-
+#include "mesh_builder.h"
 #include "texture_builder.h"
 #include "camera.h"
 #include "stb_image_raii.h"
@@ -30,8 +30,10 @@ class Renderer : public GLRenderer::RendererBase
 private:
 	std::unique_ptr<GL3D::Mesh> test_mesh{};
 	std::unique_ptr<GL3D::Mesh> screen_quad_mesh{};
+	MeshBuilder::NodeData gun_mesh_result{};
 
 	std::unique_ptr<GL3D::ShaderProgram> test_shader{};
+	std::unique_ptr<GL3D::ShaderProgram> gun_shader{};
 	std::unique_ptr<GL3D::ShaderProgram> screen_shader{};
 
 	std::unique_ptr<GL3D::Texture> test_texture{};
@@ -68,10 +70,12 @@ public:
 
 		screen_quad_mesh = std::make_unique<GL3D::Mesh>(std::span<Vertex2>(screen_quad_vertices), std::span<int>(num_floats_per_attr), std::span<unsigned int>(quad_indices));
 		test_mesh = std::make_unique<GL3D::Mesh>(std::span<Vertex2>(test_quad_vertices), std::span<int>(num_floats_per_attr), std::span<unsigned int>(quad_indices));
+		
 
 		const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
-
-
+		gun_mesh_result = MeshBuilder::build(asset_dir + "meshes/gun/gun.gltf");
+		
+		gun_shader = GLRenderer::ShaderBuilder::build(asset_dir + "shaders/frag_model.glsl", asset_dir + "shaders/vertex_model.glsl").value();
 
 		auto screen_shader_res = GLRenderer::ShaderBuilder::build(asset_dir + "shaders/screen_frag.glsl", asset_dir + "shaders/screen_vertex.glsl");
 		if (!screen_shader_res.has_value()) {
@@ -92,7 +96,18 @@ public:
 		create_screen_framebuffer();
 
 	}
-
+	void render_meshes(const MeshBuilder::NodeData& node) {
+		for (size_t i = 0; i < node.process_mesh_results.size(); i++) {
+			const auto& mesh = *node.process_mesh_results[i].mesh;
+			mesh.draw(*gun_shader);
+		}
+	}
+	void draw_gun_mesh(const MeshBuilder::NodeData& node) {
+		render_meshes(node);
+		for (const auto& child : node.child_nodes) {
+			draw_gun_mesh(child);
+		}
+	}
 	void render_user() override {
 		framebuffer->bind();
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -109,9 +124,13 @@ public:
 		glm::mat4 projection = cam.get_projection_matrix(screen_width, screen_height);
 
 		glm::mat4 transform_matrix = projection * view * model;
+
 		test_shader->set_uniform("uMat", transform_matrix);
 		test_shader->set_texture("tex1", *test_texture, 1);
 		test_mesh->draw(*test_shader);
+
+		gun_shader->set_uniform("uMat", transform_matrix);
+		draw_gun_mesh(gun_mesh_result);
 
 		framebuffer->unbind();
 

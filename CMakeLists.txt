@@ -13,6 +13,10 @@ target_link_libraries(opengl_lib_3d_renderer PRIVATE opengl_lib)
 # Add tl expected
 target_link_libraries(opengl_lib_3d_renderer PRIVATE tl::expected)
 
+# Add assimp 
+add_subdirectory(external/assimp)
+target_link_libraries(opengl_lib_3d_renderer PRIVATE assimp::assimp)
+
 set(OPENGL_VERSION_MAJOR "4" CACHE STRING "OpenGL Version Major" )
 set(OPENGL_VERSION_MINOR "6" CACHE STRING "OpenGL Version Minor")
 
