@@ -2,7 +2,7 @@
 
 
 static float mouse_sensitivity = 0.005;
-static float camSpeed = 0.02;
+static float cam_speed = 0.02;
 
 static void process_input(GLFWwindow* window, Camera& cam);
 
@@ -71,50 +71,50 @@ static void process_input(GLFWwindow* window, Camera& cam)
 	float del_x = xpos - xpos_prev;
 	float rot_y = del_x * mouse_sensitivity;
 
-	static float camRotX{};
-	static float camRotY{};
+	static float cam_rot_x{};
+	static float cam_rot_y{};
 
 	if (glfwGetInputMode(window, GLFW_CURSOR) != GLFW_CURSOR_NORMAL) {
-		camRotY -= rot_y;
+		cam_rot_y -= rot_y;
 	}
 
 	float del_y = ypos - ypos_prev;
 	float rot_x = del_y * mouse_sensitivity;
 
 	if (glfwGetInputMode(window, GLFW_CURSOR) != GLFW_CURSOR_NORMAL) {
-		camRotX += rot_x;
-		camRotX = std::clamp(camRotX, glm::radians(-89.0f), glm::radians(89.0f));
+		cam_rot_x += rot_x;
+		cam_rot_x = std::clamp(cam_rot_x, glm::radians(-89.0f), glm::radians(89.0f));
 	}
 	// calculate finished
 	xpos_prev = xpos;
 	ypos_prev = ypos;
 
-	glm::vec3 camRight = cam.orientation[0];
-	glm::vec3 camUp = cam.orientation[1];
-	glm::vec3 camForward = cam.orientation[2];
+	glm::vec3 cam_right = cam.orientation[0];
+	glm::vec3 cam_up = cam.orientation[1];
+	glm::vec3 cam_forward = cam.orientation[2];
 	
 
-	cam.orientation = glm::rotate(glm::mat4(1.0f), camRotY, glm::vec3(0.0f, 1.0f, 0.0f));
-	cam.orientation = glm::rotate(cam.orientation, camRotX, glm::vec3(1.0f, 0.0f, 0.0f));
+	cam.orientation = glm::rotate(glm::mat4(1.0f), cam_rot_y, glm::vec3(0.0f, 1.0f, 0.0f));
+	cam.orientation = glm::rotate(cam.orientation, cam_rot_x, glm::vec3(1.0f, 0.0f, 0.0f));
 
 	if (glfwGetInputMode(window, GLFW_CURSOR) != GLFW_CURSOR_NORMAL) {
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-			cam.position += camRight * camSpeed;
+			cam.position += cam_right * cam_speed;
 		}
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-			cam.position -= camRight * camSpeed;
+			cam.position -= cam_right * cam_speed;
 		}
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			cam.position += camForward * camSpeed;
+			cam.position += cam_forward * cam_speed;
 		}
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-			cam.position -= camForward * camSpeed;
+			cam.position -= cam_forward * cam_speed;
 		}
 		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-			cam.position -= camUp * camSpeed;
+			cam.position -= cam_up * cam_speed;
 		}
 		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-			cam.position += camUp * camSpeed;
+			cam.position += cam_up * cam_speed;
 		}
 	}
 
