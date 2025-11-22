@@ -1,6 +1,5 @@
 #include "renderer.h"
 
-
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	Renderer* renderer = static_cast<Renderer*>(glfwGetWindowUserPointer(window));
 	renderer->on_window_resize(width, height);
