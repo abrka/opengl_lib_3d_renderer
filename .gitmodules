@@ -1,3 +1,6 @@
 [submodule "external/opengl_lib"]
 	path = external/opengl_lib
 	url = https://github.com/abrka/opengl_lib.git
+[submodule "external/assimp"]
+	path = external/assimp
+	url = https://github.com/assimp/assimp.git
