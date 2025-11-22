@@ -1,0 +1,3 @@
+[submodule "external/opengl_lib"]
+	path = external/opengl_lib
+	url = https://github.com/abrka/opengl_lib.git
