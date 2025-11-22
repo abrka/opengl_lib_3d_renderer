@@ -83,7 +83,7 @@ static void process_input(GLFWwindow* window, Camera& cam)
 
 	if (glfwGetInputMode(window, GLFW_CURSOR) != GLFW_CURSOR_NORMAL) {
 		cam_rot_x += rot_x;
-		cam_rot_x = std::clamp(cam_rot_x, glm::radians(-89.0f), glm::radians(89.0f));
+		cam_rot_x = glm::clamp(cam_rot_x, glm::radians(-89.0f), glm::radians(89.0f));
 	}
 	// calculate finished
 	xpos_prev = xpos;
