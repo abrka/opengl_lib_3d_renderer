@@ -16,7 +16,7 @@
 
 #include "shader_builder.h"
 
-#include "model_loader.h"
+#include "texture_builder.h"
 #include "camera.h"
 #include "stb_image_raii.h"
 
@@ -87,7 +87,7 @@ public:
 
 		create_screen_framebuffer(); 
 
-		test_texture = AssetLoader::load_texture_from_filepath(asset_dir + "textures/wall.jpg").value();
+		test_texture = TextureBuilder::build(asset_dir + "textures/wall.jpg").value();
 		
 	}
 
