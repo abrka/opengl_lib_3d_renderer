@@ -6,8 +6,12 @@ add_executable(opengl_lib_3d_renderer ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 target_compile_features(opengl_lib_3d_renderer PUBLIC cxx_std_20)
 target_include_directories(opengl_lib_3d_renderer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
+# Add custom OpenGL abstraction library
 add_subdirectory(external/opengl_lib)
 target_link_libraries(opengl_lib_3d_renderer PRIVATE opengl_lib)
+
+# Add tl expected
+target_link_libraries(opengl_lib_3d_renderer PRIVATE tl::expected)
 
 set(OPENGL_VERSION_MAJOR "4" CACHE STRING "OpenGL Version Major" )
 set(OPENGL_VERSION_MINOR "6" CACHE STRING "OpenGL Version Minor")

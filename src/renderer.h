@@ -14,7 +14,7 @@
 #include "GLExternalUtils/imgui_util.h"
 #include "GLExternalUtils/opengl_util.h"
 
-#include "GLRenderer/shader_builder.h"
+#include "shader_builder.h"
 
 #include "model_loader.h"
 #include "camera.h"
@@ -87,7 +87,7 @@ public:
 
 		create_screen_framebuffer(); 
 
-		test_texture = AssetLoader::load_texture_from_filepath(asset_dir + "textures/circle.png").value();
+		test_texture = AssetLoader::load_texture_from_filepath(asset_dir + "textures/wall.jpg").value();
 		
 	}
 
