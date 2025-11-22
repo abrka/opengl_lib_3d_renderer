@@ -27,6 +27,7 @@
 
 class Renderer : public GLRenderer::RendererBase
 {
+private:
 	std::unique_ptr<GL3D::Mesh> test_mesh{};
 	std::unique_ptr<GL3D::Mesh> screen_quad_mesh{};
 
@@ -39,6 +40,7 @@ class Renderer : public GLRenderer::RendererBase
 	std::unique_ptr<GL3D::Texture> framebuffer_texture{};
 	std::unique_ptr<GL3D::Renderbuffer> framebuffer_renderbuffer{};
 
+public:
 	Camera cam{};
 
 public:
@@ -69,7 +71,7 @@ public:
 
 		const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
 
-		
+
 
 		auto screen_shader_res = GLRenderer::ShaderBuilder::build(asset_dir + "shaders/screen_frag.glsl", asset_dir + "shaders/screen_vertex.glsl");
 		if (!screen_shader_res.has_value()) {
@@ -77,7 +79,7 @@ public:
 			assert(false);
 		}
 		screen_shader = std::move(screen_shader_res.value());
-		
+
 		auto test_shader_res = GLRenderer::ShaderBuilder::build(asset_dir + "shaders/frag.glsl", asset_dir + "shaders/vertex.glsl");
 		if (!test_shader_res.has_value()) {
 			std::cout << test_shader_res.error().err_msg << "\n";
@@ -85,10 +87,10 @@ public:
 		}
 		test_shader = std::move(test_shader_res.value());
 
-		create_screen_framebuffer(); 
-
 		test_texture = TextureBuilder::build(asset_dir + "textures/wall.jpg").value();
-		
+
+		create_screen_framebuffer();
+
 	}
 
 	void render_user() override {
@@ -100,6 +102,14 @@ public:
 		glEnable(GL_BLEND); // enable blending function
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+
+		glm::mat4 model = glm::mat4{ 1.0f };
+		glm::mat4 view = cam.get_view_matrix();
+		auto [screen_width, screen_height] = window->get_width_and_height();
+		glm::mat4 projection = cam.get_projection_matrix(screen_width, screen_height);
+
+		glm::mat4 transform_matrix = projection * view * model;
+		test_shader->set_uniform("uMat", transform_matrix);
 		test_shader->set_texture("tex1", *test_texture, 1);
 		test_mesh->draw(*test_shader);
 
@@ -107,7 +117,7 @@ public:
 
 		glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+
 		screen_shader->set_texture("screen_texture", *framebuffer_texture, 0);
 		screen_quad_mesh->draw(*screen_shader);
 	}
