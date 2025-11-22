@@ -33,10 +33,10 @@ namespace AssetLoader {
 		switch (num_channels)
 		{
 		case 3:
-			return GL_SRGB;
+			return GL_RGB;
 			break;
 		case 4:
-			return GL_SRGB_ALPHA;
+			return GL_RGBA;
 			break;
 		default:
 			return std::nullopt;
