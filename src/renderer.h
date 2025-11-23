@@ -51,25 +51,25 @@ public:
 			glm::vec3 position{};
 			glm::vec2 texCoord{};
 		};
-		Vertex2 screen_quad_vertices[] = {
-			{{-1.0, 1.0,0.0}, {0.0,1.0}},
-			{{ 1.0, 1.0,0.0}, {1.0,1.0}},
-			{{ 1.0,-1.0,0.0}, {1.0,0.0}},
-			{{-1.0,-1.0,0.0}, {0.0,0.0}},
+		float screen_quad_vertices[] = {
+			-1.0, 1.0,0.0, 0.0,1.0,
+			 1.0, 1.0,0.0, 1.0,1.0,
+			 1.0,-1.0,0.0, 1.0,0.0,
+			-1.0,-1.0,0.0, 0.0,0.0,
 		};
-		Vertex2 test_quad_vertices[] = {
-			{{-0.2, 0.2,0.0}, {0.0,1.0}},
-			{{ 0.2, 0.2,0.0}, {1.0,1.0}},
-			{{ 0.2,-0.2,0.0}, {1.0,0.0}},
-			{{-0.2,-0.2,0.0}, {0.0,0.0}},
+		float test_quad_vertices[] = {
+			-0.2, 0.2,0.0, 0.0,1.0,
+			 0.2, 0.2,0.0, 1.0,1.0,
+			 0.2,-0.2,0.0, 1.0,0.0,
+			-0.2,-0.2,0.0, 0.0,0.0,
 		};
 		unsigned int quad_indices[] = {
 			0,1,3,1,2,3
 		};
 		int num_floats_per_attr[] = { 3,2 };
 
-		screen_quad_mesh = std::make_unique<GL3D::Mesh>(std::span<Vertex2>(screen_quad_vertices), std::span<int>(num_floats_per_attr), std::span<unsigned int>(quad_indices));
-		test_mesh = std::make_unique<GL3D::Mesh>(std::span<Vertex2>(test_quad_vertices), std::span<int>(num_floats_per_attr), std::span<unsigned int>(quad_indices));
+		screen_quad_mesh = std::make_unique<GL3D::Mesh>(std::span<float>(screen_quad_vertices), std::span<int>(num_floats_per_attr), std::span<unsigned int>(quad_indices));
+		test_mesh = std::make_unique<GL3D::Mesh>(std::span<float>(test_quad_vertices), std::span<int>(num_floats_per_attr), std::span<unsigned int>(quad_indices));
 		
 
 		const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
