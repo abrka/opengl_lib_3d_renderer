@@ -30,7 +30,7 @@ class Renderer : public GLRenderer::RendererBase
 private:
 	std::unique_ptr<GL3D::Mesh> test_mesh{};
 	std::unique_ptr<GL3D::Mesh> screen_quad_mesh{};
-	MeshBuilder::NodeData gun_mesh_result{};
+	MeshBuilder::Scene gun_mesh_result{};
 
 	std::unique_ptr<GL3D::ShaderProgram> test_shader{};
 	std::unique_ptr<GL3D::ShaderProgram> gun_shader{};
@@ -73,7 +73,7 @@ public:
 		
 
 		const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
-		gun_mesh_result = MeshBuilder::build(asset_dir + "meshes/gun/gun.gltf");
+		gun_mesh_result = MeshBuilder::build(asset_dir + "meshes/candle/brass_candleholders_1k.gltf").value();
 		
 		gun_shader = GLRenderer::ShaderBuilder::build(asset_dir + "shaders/frag_model.glsl", asset_dir + "shaders/vertex_model.glsl").value();
 
@@ -96,18 +96,22 @@ public:
 		create_screen_framebuffer();
 
 	}
-	void render_meshes(const MeshBuilder::NodeData& node) {
-		for (size_t i = 0; i < node.process_mesh_results.size(); i++) {
-			const auto& mesh = *node.process_mesh_results[i].mesh;
+	void draw_single_node(const MeshBuilder::Node& node) {
+		for (size_t i = 0; i < node.meshes.size(); i++) {
+			const auto& mesh = *node.meshes[i].mesh;
 			mesh.draw(*gun_shader);
 		}
 	}
-	void draw_gun_mesh(const MeshBuilder::NodeData& node) {
-		render_meshes(node);
-		for (const auto& child : node.child_nodes) {
-			draw_gun_mesh(child);
+	void draw_node(const MeshBuilder::Node& node) {
+		draw_single_node(node);
+		for (size_t i = 0; i < node.child_nodes.size(); i++) {
+			draw_node(*node.child_nodes[i]);
 		}
 	}
+	void draw_scene(const MeshBuilder::Scene& scene) {
+		draw_node(*scene.root_node);
+	}
+
 	void render_user() override {
 		framebuffer->bind();
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -130,7 +134,7 @@ public:
 		test_mesh->draw(*test_shader);
 
 		gun_shader->set_uniform("uMat", transform_matrix);
-		draw_gun_mesh(gun_mesh_result);
+		draw_scene(gun_mesh_result);
 
 		framebuffer->unbind();
 

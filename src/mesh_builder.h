@@ -11,6 +11,8 @@
 
 #include <GL3D/mesh.h>
 
+#include "assimp_glm.h"
+
 namespace MeshBuilder {
 
 	enum class VertexAttribType {
@@ -22,7 +24,6 @@ namespace MeshBuilder {
 	struct VertexAttrib {
 		size_t size{}; // this is the size of one vertex attribute based on the size of float. if an attrib contains 3 floats, the size will be 3
 		VertexAttribType type{};
-		size_t index{}; // index for multiple texture coordinates
 	};
 	std::vector<int> get_num_floats_per_attribute(const std::vector<VertexAttrib>& vertex_attribs) {
 		std::vector<int> num_floats_per_attribute{};
@@ -31,43 +32,41 @@ namespace MeshBuilder {
 		}
 		return num_floats_per_attribute;
 	}
-	struct MeshData {
+	struct Mesh {
 		std::unique_ptr<GL3D::Mesh> mesh{};
 		std::vector<VertexAttrib> vertex_attribs{};
 	};
-	MeshData process_mesh(const aiMesh* mesh) {
+	Mesh process_mesh(const aiMesh* ai_mesh) {
 		std::vector<float> vertices{};
 		std::vector<unsigned int> indices{};
 
 		std::vector<VertexAttrib> vertex_attribs{};
-		if (mesh->HasPositions()) {
-			vertex_attribs.push_back({3, VertexAttribType::position});
+		if (ai_mesh->HasPositions()) {
+			vertex_attribs.push_back({ 3, VertexAttribType::position });
 		}
-		if (mesh->HasNormals()) {
-			vertex_attribs.push_back({3, VertexAttribType::normal });
+		if (ai_mesh->HasNormals()) {
+			vertex_attribs.push_back({ 3, VertexAttribType::normal });
 		}
-		size_t valid_tex_coord_idx = 0;
 		for (size_t i = 0; i < AI_MAX_NUMBER_OF_TEXTURECOORDS; i++)
 		{
-			auto ai_tex_coord = mesh->mTextureCoords[i];
+			auto ai_tex_coord = ai_mesh->mTextureCoords[i];
 			if (!ai_tex_coord) {
 				continue;
 			}
 			vertex_attribs.push_back({ 2, VertexAttribType::tex_coord });
-			valid_tex_coord_idx++;
 		}
 
 		// process vertices
-		for (size_t i = 0; i < mesh->mNumVertices; i++)
+		for (size_t i = 0; i < ai_mesh->mNumVertices; i++)
 		{
 			// process position;
-			auto ai_pos = mesh->mVertices[i];
+			auto ai_pos = ai_mesh->mVertices[i];
 			vertices.push_back(ai_pos.x);
 			vertices.push_back(ai_pos.y);
 			vertices.push_back(ai_pos.z);
 			// process normals
-			if (mesh->HasNormals()) {
-				auto ai_normal = mesh->mNormals[i];
+			if (ai_mesh->HasNormals()) {
+				auto ai_normal = ai_mesh->mNormals[i];
 				vertices.push_back(ai_normal.x);
 				vertices.push_back(ai_normal.y);
 				vertices.push_back(ai_normal.z);
@@ -75,18 +74,18 @@ namespace MeshBuilder {
 			// process tex coords
 			for (size_t j = 0; j < AI_MAX_NUMBER_OF_TEXTURECOORDS; j++)
 			{
-				auto ai_tex_coord = mesh->mTextureCoords[j];
+				auto ai_tex_coord = ai_mesh->mTextureCoords[j];
 				if (!ai_tex_coord) {
 					continue;
 				}
 				vertices.push_back(ai_tex_coord[i].x);
 				vertices.push_back(ai_tex_coord[i].y);
 			}
-		} 
+		}
 		// process indices
-		for (size_t i = 0; i < mesh->mNumFaces; i++)
+		for (size_t i = 0; i < ai_mesh->mNumFaces; i++)
 		{
-			auto& ai_face = mesh->mFaces[i];
+			auto& ai_face = ai_mesh->mFaces[i];
 			for (size_t j = 0; j < ai_face.mNumIndices; j++)
 			{
 				auto indice = ai_face.mIndices[j];
@@ -96,45 +95,52 @@ namespace MeshBuilder {
 
 		auto num_floats_per_attr = get_num_floats_per_attribute(vertex_attribs);
 		auto created_mesh = std::make_unique<GL3D::Mesh>(std::span<float>(vertices.data(), vertices.size()), std::span<int>(num_floats_per_attr.data(), num_floats_per_attr.size()), std::span<unsigned int>(indices.data(), indices.size()));
-		MeshData ret{};
-		ret.mesh = std::move(created_mesh);
-		ret.vertex_attribs = vertex_attribs;
-		return ret;
+		return Mesh{ std::move(created_mesh), vertex_attribs };
 	}
-	struct NodeData {
+	struct Node {
 		std::string name{};
-		std::vector<MeshData> process_mesh_results{};
-		std::vector<NodeData> child_nodes{};
+		glm::mat4 transform{};
+		std::vector<Mesh> meshes{};
+		Node* parent{};
+		std::vector<std::unique_ptr<Node>> child_nodes{};
 	};
-	NodeData process_single_node(const aiScene* scene, const aiNode* node) {
-		NodeData node_data{};
-		aiString node_name = node->mName;
-		node_data.name = std::string(node_name.data, node_name.length);
+	std::unique_ptr<Node> process_single_node(const aiScene* scene, const aiNode* node) {
+		auto node_data = std::make_unique<Node>();
+		node_data->name = std::string(node->mName.data, node->mName.length);
+		node_data->transform = assimp_matrix_to_glm_matrix(node->mTransformation);
 		for (size_t i = 0; i < node->mNumMeshes; i++)
 		{
 			unsigned int mesh_idx = node->mMeshes[i];
 			auto result_mesh = process_mesh(scene->mMeshes[mesh_idx]);
-			node_data.process_mesh_results.push_back(std::move(result_mesh));
+			node_data->meshes.push_back(std::move(result_mesh));
 		}
 		return node_data;
 	}
-	NodeData process_node(const aiScene* scene, const aiNode* parent_node) {
-		NodeData node_data_result = process_single_node(scene, parent_node);
+	std::unique_ptr<Node> process_node(const aiScene* scene, const aiNode* parent_node) {
+		auto node_data_result = process_single_node(scene, parent_node);
 		// process children recursively
 		for (size_t i = 0; i < parent_node->mNumChildren; i++) {
-			NodeData node_child = process_node(scene, parent_node->mChildren[i]);
-			node_data_result.child_nodes.push_back(std::move(node_child));
+			auto node_child = process_node(scene, parent_node->mChildren[i]);
+			node_child->parent = node_data_result.get();
+			node_data_result->child_nodes.push_back(std::move(node_child));
 		}
 		return node_data_result;
 	}
 	bool is_assimp_scene_valid(const aiScene* assimp_scene) {
 		return !(!assimp_scene || assimp_scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !assimp_scene->mRootNode);
 	}
-	NodeData build(std::string filepath) {
+	struct Scene {
+		std::unique_ptr<Node> root_node{};
+		std::string name{};
+	};
+	std::optional<Scene> build(std::string filepath) {
 		Assimp::Importer assimp_importer{};
 		const aiScene* assimp_scene = assimp_importer.ReadFile(filepath, aiProcess_Triangulate | aiProcess_FlipUVs);
-		assert(is_assimp_scene_valid(assimp_scene));
-
-		return process_node(assimp_scene, assimp_scene->mRootNode);
+		if (!is_assimp_scene_valid(assimp_scene)) {
+			return std::nullopt;
+		}
+		auto root_node = process_node(assimp_scene, assimp_scene->mRootNode);
+		std::string scene_name = std::string(assimp_scene->mName.data, assimp_scene->mName.length);
+		return Scene{ std::move(root_node), scene_name };
 	}
 }
