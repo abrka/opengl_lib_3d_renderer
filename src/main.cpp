@@ -1,8 +1,8 @@
 #include "renderer.h"
 
 
-static float mouse_sensitivity = 0.005;
-static float cam_speed = 0.02;
+static float mouse_sensitivity = 0.005f;
+static float cam_speed = 0.02f;
 
 static void process_input(GLFWwindow* window, Camera& cam);
 
