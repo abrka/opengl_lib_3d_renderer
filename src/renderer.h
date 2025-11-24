@@ -99,6 +99,13 @@ public:
 	void draw_single_node(const MeshBuilder::Node& node) {
 		for (size_t i = 0; i < node.meshes.size(); i++) {
 			const auto& mesh = *node.meshes[i].mesh;
+			const glm::mat4 global_transform = node.get_global_transform();;
+			glm::mat4 view = cam.get_view_matrix();
+			auto [screen_width, screen_height] = window->get_width_and_height();
+			glm::mat4 projection = cam.get_projection_matrix(screen_width, screen_height);
+
+			glm::mat4 transform_matrix = projection * view * global_transform;
+			gun_shader->set_uniform("uMat", transform_matrix);
 			mesh.draw(*gun_shader);
 		}
 	}
@@ -133,7 +140,6 @@ public:
 		test_shader->set_texture("tex1", *test_texture, 1);
 		test_mesh->draw(*test_shader);
 
-		gun_shader->set_uniform("uMat", transform_matrix);
 		draw_scene(gun_mesh_result);
 
 		framebuffer->unbind();

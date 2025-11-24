@@ -103,6 +103,13 @@ namespace MeshBuilder {
 		std::vector<Mesh> meshes{};
 		Node* parent{};
 		std::vector<std::unique_ptr<Node>> child_nodes{};
+
+		glm::mat4 get_global_transform() const {
+			if (!parent) {
+				return glm::mat4(1.0f);
+			}
+			return transform * parent->get_global_transform();
+		}
 	};
 	std::unique_ptr<Node> process_single_node(const aiScene* scene, const aiNode* node) {
 		auto node_data = std::make_unique<Node>();
