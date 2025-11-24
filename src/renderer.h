@@ -96,17 +96,20 @@ public:
 		create_screen_framebuffer();
 
 	}
+	void draw_mesh(const MeshBuilder::Node& node, const MeshBuilder::Mesh& mesh) {
+		const glm::mat4 global_transform = node.get_global_transform();;
+		glm::mat4 view = cam.get_view_matrix();
+		auto [screen_width, screen_height] = window->get_width_and_height();
+		glm::mat4 projection = cam.get_projection_matrix(screen_width, screen_height);
+		glm::mat4 transform_matrix = projection * view * global_transform;
+
+		gun_shader->set_uniform("uMat", transform_matrix);
+		gun_shader->set_texture("uDiffuse", *mesh.material.diffuse_texture, 0);
+		mesh.mesh->draw(*gun_shader);
+	}
 	void draw_single_node(const MeshBuilder::Node& node) {
 		for (size_t i = 0; i < node.meshes.size(); i++) {
-			const auto& mesh = *node.meshes[i].mesh;
-			const glm::mat4 global_transform = node.get_global_transform();;
-			glm::mat4 view = cam.get_view_matrix();
-			auto [screen_width, screen_height] = window->get_width_and_height();
-			glm::mat4 projection = cam.get_projection_matrix(screen_width, screen_height);
-
-			glm::mat4 transform_matrix = projection * view * global_transform;
-			gun_shader->set_uniform("uMat", transform_matrix);
-			mesh.draw(*gun_shader);
+			draw_mesh(node, node.meshes[i]);
 		}
 	}
 	void draw_node(const MeshBuilder::Node& node) {
@@ -121,7 +124,7 @@ public:
 
 	void render_user() override {
 		framebuffer->bind();
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(30.0f / 255.0f, 30.0f / 255.0f, 39.0f / 255.0f, 1.0f);
 		glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
