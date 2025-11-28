@@ -10,12 +10,13 @@ struct Camera {
 	double fov = 45;
 	double near_plane_dist = 0.1;
 	double far_plane_dist = 100.0;
+	double aspect_ratio = 1.0f; // (screen_width / screen_height)
 
-	glm::mat4 get_projection_matrix(double screen_width, double screen_height) {
-		return glm::perspective(glm::radians(fov), (screen_width / screen_height), near_plane_dist, far_plane_dist);
+	glm::mat4 get_projection_matrix() const {
+		return glm::perspective(glm::radians(fov), aspect_ratio, near_plane_dist, far_plane_dist);
 	}
 
-	glm::mat4 get_view_matrix() {
+	glm::mat4 get_view_matrix() const {
 		glm::vec3 eye = position;
 		glm::vec3 forward = orientation[2];
 		glm::vec3 center = position + forward;
