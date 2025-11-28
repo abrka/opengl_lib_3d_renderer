@@ -57,16 +57,21 @@ namespace MeshBuilder {
 	}
 	std::unique_ptr<GL3D::Texture> process_texture(std::filesystem::path model_dir, const aiMaterial* ai_material,const aiTextureType ai_texture_type) {
 		auto texture_paths = get_all_texture_paths_from_type(ai_material, ai_texture_type);
-		assert(texture_paths.size() == 1);
+		if (texture_paths.size() == 0) {
+			return nullptr;
+		}
+		if (texture_paths.size() > 1) {
+			assert(false && "more than 1 texture found for a type");
+		}
 		std::filesystem::path texture_path = texture_paths[0];
 		auto texture = TextureBuilder::build(model_dir / texture_path).value_or(nullptr);
 		return texture;
 	}
 	Material process_material(std::filesystem::path model_dir, const aiMaterial* ai_material) {
 		auto diffuse_texture = process_texture(model_dir, ai_material, aiTextureType_BASE_COLOR);
-		auto metallic_texture = process_texture(model_dir, ai_material, aiTextureType_BASE_COLOR);
-		auto roughness_texture = process_texture(model_dir, ai_material, aiTextureType_BASE_COLOR);
-		auto normal_texture = process_texture(model_dir, ai_material, aiTextureType_BASE_COLOR);
+		auto metallic_texture = process_texture(model_dir, ai_material, aiTextureType_METALNESS);
+		auto roughness_texture = process_texture(model_dir, ai_material, aiTextureType_DIFFUSE_ROUGHNESS);
+		auto normal_texture = process_texture(model_dir, ai_material, aiTextureType_NORMALS);
 		return Material{ std::move(diffuse_texture), std::move(metallic_texture), std::move(roughness_texture), std::move(normal_texture) };
 	}
 
