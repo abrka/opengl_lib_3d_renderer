@@ -7,7 +7,7 @@ uniform sampler2D uDiffuse;
 uniform sampler2D uNormal;
 uniform sampler2D uMetallic;
 uniform sampler2D uRoughness;
-uniform int uWhich;
+uniform int uWhich = 0;
 
 void main()
 {   

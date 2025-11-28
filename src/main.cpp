@@ -14,12 +14,16 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 int main() {
 	auto window = std::make_shared<GLExternalRAII::Window>(800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR);
 	auto renderer = std::make_shared<Renderer>(window);
-	
+
+	renderer->cam.position = glm::vec3{ 0, 0, -1 };
+
+	const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
+	auto candle_scene = MeshBuilder::build(asset_dir + "meshes/candle/brass_candleholders_1k.gltf").value();
+	renderer->scenes.push_back(std::move(candle_scene));
+
 	glfwSetInputMode(window->glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetWindowUserPointer(window->glfw_window, renderer.get());
 	glfwSetFramebufferSizeCallback(window->glfw_window, framebuffer_size_callback);
-
-	renderer->cam.position = glm::vec3{ 0, 0, -1 };
 
 	while (window->is_running()) {
 		process_input(window->glfw_window, renderer->cam);

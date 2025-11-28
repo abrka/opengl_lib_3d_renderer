@@ -28,23 +28,20 @@
 
 class Renderer : public GLRenderer::RendererBase
 {
+public:
+	Camera cam{};
+	std::vector<MeshBuilder::Scene> scenes{};
+
 private:
-	std::unique_ptr<GL3D::Mesh> test_mesh{};
+	std::unique_ptr<GL3D::ShaderProgram> pbr_shader{};
+
 	std::unique_ptr<GL3D::Mesh> screen_quad_mesh{};
-	MeshBuilder::Scene gun_mesh_result{};
-
-	std::unique_ptr<GL3D::ShaderProgram> test_shader{};
-	std::unique_ptr<GL3D::ShaderProgram> gun_shader{};
 	std::unique_ptr<GL3D::ShaderProgram> screen_shader{};
-
-	std::unique_ptr<GL3D::Texture> test_texture{};
 
 	std::unique_ptr<GL3D::Framebuffer> framebuffer{};
 	std::unique_ptr<GL3D::Texture> framebuffer_texture{};
 	std::unique_ptr<GL3D::Renderbuffer> framebuffer_renderbuffer{};
 
-public:
-	Camera cam{};
 
 public:
 	Renderer(std::shared_ptr<GLExternalRAII::Window> window) : RendererBase(window) {
@@ -58,25 +55,20 @@ public:
 			 1.0f,-1.0f,0.0f, 1.0f,0.0f,
 			-1.0f,-1.0f,0.0f, 0.0f,0.0f,
 		};
-		float test_quad_vertices[] = {
-			-0.2f, 0.2f,0.0f, 0.0f,1.0f,
-			 0.2f, 0.2f,0.0f, 1.0f,1.0f,
-			 0.2f,-0.2f,0.0f, 1.0f,0.0f,
-			-0.2f,-0.2f,0.0f, 0.0f,0.0f,
-		};
 		unsigned int quad_indices[] = {
 			0,1,3,1,2,3
 		};
 		int num_floats_per_attr[] = { 3,2 };
-
 		screen_quad_mesh = std::make_unique<GL3D::Mesh>(std::span<float>(screen_quad_vertices), std::span<int>(num_floats_per_attr), std::span<unsigned int>(quad_indices));
-		test_mesh = std::make_unique<GL3D::Mesh>(std::span<float>(test_quad_vertices), std::span<int>(num_floats_per_attr), std::span<unsigned int>(quad_indices));
-		
 
 		const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
-		gun_mesh_result = MeshBuilder::build(asset_dir + "meshes/candle/brass_candleholders_1k.gltf").value();
-		
-		gun_shader = GLRenderer::ShaderBuilder::build(asset_dir + "shaders/frag_model.glsl", asset_dir + "shaders/vertex_model.glsl").value();
+
+		auto pbr_shader_res = GLRenderer::ShaderBuilder::build(asset_dir + "shaders/pbr_frag.glsl", asset_dir + "shaders/pbr_vertex.glsl");
+		if (!pbr_shader_res.has_value()) {
+			std::cout << pbr_shader_res.error().err_msg << "\n";
+			assert(false);
+		}
+		pbr_shader = std::move(pbr_shader_res.value());
 
 		auto screen_shader_res = GLRenderer::ShaderBuilder::build(asset_dir + "shaders/screen_frag.glsl", asset_dir + "shaders/screen_vertex.glsl");
 		if (!screen_shader_res.has_value()) {
@@ -84,15 +76,6 @@ public:
 			assert(false);
 		}
 		screen_shader = std::move(screen_shader_res.value());
-
-		auto test_shader_res = GLRenderer::ShaderBuilder::build(asset_dir + "shaders/frag.glsl", asset_dir + "shaders/vertex.glsl");
-		if (!test_shader_res.has_value()) {
-			std::cout << test_shader_res.error().err_msg << "\n";
-			assert(false);
-		}
-		test_shader = std::move(test_shader_res.value());
-
-		test_texture = TextureBuilder::build(asset_dir + "textures/wall.jpg").value();
 
 		create_screen_framebuffer();
 
@@ -103,6 +86,7 @@ public:
 		cam.aspect_ratio = screen_width / screen_height;
 
 		framebuffer->bind();
+
 		glClearColor(29.0f / 255.0f, 30.0f / 255.0f, 39.0f / 255.0f, 1.0f);
 		glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -110,21 +94,10 @@ public:
 		glEnable(GL_BLEND); // enable blending function
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		glm::mat4 model = glm::mat4{ 1.0f };
-		glm::mat4 view = cam.get_view_matrix();
-		glm::mat4 projection = cam.get_projection_matrix();
-		glm::mat4 transform_matrix = projection * view * model;
-		test_shader->set_uniform("uMat", transform_matrix);
-		test_shader->set_texture("tex1", *test_texture, 1);
-		test_mesh->draw(*test_shader);
-
-		static int which_texture_displayed = 0;
-		ImGui::Begin("Test");
-		ImGui::InputInt("which texture should be displayed", &which_texture_displayed);
-		ImGui::End();
-		gun_shader->set_uniform("uWhich", which_texture_displayed);
-		draw_scene(cam, gun_mesh_result, *gun_shader);
-
+		for (const auto& scene : scenes) {
+			draw_scene(cam, scene, *pbr_shader);
+		}
+		
 		framebuffer->unbind();
 
 		glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
