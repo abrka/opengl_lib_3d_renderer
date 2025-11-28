@@ -18,6 +18,7 @@
 #include "mesh_builder.h"
 #include "texture_builder.h"
 #include "camera.h"
+#include "scene_renderer.h"
 #include "stb_image_raii.h"
 
 #define STRINGIFY(x) #x
@@ -96,54 +97,33 @@ public:
 		create_screen_framebuffer();
 
 	}
-	void draw_mesh(const MeshBuilder::Node& node, const MeshBuilder::Mesh& mesh) {
-		const glm::mat4 global_transform = node.get_global_transform();;
-		glm::mat4 view = cam.get_view_matrix();
-		auto [screen_width, screen_height] = window->get_width_and_height();
-		glm::mat4 projection = cam.get_projection_matrix(screen_width, screen_height);
-		glm::mat4 transform_matrix = projection * view * global_transform;
-
-		gun_shader->set_uniform("uMat", transform_matrix);
-		gun_shader->set_texture("uDiffuse", *mesh.material.diffuse_texture, 0);
-		mesh.mesh->draw(*gun_shader);
-	}
-	void draw_single_node(const MeshBuilder::Node& node) {
-		for (size_t i = 0; i < node.meshes.size(); i++) {
-			draw_mesh(node, node.meshes[i]);
-		}
-	}
-	void draw_node(const MeshBuilder::Node& node) {
-		draw_single_node(node);
-		for (size_t i = 0; i < node.child_nodes.size(); i++) {
-			draw_node(*node.child_nodes[i]);
-		}
-	}
-	void draw_scene(const MeshBuilder::Scene& scene) {
-		draw_node(*scene.root_node);
-	}
 
 	void render_user() override {
+		auto [screen_width, screen_height] = window->get_width_and_height();
+		cam.aspect_ratio = screen_width / screen_height;
+
 		framebuffer->bind();
-		glClearColor(30.0f / 255.0f, 30.0f / 255.0f, 39.0f / 255.0f, 1.0f);
+		glClearColor(29.0f / 255.0f, 30.0f / 255.0f, 39.0f / 255.0f, 1.0f);
 		glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glEnable(GL_BLEND); // enable blending function
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-
 		glm::mat4 model = glm::mat4{ 1.0f };
 		glm::mat4 view = cam.get_view_matrix();
-		auto [screen_width, screen_height] = window->get_width_and_height();
-		glm::mat4 projection = cam.get_projection_matrix(screen_width, screen_height);
-
+		glm::mat4 projection = cam.get_projection_matrix();
 		glm::mat4 transform_matrix = projection * view * model;
-
 		test_shader->set_uniform("uMat", transform_matrix);
 		test_shader->set_texture("tex1", *test_texture, 1);
 		test_mesh->draw(*test_shader);
 
-		draw_scene(gun_mesh_result);
+		static int which_texture_displayed = 0;
+		ImGui::Begin("Test");
+		ImGui::InputInt("which texture should be displayed", &which_texture_displayed);
+		ImGui::End();
+		gun_shader->set_uniform("uWhich", which_texture_displayed);
+		draw_scene(cam, gun_mesh_result, *gun_shader);
 
 		framebuffer->unbind();
 
