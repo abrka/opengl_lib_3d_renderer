@@ -7,7 +7,6 @@ uniform sampler2D uDiffuse;
 uniform sampler2D uNormal;
 uniform sampler2D uMetallic;
 uniform sampler2D uRoughness;
-uniform int uWhich = 0;
 
 void main()
 {   
@@ -16,9 +15,5 @@ void main()
 	vec4 metallic = texture2D(uMetallic, oTexCoord);
 	vec4 roughness = texture2D(uRoughness, oTexCoord);
 
-	if (uWhich == 0){ FragColor = diff ;	}
-	if (uWhich == 1){ FragColor = normal;	}
-	if (uWhich == 2){ FragColor = metallic;	}
-	if (uWhich == 3){ FragColor = roughness;}
-
+	FragColor = diff;
 }

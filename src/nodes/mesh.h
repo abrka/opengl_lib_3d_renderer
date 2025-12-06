@@ -28,10 +28,11 @@ namespace Engine {
 			glm::mat4 transform_matrix = projection * view * global_transform;
 			shader->set_uniform("uMat", transform_matrix);
 			auto& material = mesh.material;
-			if (material.diffuse_texture) { shader->set_texture("uDiffuse", *material.diffuse_texture, 0); }
-			if (material.normal_texture) { shader->set_texture("uNormal", *material.normal_texture, 1); }
-			if (material.roughness_texture) { shader->set_texture("uRoughness", *material.roughness_texture, 2); }
-			if (material.metallic_texture) { shader->set_texture("uMetallic", *material.metallic_texture, 3); }
+			//GL3D::Texture* diffuse_texture = material.textures.at(aiTextureType_DIFFUSE).get();
+			//if (diffuse_texture) { shader->set_texture("uDiffuse", *diffuse_texture, 0); }
+			//if (material.normal_texture) { shader->set_texture("uNormal", *material.normal_texture, 1); }
+			//if (material.roughness_texture) { shader->set_texture("uRoughness", *material.roughness_texture, 2); }
+			//if (material.metallic_texture) { shader->set_texture("uMetallic", *material.metallic_texture, 3); }
 			mesh.mesh->draw(*shader);
 		}
 		void draw_single_node(const Camera& cam, const MeshBuilder::Node& node) {

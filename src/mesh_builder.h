@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <span>
+#include <map>
 
 #include <tl/expected.hpp>
 #include <assimp/Importer.hpp>
@@ -37,10 +38,7 @@ namespace MeshBuilder {
 	}
 
 	struct Material {
-		std::unique_ptr<GL3D::Texture> diffuse_texture{};
-		std::unique_ptr<GL3D::Texture> metallic_texture{};
-		std::unique_ptr<GL3D::Texture> roughness_texture{};
-		std::unique_ptr<GL3D::Texture> normal_texture{};
+		std::map<aiTextureType, std::unique_ptr<GL3D::Texture>> textures{};
 	};
 	std::vector<std::string> get_all_texture_paths_from_type(const aiMaterial* ai_material, const aiTextureType ai_texture_type) {
 		std::vector<std::string> texture_paths{};
@@ -68,11 +66,17 @@ namespace MeshBuilder {
 		return texture;
 	}
 	Material process_material(std::filesystem::path model_dir, const aiMaterial* ai_material) {
-		auto diffuse_texture = process_texture(model_dir, ai_material, aiTextureType_BASE_COLOR);
-		auto metallic_texture = process_texture(model_dir, ai_material, aiTextureType_METALNESS);
-		auto roughness_texture = process_texture(model_dir, ai_material, aiTextureType_DIFFUSE_ROUGHNESS);
-		auto normal_texture = process_texture(model_dir, ai_material, aiTextureType_NORMALS);
-		return Material{ std::move(diffuse_texture), std::move(metallic_texture), std::move(roughness_texture), std::move(normal_texture) };
+		Material mat{};
+		for (size_t i = 0; i < AI_TEXTURE_TYPE_MAX; i++)
+		{
+			aiTextureType tex_type = static_cast<aiTextureType>(i);
+			auto texture = process_texture(model_dir, ai_material, tex_type);
+			if (texture) {
+				mat.textures[tex_type] = std::move(texture);
+			}
+			
+		}
+		return mat;
 	}
 
 	struct Mesh {

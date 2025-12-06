@@ -19,19 +19,20 @@ int main() {
 
 	std::shared_ptr<GL3D::ShaderProgram> pbr_shader = GLRenderer::ShaderBuilder::build(asset_dir + "shaders/pbr_frag.glsl", asset_dir + "shaders/pbr_vertex.glsl").value();
 	std::shared_ptr<MeshBuilder::Scene> candle_scene = MeshBuilder::build(asset_dir + "meshes/candle/brass_candleholders_1k.gltf").value();
-	
-	auto candle_mesh_node_1 = std::make_unique<Engine::Mesh>();
-	candle_mesh_node_1->scene =  candle_scene;
-	candle_mesh_node_1->shader = pbr_shader;
+	std::shared_ptr<MeshBuilder::Scene> backpack_scene = MeshBuilder::build(asset_dir + "meshes/backpack/backpack.obj").value();
 
-	auto candle_mesh_node_2 = std::make_unique<Engine::Mesh>();
-	candle_mesh_node_2->scene = candle_scene;
-	candle_mesh_node_2->shader = pbr_shader;
-	candle_mesh_node_2->transform = glm::translate(glm::mat4(1.0f), glm::vec3{1.0,0.5,1.0});
+	auto mesh_node_1 = std::make_unique<Engine::Mesh>();
+	mesh_node_1->scene =  candle_scene;
+	mesh_node_1->shader = pbr_shader;
+
+	auto mesh_node_2 = std::make_unique<Engine::Mesh>();
+	mesh_node_2->scene = candle_scene;
+	mesh_node_2->shader = pbr_shader;
+	mesh_node_2->transform = glm::translate(glm::mat4(1.0f), glm::vec3{1.0,0.5,1.0});
 
 	auto root_node = std::make_shared<Engine::Node>();
-	root_node->children.push_back(std::move(candle_mesh_node_1));
-	root_node->children.push_back(std::move(candle_mesh_node_2));
+	root_node->children.push_back(std::move(mesh_node_2));
+	root_node->children.push_back(std::move(mesh_node_1));
 
 	renderer->root_node = root_node;
 
