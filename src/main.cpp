@@ -1,5 +1,5 @@
 #include "renderer.h"
-
+#include "nodes/mesh.h"
 
 static float mouse_sensitivity = 0.005f;
 static float cam_speed = 0.02f;
@@ -12,21 +12,37 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 }
 
 int main() {
+	const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
 	auto window = std::make_shared<GLExternalRAII::Window>(800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR);
 	auto renderer = std::make_shared<Renderer>(window);
+	
 
-	renderer->cam.position = glm::vec3{ 0, 0, -1 };
+	std::shared_ptr<GL3D::ShaderProgram> pbr_shader = GLRenderer::ShaderBuilder::build(asset_dir + "shaders/pbr_frag.glsl", asset_dir + "shaders/pbr_vertex.glsl").value();
+	std::shared_ptr<MeshBuilder::Scene> candle_scene = MeshBuilder::build(asset_dir + "meshes/candle/brass_candleholders_1k.gltf").value();
+	
+	auto candle_mesh_node_1 = std::make_unique<Engine::Mesh>();
+	candle_mesh_node_1->scene =  candle_scene;
+	candle_mesh_node_1->shader = pbr_shader;
 
-	const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
-	auto candle_scene = MeshBuilder::build(asset_dir + "meshes/candle/brass_candleholders_1k.gltf").value();
-	renderer->scenes.push_back(std::move(candle_scene));
+	auto candle_mesh_node_2 = std::make_unique<Engine::Mesh>();
+	candle_mesh_node_2->scene = candle_scene;
+	candle_mesh_node_2->shader = pbr_shader;
+	candle_mesh_node_2->transform = glm::translate(glm::mat4(1.0f), glm::vec3{1.0,0.5,1.0});
+
+	auto root_node = std::make_shared<Engine::Node>();
+	root_node->children.push_back(std::move(candle_mesh_node_1));
+	root_node->children.push_back(std::move(candle_mesh_node_2));
+
+	renderer->root_node = root_node;
+
+	renderer->render_ctx.cam.position = glm::vec3{ 0, 0, -1 };
 
 	glfwSetInputMode(window->glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetWindowUserPointer(window->glfw_window, renderer.get());
 	glfwSetFramebufferSizeCallback(window->glfw_window, framebuffer_size_callback);
 
 	while (window->is_running()) {
-		process_input(window->glfw_window, renderer->cam);
+		process_input(window->glfw_window, renderer->render_ctx.cam);
 		double prev_time = glfwGetTime();
 		renderer->render();
 		double delta = glfwGetTime() - prev_time;

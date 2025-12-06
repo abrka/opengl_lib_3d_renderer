@@ -187,7 +187,7 @@ namespace MeshBuilder {
 		std::unique_ptr<Node> root_node{};
 		std::string name{};
 	};
-	tl::expected<Scene, std::string> build(std::filesystem::path filepath) {
+	tl::expected<std::unique_ptr<Scene>, std::string> build(std::filesystem::path filepath) {
 		Assimp::Importer assimp_importer{};
 		const aiScene* assimp_scene = assimp_importer.ReadFile(filepath.string().c_str(), aiProcess_Triangulate | aiProcess_FlipUVs);
 		if (!is_assimp_scene_valid(assimp_scene)) {
@@ -196,6 +196,6 @@ namespace MeshBuilder {
 		std::filesystem::path model_dir = filepath.parent_path();
 		auto root_node = process_node(model_dir, assimp_scene, assimp_scene->mRootNode);
 		std::string scene_name = std::string(assimp_scene->mName.data, assimp_scene->mName.length);
-		return Scene{ std::move(root_node), scene_name };
+		return std::make_unique<Scene>( std::move(root_node), scene_name );
 	}
 }

@@ -18,8 +18,9 @@
 #include "mesh_builder.h"
 #include "texture_builder.h"
 #include "camera.h"
-#include "scene_renderer.h"
 #include "stb_image_raii.h"
+
+#include "nodes/mesh.h"
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -29,12 +30,10 @@
 class Renderer : public GLRenderer::RendererBase
 {
 public:
-	Camera cam{};
-	std::vector<MeshBuilder::Scene> scenes{};
+	Engine::RenderContext render_ctx{};
+	std::weak_ptr<Engine::Node> root_node{};
 
 private:
-	std::unique_ptr<GL3D::ShaderProgram> pbr_shader{};
-
 	std::unique_ptr<GL3D::Mesh> screen_quad_mesh{};
 	std::unique_ptr<GL3D::ShaderProgram> screen_shader{};
 
@@ -63,13 +62,6 @@ public:
 
 		const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
 
-		auto pbr_shader_res = GLRenderer::ShaderBuilder::build(asset_dir + "shaders/pbr_frag.glsl", asset_dir + "shaders/pbr_vertex.glsl");
-		if (!pbr_shader_res.has_value()) {
-			std::cout << pbr_shader_res.error().err_msg << "\n";
-			assert(false);
-		}
-		pbr_shader = std::move(pbr_shader_res.value());
-
 		auto screen_shader_res = GLRenderer::ShaderBuilder::build(asset_dir + "shaders/screen_frag.glsl", asset_dir + "shaders/screen_vertex.glsl");
 		if (!screen_shader_res.has_value()) {
 			std::cout << screen_shader_res.error().err_msg << "\n";
@@ -83,7 +75,7 @@ public:
 
 	void render_user() override {
 		auto [screen_width, screen_height] = window->get_width_and_height();
-		cam.aspect_ratio = screen_width / screen_height;
+		render_ctx.cam.aspect_ratio = screen_width / screen_height;
 
 		framebuffer->bind();
 
@@ -94,9 +86,7 @@ public:
 		glEnable(GL_BLEND); // enable blending function
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		for (const auto& scene : scenes) {
-			draw_scene(cam, scene, *pbr_shader);
-		}
+		render_node(*root_node.lock());
 		
 		framebuffer->unbind();
 
@@ -119,5 +109,15 @@ private:
 		framebuffer_renderbuffer = std::make_unique<GL3D::Renderbuffer>(GL_DEPTH24_STENCIL8, window_width, window_height);
 		framebuffer->attach_renderbuffer(*framebuffer_renderbuffer);
 		assert(framebuffer->get_status());
+	}
+	void render_node(Engine::Node& node) {
+		auto renderable = dynamic_cast<Engine::IRenderable*>(&node);
+		if (renderable) {
+			renderable->render(render_ctx);
+		}
+		for (size_t i = 0; i < node.children.size(); i++)
+		{
+			render_node(*node.children[i]);
+		}
 	}
 };
