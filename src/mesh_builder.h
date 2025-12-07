@@ -5,6 +5,7 @@
 #include <memory>
 #include <span>
 #include <map>
+#include <set>
 
 #include <tl/expected.hpp>
 #include <assimp/Importer.hpp>
@@ -38,7 +39,7 @@ namespace MeshBuilder {
 	}
 
 	struct Material {
-		std::map<aiTextureType, std::unique_ptr<GL3D::Texture>> textures{};
+		std::map<aiTextureType, std::shared_ptr<GL3D::Texture>> textures{};
 	};
 	std::vector<std::string> get_all_texture_paths_from_type(const aiMaterial* ai_material, const aiTextureType ai_texture_type) {
 		std::vector<std::string> texture_paths{};
@@ -53,28 +54,21 @@ namespace MeshBuilder {
 		}
 		return texture_paths;
 	}
-	std::unique_ptr<GL3D::Texture> process_texture(std::filesystem::path model_dir, const aiMaterial* ai_material,const aiTextureType ai_texture_type) {
-		auto texture_paths = get_all_texture_paths_from_type(ai_material, ai_texture_type);
-		if (texture_paths.size() == 0) {
-			return nullptr;
-		}
-		if (texture_paths.size() > 1) {
-			assert(false && "more than 1 texture found for a type");
-		}
-		std::filesystem::path texture_path = texture_paths[0];
-		auto texture = TextureBuilder::build(model_dir / texture_path).value_or(nullptr);
-		return texture;
-	}
-	Material process_material(std::filesystem::path model_dir, const aiMaterial* ai_material) {
+
+	Material process_material(std::filesystem::path model_dir, const aiMaterial* ai_material, const std::map<std::string, std::shared_ptr<GL3D::Texture>>& textures) {
 		Material mat{};
 		for (size_t i = 0; i < AI_TEXTURE_TYPE_MAX; i++)
 		{
 			aiTextureType tex_type = static_cast<aiTextureType>(i);
-			auto texture = process_texture(model_dir, ai_material, tex_type);
-			if (texture) {
-				mat.textures[tex_type] = std::move(texture);
+			auto texture_paths = get_all_texture_paths_from_type(ai_material, tex_type);
+			if (texture_paths.empty()) {
+				continue;
 			}
-			
+			if (texture_paths.size() > 1) {
+				assert(false && "more than 1 texture found for a type");
+			}
+			std::string texture_path = texture_paths[0];
+			mat.textures[tex_type] = textures.at(texture_path);
 		}
 		return mat;
 	}
@@ -85,7 +79,7 @@ namespace MeshBuilder {
 		Material material{};
 	};
 
-	Mesh process_mesh(std::filesystem::path model_dir, const aiScene* ai_scene, const aiMesh* ai_mesh) {
+	Mesh process_mesh(std::filesystem::path model_dir, const aiScene* ai_scene, const aiMesh* ai_mesh, const std::map<std::string, std::shared_ptr<GL3D::Texture>>& textures) {
 		std::vector<VertexAttrib> vertex_attribs{};
 		if (ai_mesh->HasPositions()) {
 			vertex_attribs.push_back({ 3, VertexAttribType::position });
@@ -143,9 +137,9 @@ namespace MeshBuilder {
 
 		auto num_floats_per_attr = get_num_floats_per_attribute(vertex_attribs);
 		auto created_mesh = std::make_unique<GL3D::Mesh>(std::span<float>(vertices.data(), vertices.size()), std::span<int>(num_floats_per_attr.data(), num_floats_per_attr.size()), std::span<unsigned int>(indices.data(), indices.size()));
-		
+
 		auto ai_material = ai_scene->mMaterials[ai_mesh->mMaterialIndex];
-		Material material = process_material(model_dir, ai_material);
+		Material material = process_material(model_dir, ai_material, textures);
 		return Mesh{ std::move(created_mesh), vertex_attribs, std::move(material) };
 	}
 	struct Node {
@@ -162,23 +156,23 @@ namespace MeshBuilder {
 			return transform * parent->get_global_transform();
 		}
 	};
-	std::unique_ptr<Node> process_single_node(std::filesystem::path model_dir, const aiScene* scene, const aiNode* node) {
+	std::unique_ptr<Node> process_single_node(std::filesystem::path model_dir, const aiScene* scene, const aiNode* node,const std::map<std::string, std::shared_ptr<GL3D::Texture>>& textures) {
 		auto node_data = std::make_unique<Node>();
 		node_data->name = std::string(node->mName.data, node->mName.length);
 		node_data->transform = assimp_matrix_to_glm_matrix(node->mTransformation);
 		for (size_t i = 0; i < node->mNumMeshes; i++)
 		{
 			unsigned int mesh_idx = node->mMeshes[i];
-			auto result_mesh = process_mesh(model_dir, scene, scene->mMeshes[mesh_idx]);
+			auto result_mesh = process_mesh(model_dir, scene, scene->mMeshes[mesh_idx], textures);
 			node_data->meshes.push_back(std::move(result_mesh));
 		}
 		return node_data;
 	}
-	std::unique_ptr<Node> process_node(std::filesystem::path model_dir, const aiScene* scene, const aiNode* parent_node) {
-		auto node_data_result = process_single_node(model_dir, scene, parent_node);
+	std::unique_ptr<Node> process_node(std::filesystem::path model_dir, const aiScene* scene, const aiNode* parent_node, const std::map<std::string, std::shared_ptr<GL3D::Texture>>& textures) {
+		auto node_data_result = process_single_node(model_dir, scene, parent_node, textures);
 		// process children recursively
 		for (size_t i = 0; i < parent_node->mNumChildren; i++) {
-			auto node_child = process_node(model_dir, scene, parent_node->mChildren[i]);
+			auto node_child = process_node(model_dir, scene, parent_node->mChildren[i], textures);
 			node_child->parent = node_data_result.get();
 			node_data_result->child_nodes.push_back(std::move(node_child));
 		}
@@ -191,15 +185,37 @@ namespace MeshBuilder {
 		std::unique_ptr<Node> root_node{};
 		std::string name{};
 	};
+	std::set<std::string> get_all_texture_paths_in_scene(const aiScene* ai_scene) {
+		std::set<std::string> paths{};
+		for (size_t i = 0; i < ai_scene->mNumMaterials; i++)
+		{
+			aiMaterial* ai_material = ai_scene->mMaterials[i];
+			for (size_t j = 0; j < AI_TEXTURE_TYPE_MAX; j++)
+			{
+				aiTextureType tex_type = static_cast<aiTextureType>(j);
+				auto texture_paths = get_all_texture_paths_from_type(ai_material, tex_type);
+				for (const auto& texture_path : texture_paths) {
+					paths.insert(texture_path);
+				}	
+			}
+		}
+		return paths;
+	}
 	tl::expected<std::unique_ptr<Scene>, std::string> build(std::filesystem::path filepath) {
+		std::filesystem::path model_dir = filepath.parent_path();
+
 		Assimp::Importer assimp_importer{};
 		const aiScene* assimp_scene = assimp_importer.ReadFile(filepath.string().c_str(), aiProcess_Triangulate | aiProcess_FlipUVs);
 		if (!is_assimp_scene_valid(assimp_scene)) {
 			return tl::unexpected{ std::string{assimp_importer.GetErrorString()} };
 		}
-		std::filesystem::path model_dir = filepath.parent_path();
-		auto root_node = process_node(model_dir, assimp_scene, assimp_scene->mRootNode);
+		std::map<std::string, std::shared_ptr<GL3D::Texture>> textures{};
+		for (const auto& tex_path : get_all_texture_paths_in_scene(assimp_scene)) {
+			textures[tex_path] = TextureBuilder::build(model_dir / tex_path).value_or(nullptr);
+		}
+
+		auto root_node = process_node(model_dir, assimp_scene, assimp_scene->mRootNode, textures);
 		std::string scene_name = std::string(assimp_scene->mName.data, assimp_scene->mName.length);
-		return std::make_unique<Scene>( std::move(root_node), scene_name );
+		return std::make_unique<Scene>(std::move(root_node), scene_name);
 	}
 }

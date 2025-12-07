@@ -11,6 +11,7 @@
 
 class STBImageRAII {
 public:
+	bool flip_image{ true };
 	int width{};
 	int height{};
 	int num_channels{};
@@ -18,6 +19,7 @@ public:
 
 	// throws std::runtime_error
 	STBImageRAII(const std::filesystem::path path) {
+		stbi_set_flip_vertically_on_load(flip_image);
 		stbi_uc* image_data_ptr = stbi_load(path.string().c_str(), &width, &height, &num_channels, 0);
 		if (!image_data_ptr) {
 			throw std::runtime_error("no image file exists at specified filepath" );

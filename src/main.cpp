@@ -24,15 +24,16 @@ int main() {
 	auto mesh_node_1 = std::make_unique<Engine::Mesh>();
 	mesh_node_1->scene =  candle_scene;
 	mesh_node_1->shader = pbr_shader;
+	mesh_node_1->transform = glm::translate(glm::mat4(1.0f), { 0.67,0.1,0.1 });
 
 	auto mesh_node_2 = std::make_unique<Engine::Mesh>();
-	mesh_node_2->scene = candle_scene;
+	mesh_node_2->scene = backpack_scene;
 	mesh_node_2->shader = pbr_shader;
-	mesh_node_2->transform = glm::translate(glm::mat4(1.0f), glm::vec3{1.0,0.5,1.0});
+	mesh_node_2->transform = glm::scale(glm::mat4(1.0f), { 0.1,0.1,-0.1 });
 
 	auto root_node = std::make_shared<Engine::Node>();
-	root_node->children.push_back(std::move(mesh_node_2));
 	root_node->children.push_back(std::move(mesh_node_1));
+	root_node->children.push_back(std::move(mesh_node_2));
 
 	renderer->root_node = root_node;
 
