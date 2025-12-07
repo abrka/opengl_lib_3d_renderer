@@ -11,7 +11,7 @@
 
 class STBImageRAII {
 public:
-	bool flip_image{ true };
+	bool flip_image{ false };
 	int width{};
 	int height{};
 	int num_channels{};
