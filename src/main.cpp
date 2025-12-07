@@ -15,25 +15,32 @@ int main() {
 	const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
 	auto window = std::make_shared<GLExternalRAII::Window>(800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR);
 	auto renderer = std::make_shared<Renderer>(window);
-	
+
 
 	std::shared_ptr<GL3D::ShaderProgram> pbr_shader = GLRenderer::ShaderBuilder::build(asset_dir + "shaders/pbr_frag.glsl", asset_dir + "shaders/pbr_vertex.glsl").value();
-	std::shared_ptr<MeshBuilder::Scene> candle_scene = MeshBuilder::build(asset_dir + "meshes/candle/brass_candleholders_1k.gltf").value();
 	std::shared_ptr<MeshBuilder::Scene> backpack_scene = MeshBuilder::build(asset_dir + "meshes/backpack/backpack.obj").value();
-
+	std::shared_ptr<MeshBuilder::Scene> candle_scene = MeshBuilder::build(asset_dir + "meshes/candle/brass_candleholders_1k.gltf").value();
+	std::shared_ptr<MeshBuilder::Scene> military_uniform_scene = MeshBuilder::build(asset_dir + "meshes/military_uniform/military_uniform.gltf").value();
+	
 	auto mesh_node_1 = std::make_unique<Engine::Mesh>();
-	mesh_node_1->scene =  candle_scene;
+	mesh_node_1->scene = candle_scene;
 	mesh_node_1->shader = pbr_shader;
-	mesh_node_1->transform = glm::translate(glm::mat4(1.0f), { 0.67,0.1,0.1 });
-
+	
 	auto mesh_node_2 = std::make_unique<Engine::Mesh>();
 	mesh_node_2->scene = backpack_scene;
 	mesh_node_2->shader = pbr_shader;
 	mesh_node_2->transform = glm::scale(glm::mat4(1.0f), { 0.1,0.1,-0.1 });
+	
+	
+	auto mesh_node_3 = std::make_unique<Engine::Mesh>();
+	mesh_node_3->scene = military_uniform_scene;
+	mesh_node_3->shader = pbr_shader;
+	mesh_node_3->transform = glm::scale(glm::mat4(1.0f), { 0.02,0.02,0.02 });
 
 	auto root_node = std::make_shared<Engine::Node>();
 	root_node->children.push_back(std::move(mesh_node_1));
 	root_node->children.push_back(std::move(mesh_node_2));
+	root_node->children.push_back(std::move(mesh_node_3));
 
 	renderer->root_node = root_node;
 
@@ -114,7 +121,7 @@ static void process_input(GLFWwindow* window, Camera& cam)
 	glm::vec3 cam_right = cam.orientation[0];
 	glm::vec3 cam_up = cam.orientation[1];
 	glm::vec3 cam_forward = cam.orientation[2];
-	
+
 
 	cam.orientation = glm::rotate(glm::mat4(1.0f), cam_rot_y, glm::vec3(0.0f, 1.0f, 0.0f));
 	cam.orientation = glm::rotate(cam.orientation, cam_rot_x, glm::vec3(1.0f, 0.0f, 0.0f));
