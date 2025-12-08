@@ -80,17 +80,17 @@
         {
             "mimeType" : "image/png",
             "name" : "Military_Uniform_norm",
-            "uri" : "Military_Uniform_norm.png"
+            "uri" : "Military_Uniform_norm.jpg"
         },
         {
             "mimeType" : "image/png",
             "name" : "Military_Uniform_bcolor",
-            "uri" : "Military_Uniform_bcolor.png"
+            "uri" : "Military_Uniform_bcolor.jpg"
         },
         {
             "mimeType" : "image/png",
             "name" : "Military_Uniform_metal-Military_Uniform_rough",
-            "uri" : "Military_Uniform_metal-Military_Uniform_rough.png"
+            "uri" : "Military_Uniform_metal-Military_Uniform_rough.jpg"
         }
     ],
     "accessors" : [

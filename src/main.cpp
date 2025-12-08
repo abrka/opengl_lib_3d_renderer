@@ -18,18 +18,13 @@ int main() {
 
 
 	std::shared_ptr<GL3D::ShaderProgram> pbr_shader = GLRenderer::ShaderBuilder::build(asset_dir + "shaders/pbr_frag.glsl", asset_dir + "shaders/pbr_vertex.glsl").value();
-	std::shared_ptr<MeshBuilder::Scene> backpack_scene = MeshBuilder::build(asset_dir + "meshes/backpack/backpack.obj").value();
+
 	std::shared_ptr<MeshBuilder::Scene> candle_scene = MeshBuilder::build(asset_dir + "meshes/candle/brass_candleholders_1k.gltf").value();
 	std::shared_ptr<MeshBuilder::Scene> military_uniform_scene = MeshBuilder::build(asset_dir + "meshes/military_uniform/military_uniform.gltf").value();
 	
 	auto mesh_node_1 = std::make_unique<Engine::Mesh>();
 	mesh_node_1->scene = candle_scene;
 	mesh_node_1->shader = pbr_shader;
-	
-	auto mesh_node_2 = std::make_unique<Engine::Mesh>();
-	mesh_node_2->scene = backpack_scene;
-	mesh_node_2->shader = pbr_shader;
-	mesh_node_2->transform = glm::scale(glm::mat4(1.0f), { 0.1,0.1,-0.1 });
 	
 	
 	auto mesh_node_3 = std::make_unique<Engine::Mesh>();
@@ -39,7 +34,6 @@ int main() {
 
 	auto root_node = std::make_shared<Engine::Node>();
 	root_node->children.push_back(std::move(mesh_node_1));
-	root_node->children.push_back(std::move(mesh_node_2));
 	root_node->children.push_back(std::move(mesh_node_3));
 
 	renderer->root_node = root_node;
