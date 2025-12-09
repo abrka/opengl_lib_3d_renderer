@@ -5,13 +5,36 @@
 static float mouse_sensitivity = 0.005f;
 static float cam_speed = 0.02f;
 
-static void process_input(GLFWwindow* window, Camera& cam);
+static void process_input_for_camera_movement(GLFWwindow* window, Camera& cam);
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	Renderer* renderer = static_cast<Renderer*>(glfwGetWindowUserPointer(window));
 	renderer->on_window_resize(width, height);
 }
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (key == GLFW_KEY_CAPS_LOCK && action == GLFW_PRESS) {
+		int prev_cursor_mode = glfwGetInputMode(window, GLFW_CURSOR);
+		int new_cursor_mode = (prev_cursor_mode == GLFW_CURSOR_NORMAL) ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL;
+		glfwSetInputMode(window, GLFW_CURSOR, new_cursor_mode);
+	}
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, true);
+	}
+}
 
+std::vector<Engine::Mesh*> get_all_mesh_nodes(Engine::Node& node) {
+	std::vector<Engine::Mesh*> all_mesh_nodes{};
+	Engine::Mesh* mesh_node = dynamic_cast<Engine::Mesh*>(&node);
+	if (mesh_node) {
+		all_mesh_nodes.push_back(mesh_node);
+	}
+	for (size_t i = 0; i < node.children.size(); i++)
+	{
+		const auto child_mesh_nodes = get_all_mesh_nodes(*node.children[i]);
+		all_mesh_nodes.insert(all_mesh_nodes.end(), child_mesh_nodes.begin(), child_mesh_nodes.end());
+	}
+	return all_mesh_nodes;
+}
 int main() {
 	const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
 	auto window = std::make_shared<GLExternalRAII::Window>(800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR);
@@ -46,9 +69,9 @@ int main() {
 	mesh_node_sponza->transform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), { 1,0,0 });
 
 	auto root_node = std::make_shared<Engine::Node>();
-	//	root_node->children.push_back(std::move(mesh_node_1));
-	//	root_node->children.push_back(std::move(mesh_node_2));
-	//	root_node->children.push_back(std::move(mesh_node_3));
+	root_node->children.push_back(std::move(mesh_node_1));
+	root_node->children.push_back(std::move(mesh_node_2));
+	root_node->children.push_back(std::move(mesh_node_3));
 	root_node->children.push_back(std::move(mesh_node_sponza));
 
 	renderer->root_node = root_node;
@@ -56,26 +79,42 @@ int main() {
 
 	ImGuizmo::OPERATION imguizmo_operation{ ImGuizmo::OPERATION::UNIVERSAL };
 	ImGuizmo::MODE imguizmo_mode{ ImGuizmo::MODE::LOCAL };
+	Engine::Mesh* selected_mesh_node{};
 
-	renderer->custom_imgui_render_function = [&imguizmo_operation, &imguizmo_mode](Renderer& renderer) {
-		ImGui::ShowDemoWindow();
+	renderer->custom_imgui_render_function = [&imguizmo_operation, &imguizmo_mode, &root_node, &selected_mesh_node](Renderer& renderer) {
 		auto& camera = renderer.render_ctx.cam;
-		
-		ImGuizmo::SetOrthographic(false);
+
 		ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());
 		ImGuizmo::SetRect(0, 0, renderer.get_screen_width_and_height().first, renderer.get_screen_width_and_height().second);
-		
-		auto gizmo_transform = glm::translate(glm::mat4(1.0f), 0.5f * glm::vec3(1.0f));
-		ImGuizmo::Manipulate(glm::value_ptr(camera.get_view_matrix()), glm::value_ptr(camera.get_projection_matrix()), imguizmo_operation, imguizmo_mode, glm::value_ptr(gizmo_transform));
+
+		if (!selected_mesh_node) {
+			return;
+		}
+		glm::mat4& mesh_node_transform = selected_mesh_node->transform;
+		ImGuizmo::Manipulate(glm::value_ptr(camera.get_view_matrix()), glm::value_ptr(camera.get_projection_matrix()), imguizmo_operation, imguizmo_mode, glm::value_ptr(mesh_node_transform));
 		};
 
 
 	glfwSetInputMode(window->glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetWindowUserPointer(window->glfw_window, renderer.get());
 	glfwSetFramebufferSizeCallback(window->glfw_window, framebuffer_size_callback);
+	glfwSetKeyCallback(window->glfw_window, key_callback);
 
 	while (window->is_running()) {
-		process_input(window->glfw_window, renderer->render_ctx.cam);
+
+		static int selected_mesh_index{};
+		for (size_t num_key = GLFW_KEY_0; num_key <= GLFW_KEY_9; num_key++)
+		{
+			if (glfwGetKey(window->glfw_window, num_key) == GLFW_PRESS) {
+				selected_mesh_index = num_key - GLFW_KEY_0;
+			}
+		}
+		auto all_mesh_nodes = get_all_mesh_nodes(*root_node);
+		if (selected_mesh_index > 0 && selected_mesh_index < all_mesh_nodes.size()) {
+			selected_mesh_node = all_mesh_nodes[selected_mesh_index];
+		}
+
+		process_input_for_camera_movement(window->glfw_window, renderer->render_ctx.cam);
 		double prev_time = glfwGetTime();
 		renderer->render();
 		double delta = glfwGetTime() - prev_time;
@@ -92,23 +131,10 @@ int main() {
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-static void process_input(GLFWwindow* window, Camera& cam)
+static void process_input_for_camera_movement(GLFWwindow* window, Camera& cam)
 {
+
 	static bool first_time_being_called = true;
-	static bool cursor_state_changed = false;
-
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, true);
-	}
-	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-		cursor_state_changed = true;
-	}
-	if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		cursor_state_changed = true;
-	}
-
 
 	static double xpos_prev{};
 	static double ypos_prev{};
@@ -116,7 +142,7 @@ static void process_input(GLFWwindow* window, Camera& cam)
 	static double ypos{};
 
 	glfwGetCursorPos(window, &xpos, &ypos);
-	if (first_time_being_called || cursor_state_changed) {
+	if (first_time_being_called) {
 		xpos_prev = xpos;
 		ypos_prev = ypos;
 	}
@@ -170,8 +196,5 @@ static void process_input(GLFWwindow* window, Camera& cam)
 			cam.position += cam_up * cam_speed;
 		}
 	}
-
-
 	first_time_being_called = false;
-	cursor_state_changed = false;
 }
