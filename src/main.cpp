@@ -62,7 +62,7 @@ int main() {
 		auto& camera = renderer.render_ctx.cam;
 		
 		ImGuizmo::SetOrthographic(false);
-		ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList());
+		ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());
 		ImGuizmo::SetRect(0, 0, renderer.get_screen_width_and_height().first, renderer.get_screen_width_and_height().second);
 		
 		auto gizmo_transform = glm::translate(glm::mat4(1.0f), 0.5f * glm::vec3(1.0f));
