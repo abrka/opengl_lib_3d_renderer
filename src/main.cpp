@@ -1,6 +1,7 @@
 #include "renderer.h"
 #include "nodes/mesh.h"
 
+
 static float mouse_sensitivity = 0.005f;
 static float cam_speed = 0.02f;
 
@@ -19,26 +20,55 @@ int main() {
 
 	std::shared_ptr<GL3D::ShaderProgram> pbr_shader = GLRenderer::ShaderBuilder::build(asset_dir + "shaders/pbr_frag.glsl", asset_dir + "shaders/pbr_vertex.glsl").value();
 
+	std::shared_ptr<MeshBuilder::Scene> backpack_scene = MeshBuilder::build(asset_dir + "meshes/backpack/backpack.obj").value();
 	std::shared_ptr<MeshBuilder::Scene> candle_scene = MeshBuilder::build(asset_dir + "meshes/candle/brass_candleholders_1k.gltf").value();
 	std::shared_ptr<MeshBuilder::Scene> military_uniform_scene = MeshBuilder::build(asset_dir + "meshes/military_uniform/military_uniform.gltf").value();
-	
+	std::shared_ptr<MeshBuilder::Scene> sponza_scene = MeshBuilder::build(asset_dir + "meshes/sponza_palace/scene.gltf").value();
+
 	auto mesh_node_1 = std::make_unique<Engine::Mesh>();
 	mesh_node_1->scene = candle_scene;
 	mesh_node_1->shader = pbr_shader;
-	
-	
+
+	auto mesh_node_2 = std::make_unique<Engine::Mesh>();
+	mesh_node_2->scene = backpack_scene;
+	mesh_node_2->shader = pbr_shader;
+	mesh_node_2->transform = glm::scale(glm::mat4(1.0f), { 0.1,0.1,-0.1 });
+
+
 	auto mesh_node_3 = std::make_unique<Engine::Mesh>();
 	mesh_node_3->scene = military_uniform_scene;
 	mesh_node_3->shader = pbr_shader;
 	mesh_node_3->transform = glm::scale(glm::mat4(1.0f), { 0.02,0.02,0.02 });
 
+	auto mesh_node_sponza = std::make_unique<Engine::Mesh>();
+	mesh_node_sponza->scene = sponza_scene;
+	mesh_node_sponza->shader = pbr_shader;
+	mesh_node_sponza->transform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), { 1,0,0 });
+
 	auto root_node = std::make_shared<Engine::Node>();
-	root_node->children.push_back(std::move(mesh_node_1));
-	root_node->children.push_back(std::move(mesh_node_3));
+	//	root_node->children.push_back(std::move(mesh_node_1));
+	//	root_node->children.push_back(std::move(mesh_node_2));
+	//	root_node->children.push_back(std::move(mesh_node_3));
+	root_node->children.push_back(std::move(mesh_node_sponza));
 
 	renderer->root_node = root_node;
-
 	renderer->render_ctx.cam.position = glm::vec3{ 0, 0, -1 };
+
+	ImGuizmo::OPERATION imguizmo_operation{ ImGuizmo::OPERATION::UNIVERSAL };
+	ImGuizmo::MODE imguizmo_mode{ ImGuizmo::MODE::LOCAL };
+
+	renderer->custom_imgui_render_function = [&imguizmo_operation, &imguizmo_mode](Renderer& renderer) {
+		ImGui::ShowDemoWindow();
+		auto& camera = renderer.render_ctx.cam;
+		
+		ImGuizmo::SetOrthographic(false);
+		ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList());
+		ImGuizmo::SetRect(0, 0, renderer.get_screen_width_and_height().first, renderer.get_screen_width_and_height().second);
+		
+		auto gizmo_transform = glm::translate(glm::mat4(1.0f), 0.5f * glm::vec3(1.0f));
+		ImGuizmo::Manipulate(glm::value_ptr(camera.get_view_matrix()), glm::value_ptr(camera.get_projection_matrix()), imguizmo_operation, imguizmo_mode, glm::value_ptr(gizmo_transform));
+		};
+
 
 	glfwSetInputMode(window->glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetWindowUserPointer(window->glfw_window, renderer.get());
