@@ -2,7 +2,7 @@
 
 #include "camera.h"
 
-namespace Engine {
+namespace Renderer {
 	struct RenderContext {
 		Camera cam{};
 	};

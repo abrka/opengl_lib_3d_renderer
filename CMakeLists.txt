@@ -8,14 +8,18 @@ target_include_directories(opengl_lib_3d_renderer PRIVATE ${CMAKE_CURRENT_SOURCE
 
 # Add custom OpenGL abstraction library
 add_subdirectory(external/opengl_lib)
-target_link_libraries(opengl_lib_3d_renderer PUBLIC opengl_lib)
-
-# Add tl expected
-target_link_libraries(opengl_lib_3d_renderer PUBLIC tl::expected)
+target_link_libraries(opengl_lib_3d_renderer PRIVATE opengl_lib)
 
 # Add assimp 
 add_subdirectory(external/assimp)
-target_link_libraries(opengl_lib_3d_renderer PUBLIC assimp::assimp)
+target_link_libraries(opengl_lib_3d_renderer PRIVATE assimp::assimp)
+
+# Add entt
+add_subdirectory(external/entt)
+target_link_libraries(opengl_lib_3d_renderer PRIVATE EnTT::EnTT)
+
+# Add tl expected
+target_link_libraries(opengl_lib_3d_renderer PRIVATE tl::expected)
 
 # Add imguizmo
 add_library(imguizmo
@@ -32,8 +36,9 @@ add_library(imguizmo
     external/imgui-gizmo/ImZoomSlider.h
 )
 target_include_directories(imguizmo PUBLIC external/imgui-gizmo)
-target_link_libraries(imguizmo PUBLIC imgui)
-target_link_libraries(opengl_lib_3d_renderer PUBLIC imguizmo)
+target_link_libraries(imguizmo PRIVATE imgui)
+
+target_link_libraries(opengl_lib_3d_renderer PRIVATE imguizmo)
 
 
 set(OPENGL_VERSION_MAJOR "4" CACHE STRING "OpenGL Version Major")

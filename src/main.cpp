@@ -1,5 +1,7 @@
+#include <entt/entt.hpp>
+
 #include "renderer/renderer.h"
-#include "nodes/mesh.h"
+#include "engine/entity/entity.h"
 #include "editor/hierarchial_panel.h"
 
 static float mouse_sensitivity = 0.005f;
@@ -8,7 +10,7 @@ static float cam_speed = 0.02f;
 static void process_input_for_camera_movement(GLFWwindow* window, Camera& cam);
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-	Renderer* renderer = static_cast<Renderer*>(glfwGetWindowUserPointer(window));
+	Renderer::Renderer3D* renderer = static_cast<Renderer::Renderer3D*>(glfwGetWindowUserPointer(window));
 	renderer->on_window_resize(width, height);
 }
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -22,81 +24,72 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 	}
 }
 
-std::vector<Engine::Mesh*> get_all_mesh_nodes(Engine::Node& node) {
-	std::vector<Engine::Mesh*> all_mesh_nodes{};
-	Engine::Mesh* mesh_node = dynamic_cast<Engine::Mesh*>(&node);
-	if (mesh_node) {
-		all_mesh_nodes.push_back(mesh_node);
-	}
-	for (size_t i = 0; i < node.children.size(); i++)
-	{
-		const auto child_mesh_nodes = get_all_mesh_nodes(*node.children[i]);
-		all_mesh_nodes.insert(all_mesh_nodes.end(), child_mesh_nodes.begin(), child_mesh_nodes.end());
-	}
-	return all_mesh_nodes;
-}
-
-
 
 int main() {
+	entt::registry entt_registry{};
+
 	const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
 	auto window = std::make_shared<GLExternalRAII::Window>(800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR);
-	auto renderer = std::make_shared<Renderer>(window);
+	auto renderer = std::make_shared<Renderer::Renderer3D>(window, entt_registry);
 
 
-	std::shared_ptr<GL3D::ShaderProgram> pbr_shader = GLRenderer::ShaderBuilder::build(asset_dir + "shaders/pbr_frag.glsl", asset_dir + "shaders/pbr_vertex.glsl").value();
+	std::shared_ptr<GL3D::ShaderProgram> pbr_shader = ShaderBuilder::build(asset_dir + "shaders/pbr_frag.glsl", asset_dir + "shaders/pbr_vertex.glsl").value();
 
 	std::shared_ptr<MeshBuilder::Scene> backpack_scene = MeshBuilder::build(asset_dir + "meshes/backpack/backpack.obj").value();
 	std::shared_ptr<MeshBuilder::Scene> candle_scene = MeshBuilder::build(asset_dir + "meshes/candle/brass_candleholders_1k.gltf").value();
 	std::shared_ptr<MeshBuilder::Scene> military_uniform_scene = MeshBuilder::build(asset_dir + "meshes/military_uniform/military_uniform.gltf").value();
 	std::shared_ptr<MeshBuilder::Scene> sponza_scene = MeshBuilder::build(asset_dir + "meshes/sponza_palace/scene.gltf").value();
 
-	auto mesh_node_1 = std::make_unique<Engine::Mesh>();
-	mesh_node_1->name = "candle";
-	mesh_node_1->scene = candle_scene;
-	mesh_node_1->shader = pbr_shader;
+	auto candle_entity = std::make_unique<Engine::Entity>(entt_registry);
+	candle_entity->name = "candle";
+	candle_entity->add_component<Engine::MeshComponent>(candle_scene);
+	candle_entity->add_component<Engine::ShaderComponent>(pbr_shader);
+	candle_entity->add_component<Engine::TransformComponent>(glm::mat4(1.0f));
 
-	auto mesh_node_2 = std::make_unique<Engine::Mesh>();
-	mesh_node_2->name = "backpack";
-	mesh_node_2->scene = backpack_scene;
-	mesh_node_2->shader = pbr_shader;
-	mesh_node_2->transform = glm::scale(glm::mat4(1.0f), { 0.1,0.1,-0.1 });
+	auto backpack_entity = std::make_unique<Engine::Entity>(entt_registry);
+	backpack_entity->name = "backpack";
+	backpack_entity->add_component<Engine::MeshComponent>(backpack_scene);
+	backpack_entity->add_component<Engine::ShaderComponent>(pbr_shader);
+	glm::mat4 backpack_transform = glm::scale(glm::mat4(1.0f), { 0.1,0.1,-0.1 });
+	backpack_entity->add_component<Engine::TransformComponent>(backpack_transform);
+	
+	
+	auto military_uniform_entity = std::make_unique<Engine::Entity>(entt_registry);
+	military_uniform_entity->name = "military uniform";
+	military_uniform_entity->add_component<Engine::MeshComponent>(military_uniform_scene);
+	military_uniform_entity->add_component<Engine::ShaderComponent>(pbr_shader);
+	glm::mat4 military_uniform_transform = glm::scale(glm::mat4(1.0f), { 0.02,0.02,0.02 });
+	military_uniform_entity->add_component<Engine::TransformComponent>(military_uniform_transform);
+	
+	auto sponza_entity = std::make_unique<Engine::Entity>(entt_registry);
+	sponza_entity->name = "sponza scene";
+	sponza_entity->add_component<Engine::MeshComponent>(sponza_scene);
+	sponza_entity->add_component<Engine::ShaderComponent>(pbr_shader);
+	glm::mat4 sponza_tranform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), { 1,0,0 });
+	sponza_entity->add_component<Engine::TransformComponent>(sponza_tranform);
+
+	auto root_entity = std::make_unique<Engine::Entity>(entt_registry);
+	root_entity->name = "root";
+	root_entity->children.push_back(std::move(candle_entity));
+	root_entity->children.push_back(std::move(backpack_entity));
+	root_entity->children.push_back(std::move(military_uniform_entity));
+	root_entity->children.push_back(std::move(sponza_entity));
 
 
-	auto mesh_node_3 = std::make_unique<Engine::Mesh>();
-	mesh_node_3->name = "military uniform";
-	mesh_node_3->scene = military_uniform_scene;
-	mesh_node_3->shader = pbr_shader;
-	mesh_node_3->transform = glm::scale(glm::mat4(1.0f), { 0.02,0.02,0.02 });
-
-	auto mesh_node_sponza = std::make_unique<Engine::Mesh>();
-	mesh_node_sponza->name = "sponza scene";
-	mesh_node_sponza->scene = sponza_scene;
-	mesh_node_sponza->shader = pbr_shader;
-	mesh_node_sponza->transform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), { 1,0,0 });
-
-	auto root_node = std::make_shared<Engine::Node>();
-	root_node->name = "root";
-	root_node->children.push_back(std::move(mesh_node_1));
-	root_node->children.push_back(std::move(mesh_node_2));
-	root_node->children.push_back(std::move(mesh_node_3));
-	root_node->children.push_back(std::move(mesh_node_sponza));
-
-	renderer->root_node = root_node;
 	renderer->render_ctx.cam.position = glm::vec3{ 0, 0, -1 };
 
 
 
-	Editor::HierarchialPanel<Engine::Node> hierarchial_panel{};
+	Editor::HierarchialPanel<Engine::Entity> hierarchial_panel{};
 
 	ImGuizmo::OPERATION imguizmo_operation{ ImGuizmo::OPERATION::UNIVERSAL };
 	ImGuizmo::MODE imguizmo_mode{ ImGuizmo::MODE::LOCAL };
 
-	renderer->custom_imgui_render_function = [&imguizmo_operation, &imguizmo_mode, &root_node, &hierarchial_panel](Renderer& renderer) {
+	renderer->custom_imgui_render_function = [&imguizmo_operation, &imguizmo_mode, &root_entity, &hierarchial_panel](Renderer::Renderer3D& renderer) {
 		ImGui::ShowDemoWindow();
 
 		ImGui::Begin("Nodes");
-		hierarchial_panel.render(*root_node);
+		hierarchial_panel.render(*root_entity);
 		ImGui::End();
 
 		ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());
@@ -104,14 +97,16 @@ int main() {
 		auto [screen_width, screen_height] = renderer.get_screen_width_and_height();
 		ImGuizmo::SetRect(0, 0, screen_width, screen_height);
 
-		auto selected_mesh_node = dynamic_cast<Engine::Mesh*>(hierarchial_panel.selected_node);
-		if (!selected_mesh_node) {
+		Engine::Entity* selected_entity = hierarchial_panel.selected_node;
+		if (!selected_entity) {
 			return;
 		}
-
-		glm::mat4& mesh_node_transform = selected_mesh_node->transform;
+		glm::mat4* transform = selected_entity->try_get_component<Engine::TransformComponent>();
+		if (!transform) {
+			return;
+		}
 		auto& camera = renderer.render_ctx.cam;
-		ImGuizmo::Manipulate(glm::value_ptr(camera.get_view_matrix()), glm::value_ptr(camera.get_projection_matrix()), imguizmo_operation, imguizmo_mode, glm::value_ptr(mesh_node_transform));
+		ImGuizmo::Manipulate(glm::value_ptr(camera.get_view_matrix()), glm::value_ptr(camera.get_projection_matrix()), imguizmo_operation, imguizmo_mode, glm::value_ptr(*transform));
 
 		};
 
