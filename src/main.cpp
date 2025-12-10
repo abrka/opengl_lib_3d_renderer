@@ -1,4 +1,4 @@
-#include "renderer.h"
+#include "renderer/renderer.h"
 #include "nodes/mesh.h"
 
 
@@ -35,6 +35,26 @@ std::vector<Engine::Mesh*> get_all_mesh_nodes(Engine::Node& node) {
 	}
 	return all_mesh_nodes;
 }
+
+
+void imgui_draw_tree(Engine::Node& node, Engine::Node*& selected_node) {
+	ImGuiTreeNodeFlags flags{};
+	if (selected_node == &node) {
+		flags |= ImGuiTreeNodeFlags_Selected;
+	}
+	bool is_open = ImGui::TreeNodeEx(&node, flags, node.name.c_str());
+	if (ImGui::IsItemClicked()) {
+		selected_node = &node;
+	}
+	if (is_open) {
+		for (size_t i = 0; i < node.children.size(); i++)
+		{
+			ImGuiTreeNodeFlags child_flags{};
+			imgui_draw_tree(*node.children[i], selected_node);
+		}
+		ImGui::TreePop();
+	}
+}
 int main() {
 	const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
 	auto window = std::make_shared<GLExternalRAII::Window>(800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR);
@@ -49,26 +69,31 @@ int main() {
 	std::shared_ptr<MeshBuilder::Scene> sponza_scene = MeshBuilder::build(asset_dir + "meshes/sponza_palace/scene.gltf").value();
 
 	auto mesh_node_1 = std::make_unique<Engine::Mesh>();
+	//mesh_node_1->name = "candle";
 	mesh_node_1->scene = candle_scene;
 	mesh_node_1->shader = pbr_shader;
 
 	auto mesh_node_2 = std::make_unique<Engine::Mesh>();
+	//mesh_node_2->name = "backpack";
 	mesh_node_2->scene = backpack_scene;
 	mesh_node_2->shader = pbr_shader;
 	mesh_node_2->transform = glm::scale(glm::mat4(1.0f), { 0.1,0.1,-0.1 });
 
 
 	auto mesh_node_3 = std::make_unique<Engine::Mesh>();
+	mesh_node_3->name = "military uniform";
 	mesh_node_3->scene = military_uniform_scene;
 	mesh_node_3->shader = pbr_shader;
 	mesh_node_3->transform = glm::scale(glm::mat4(1.0f), { 0.02,0.02,0.02 });
 
 	auto mesh_node_sponza = std::make_unique<Engine::Mesh>();
+	mesh_node_sponza->name = "sponza scene";
 	mesh_node_sponza->scene = sponza_scene;
 	mesh_node_sponza->shader = pbr_shader;
 	mesh_node_sponza->transform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), { 1,0,0 });
 
 	auto root_node = std::make_shared<Engine::Node>();
+	root_node->name = "root";
 	root_node->children.push_back(std::move(mesh_node_1));
 	root_node->children.push_back(std::move(mesh_node_2));
 	root_node->children.push_back(std::move(mesh_node_3));
@@ -82,16 +107,25 @@ int main() {
 	Engine::Mesh* selected_mesh_node{};
 
 	renderer->custom_imgui_render_function = [&imguizmo_operation, &imguizmo_mode, &root_node, &selected_mesh_node](Renderer& renderer) {
-		auto& camera = renderer.render_ctx.cam;
+		ImGui::ShowDemoWindow();
+		ImGui::Begin("Entities");
+		Engine::Node* selected_imgui_node{};
+		imgui_draw_tree(*root_node, selected_imgui_node);
+		ImGui::End();
 
 		ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());
-		ImGuizmo::SetRect(0, 0, renderer.get_screen_width_and_height().first, renderer.get_screen_width_and_height().second);
+		
+		auto [screen_width, screen_height] = renderer.get_screen_width_and_height();
+		ImGuizmo::SetRect(0, 0, screen_width, screen_height);
 
 		if (!selected_mesh_node) {
 			return;
 		}
+
 		glm::mat4& mesh_node_transform = selected_mesh_node->transform;
+		auto& camera = renderer.render_ctx.cam;
 		ImGuizmo::Manipulate(glm::value_ptr(camera.get_view_matrix()), glm::value_ptr(camera.get_projection_matrix()), imguizmo_operation, imguizmo_mode, glm::value_ptr(mesh_node_transform));
+		
 		};
 
 
