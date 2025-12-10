@@ -1,6 +1,6 @@
 #include "renderer/renderer.h"
 #include "nodes/mesh.h"
-
+#include "editor/hierarchial_panel.h"
 
 static float mouse_sensitivity = 0.005f;
 static float cam_speed = 0.02f;
@@ -37,24 +37,7 @@ std::vector<Engine::Mesh*> get_all_mesh_nodes(Engine::Node& node) {
 }
 
 
-void imgui_draw_tree(Engine::Node& node, Engine::Node*& selected_node) {
-	ImGuiTreeNodeFlags flags{};
-	if (selected_node == &node) {
-		flags |= ImGuiTreeNodeFlags_Selected;
-	}
-	bool is_open = ImGui::TreeNodeEx(&node, flags, node.name.c_str());
-	if (ImGui::IsItemClicked()) {
-		selected_node = &node;
-	}
-	if (is_open) {
-		for (size_t i = 0; i < node.children.size(); i++)
-		{
-			ImGuiTreeNodeFlags child_flags{};
-			imgui_draw_tree(*node.children[i], selected_node);
-		}
-		ImGui::TreePop();
-	}
-}
+
 int main() {
 	const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
 	auto window = std::make_shared<GLExternalRAII::Window>(800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR);
@@ -69,12 +52,12 @@ int main() {
 	std::shared_ptr<MeshBuilder::Scene> sponza_scene = MeshBuilder::build(asset_dir + "meshes/sponza_palace/scene.gltf").value();
 
 	auto mesh_node_1 = std::make_unique<Engine::Mesh>();
-	//mesh_node_1->name = "candle";
+	mesh_node_1->name = "candle";
 	mesh_node_1->scene = candle_scene;
 	mesh_node_1->shader = pbr_shader;
 
 	auto mesh_node_2 = std::make_unique<Engine::Mesh>();
-	//mesh_node_2->name = "backpack";
+	mesh_node_2->name = "backpack";
 	mesh_node_2->scene = backpack_scene;
 	mesh_node_2->shader = pbr_shader;
 	mesh_node_2->transform = glm::scale(glm::mat4(1.0f), { 0.1,0.1,-0.1 });
@@ -102,22 +85,26 @@ int main() {
 	renderer->root_node = root_node;
 	renderer->render_ctx.cam.position = glm::vec3{ 0, 0, -1 };
 
+
+
+	Editor::HierarchialPanel<Engine::Node> hierarchial_panel{};
+
 	ImGuizmo::OPERATION imguizmo_operation{ ImGuizmo::OPERATION::UNIVERSAL };
 	ImGuizmo::MODE imguizmo_mode{ ImGuizmo::MODE::LOCAL };
-	Engine::Mesh* selected_mesh_node{};
 
-	renderer->custom_imgui_render_function = [&imguizmo_operation, &imguizmo_mode, &root_node, &selected_mesh_node](Renderer& renderer) {
+	renderer->custom_imgui_render_function = [&imguizmo_operation, &imguizmo_mode, &root_node, &hierarchial_panel](Renderer& renderer) {
 		ImGui::ShowDemoWindow();
-		ImGui::Begin("Entities");
-		Engine::Node* selected_imgui_node{};
-		imgui_draw_tree(*root_node, selected_imgui_node);
+
+		ImGui::Begin("Nodes");
+		hierarchial_panel.render(*root_node);
 		ImGui::End();
 
 		ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());
-		
+
 		auto [screen_width, screen_height] = renderer.get_screen_width_and_height();
 		ImGuizmo::SetRect(0, 0, screen_width, screen_height);
 
+		auto selected_mesh_node = dynamic_cast<Engine::Mesh*>(hierarchial_panel.selected_node);
 		if (!selected_mesh_node) {
 			return;
 		}
@@ -125,7 +112,7 @@ int main() {
 		glm::mat4& mesh_node_transform = selected_mesh_node->transform;
 		auto& camera = renderer.render_ctx.cam;
 		ImGuizmo::Manipulate(glm::value_ptr(camera.get_view_matrix()), glm::value_ptr(camera.get_projection_matrix()), imguizmo_operation, imguizmo_mode, glm::value_ptr(mesh_node_transform));
-		
+
 		};
 
 
@@ -135,19 +122,6 @@ int main() {
 	glfwSetKeyCallback(window->glfw_window, key_callback);
 
 	while (window->is_running()) {
-
-		static int selected_mesh_index{};
-		for (size_t num_key = GLFW_KEY_0; num_key <= GLFW_KEY_9; num_key++)
-		{
-			if (glfwGetKey(window->glfw_window, num_key) == GLFW_PRESS) {
-				selected_mesh_index = num_key - GLFW_KEY_0;
-			}
-		}
-		auto all_mesh_nodes = get_all_mesh_nodes(*root_node);
-		if (selected_mesh_index > 0 && selected_mesh_index < all_mesh_nodes.size()) {
-			selected_mesh_node = all_mesh_nodes[selected_mesh_index];
-		}
-
 		process_input_for_camera_movement(window->glfw_window, renderer->render_ctx.cam);
 		double prev_time = glfwGetTime();
 		renderer->render();
