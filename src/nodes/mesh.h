@@ -7,8 +7,8 @@
 
 #include "node.h"
 #include "IRenderable.h"
-#include "mesh_builder.h"
-#include "camera.h"
+#include "renderer/mesh_builder.h"
+#include "renderer/camera.h"
 
 namespace Engine {
 	class Mesh : public Node, public IRenderable {
