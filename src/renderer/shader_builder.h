@@ -10,7 +10,7 @@
 
 
 namespace ShaderBuilder {
-	enum class ShaderBuilderErrorType {
+	enum class ShaderBuilderErrorWhich {
 		frag_shader_compile_error,
 		vert_shader_compile_error,
 		shader_link_error,
@@ -18,7 +18,7 @@ namespace ShaderBuilder {
 		vert_shader_file_not_found
 	};
 	struct ShaderBuilderError {
-		ShaderBuilderErrorType err{};
+		ShaderBuilderErrorWhich err{};
 		std::string err_msg{};
 	};
 
@@ -28,7 +28,7 @@ namespace ShaderBuilder {
 	tl::expected<std::unique_ptr<VertexShader>, ShaderBuilderError> build_vert(std::filesystem::path vertex_shader_filepath) {
 		auto vert_shader_source_str = GLUtils::read_string_from_filepath(vertex_shader_filepath);
 		if (!vert_shader_source_str.has_value()) {
-			return tl::unexpected(ShaderBuilderError{ ShaderBuilderErrorType::vert_shader_file_not_found, "vertex shader file not found" });
+			return tl::unexpected(ShaderBuilderError{ ShaderBuilderErrorWhich::vert_shader_file_not_found, "vertex shader file not found" });
 		}
 		std::unique_ptr<VertexShader> vertex_shader{};
 		try
@@ -37,7 +37,7 @@ namespace ShaderBuilder {
 		}
 		catch (const std::exception& e)
 		{
-			return tl::unexpected(ShaderBuilderError{ ShaderBuilderErrorType::vert_shader_compile_error, e.what() });
+			return tl::unexpected(ShaderBuilderError{ ShaderBuilderErrorWhich::vert_shader_compile_error, e.what() });
 		}
 		return vertex_shader;
 	}
@@ -45,7 +45,7 @@ namespace ShaderBuilder {
 	tl::expected<std::unique_ptr<FragmentShader>, ShaderBuilderError> build_frag(std::filesystem::path frag_shader_filepath) {
 		auto frag_shader_source_str = GLUtils::read_string_from_filepath(frag_shader_filepath);
 		if (!frag_shader_source_str.has_value()) {
-			return tl::unexpected(ShaderBuilderError{ ShaderBuilderErrorType::frag_shader_file_not_found, "fragment shader file not found" });
+			return tl::unexpected(ShaderBuilderError{ ShaderBuilderErrorWhich::frag_shader_file_not_found, "fragment shader file not found" });
 		}
 		std::unique_ptr<FragmentShader> fragment_shader{};
 		try
@@ -54,7 +54,7 @@ namespace ShaderBuilder {
 		}
 		catch (const std::exception& e)
 		{
-			return tl::unexpected(ShaderBuilderError{ ShaderBuilderErrorType::frag_shader_compile_error, e.what() });
+			return tl::unexpected(ShaderBuilderError{ ShaderBuilderErrorWhich::frag_shader_compile_error, e.what() });
 		}
 		return fragment_shader;
 	}
@@ -75,7 +75,7 @@ namespace ShaderBuilder {
 		}
 		catch (const std::exception& e)
 		{
-			return tl::unexpected(ShaderBuilderError{ ShaderBuilderErrorType::shader_link_error, e.what() });
+			return tl::unexpected(ShaderBuilderError{ ShaderBuilderErrorWhich::shader_link_error, e.what() });
 		}
 		return shader_program;
 	}
