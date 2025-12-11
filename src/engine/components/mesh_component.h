@@ -1,9 +1,10 @@
 #pragma once
 
 #include <memory>
+#include <entt/entt.hpp>
 #include "renderer/mesh_builder.h"
 
 
 namespace Engine {
-	using MeshComponent = std::shared_ptr<MeshBuilder::Scene>;
+	using MeshComponent = entt::resource<MeshBuilder::Scene>;
 }
