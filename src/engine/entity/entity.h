@@ -15,7 +15,7 @@ namespace Engine {
 		std::vector<std::unique_ptr<Entity>> children{};
 	private:
 		entt::registry* entt_registry{};
-		entt::entity entt_entity{};
+		entt::entity entt_entity{entt::null};
 	public:
 		Entity(entt::registry& entt_registry): entt_registry(&entt_registry) {
 			entt_entity = entt_registry.create();
