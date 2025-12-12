@@ -52,7 +52,7 @@ int main() {
 	auto sponza_scene = entt_mesh_cache.load("sponza"_hs, asset_dir + "meshes/sponza_palace/scene.gltf").first->second;
 
 	auto candle_entity = entt_registry.create();
-	entt_registry.emplace<Engine::ParentComponent>(candle_entity, std::nullopt);
+	entt_registry.emplace<Engine::ParentComponent>(candle_entity, Engine::ParentComponent{});
 	entt_registry.emplace<Engine::ChildrenComponent>(candle_entity, Engine::ChildrenComponent{});
 	entt_registry.emplace<Engine::NameComponent>(candle_entity, "candle");
 	entt_registry.emplace<Engine::MeshComponent>(candle_entity, candle_scene);
@@ -60,7 +60,7 @@ int main() {
 	entt_registry.emplace<Engine::TransformComponent>(candle_entity, glm::mat4(1.0f));
 
 	auto backpack_entity = entt_registry.create();
-	entt_registry.emplace<Engine::ParentComponent>(backpack_entity, std::nullopt);
+	entt_registry.emplace<Engine::ParentComponent>(backpack_entity, Engine::ParentComponent{});
 	entt_registry.emplace<Engine::ChildrenComponent>(backpack_entity, Engine::ChildrenComponent{});
 	entt_registry.emplace<Engine::NameComponent>(backpack_entity, "backpack");
 	entt_registry.emplace<Engine::MeshComponent>(backpack_entity, backpack_scene);
@@ -70,7 +70,7 @@ int main() {
 
 	
 	auto military_uniform_entity = entt_registry.create();
-	entt_registry.emplace<Engine::ParentComponent>(military_uniform_entity, std::nullopt);
+	entt_registry.emplace<Engine::ParentComponent>(military_uniform_entity, Engine::ParentComponent{});
 	entt_registry.emplace<Engine::ChildrenComponent>(military_uniform_entity, Engine::ChildrenComponent{});
 	entt_registry.emplace<Engine::NameComponent>(military_uniform_entity, "military uniform");
 	entt_registry.emplace<Engine::MeshComponent>(military_uniform_entity, military_uniform_scene);
@@ -82,7 +82,7 @@ int main() {
 
 
 	auto sponza_entity = entt_registry.create();
-	entt_registry.emplace<Engine::ParentComponent>(sponza_entity, std::nullopt);
+	entt_registry.emplace<Engine::ParentComponent>(sponza_entity, Engine::ParentComponent{});
 	entt_registry.emplace<Engine::ChildrenComponent>(sponza_entity, Engine::ChildrenComponent{});
 	entt_registry.emplace<Engine::NameComponent>(sponza_entity, "sponza");
 	entt_registry.emplace<Engine::MeshComponent>(sponza_entity, sponza_scene);
@@ -92,7 +92,6 @@ int main() {
 	
 
 	auto root_entity = entt_registry.create();
-	entt_registry.emplace<Engine::ParentComponent>(root_entity, std::nullopt);
 	entt_registry.emplace<Engine::NameComponent>(root_entity, "root");
 	entt_registry.emplace<Engine::ChildrenComponent>(root_entity, Engine::ChildrenComponent{});
 
@@ -100,7 +99,6 @@ int main() {
 	Engine::add_child(entt_registry, root_entity, backpack_entity);
 	Engine::add_child(entt_registry, root_entity, military_uniform_entity);
 	Engine::add_child(entt_registry, root_entity, sponza_entity);
-
 
 	renderer->render_ctx.cam.position = glm::vec3{ 0, 0, -1 };
 

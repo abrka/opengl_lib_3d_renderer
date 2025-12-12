@@ -23,11 +23,11 @@ namespace Engine {
 	}
 
 	void destroy_entity(entt::registry& entt_registry, entt::entity entity) {
-		auto& parent_opt = entt_registry.get<ParentComponent>(entity);
-		if (parent_opt.has_value()) {
-			auto& parent = parent_opt.value();
-			auto& children = entt_registry.get<ChildrenComponent>(parent);
-			auto num_erased = std::erase(children, entity);
+		auto* parent = entt_registry.try_get<ParentComponent>(entity);
+		if (parent) {
+			auto* children = entt_registry.try_get<ChildrenComponent>(parent->entity);
+			assert(children && "the parent of this entity does not contain a ChildrenComponent");
+			auto num_erased = std::erase(*children, entity);
 			assert(num_erased == 1);
 		}
 		_destroy_entity(entt_registry, entity);

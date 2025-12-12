@@ -4,5 +4,9 @@
 #include <entt/entt.hpp>
 
 namespace Engine {
-	using ParentComponent = std::optional<entt::entity>;
+	struct ParentComponent {
+		entt::entity entity{ entt::null };
+		ParentComponent() = default;
+		ParentComponent(entt::entity entity) : entity(entity) {};
+	};
 }
