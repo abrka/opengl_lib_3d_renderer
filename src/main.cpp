@@ -86,7 +86,7 @@ int main() {
 
 
 
-	Editor::HierarchicalPanel<Engine::Entity> hierarchical_panel{};
+	Editor::HierarchicalPanel hierarchical_panel{entt_registry};
 
 	ImGuizmo::OPERATION imguizmo_operation{ ImGuizmo::OPERATION::UNIVERSAL };
 	ImGuizmo::MODE imguizmo_mode{ ImGuizmo::MODE::LOCAL };
@@ -103,7 +103,7 @@ int main() {
 		auto [screen_width, screen_height] = renderer.get_screen_width_and_height();
 		ImGuizmo::SetRect(0, 0, screen_width, screen_height);
 
-		Engine::Entity* selected_entity = hierarchical_panel.selected_node;
+		Engine::Entity* selected_entity = hierarchical_panel.selected_entity;
 		if (!selected_entity) {
 			return;
 		}
