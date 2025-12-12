@@ -12,6 +12,7 @@ namespace Editor {
 
 		void render(Engine::Entity& node) {
 			render_add_button();
+			ImGui::SameLine();
 			render_remove_button();
 			render_entities(node);
 		}
