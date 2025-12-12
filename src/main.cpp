@@ -76,10 +76,10 @@ int main() {
 
 	auto root_entity = std::make_unique<Engine::Entity>(entt_registry);
 	root_entity->name = "root";
-	root_entity->children.push_back(std::move(candle_entity));
-	root_entity->children.push_back(std::move(backpack_entity));
-	root_entity->children.push_back(std::move(military_uniform_entity));
-	root_entity->children.push_back(std::move(sponza_entity));
+	root_entity->add_child(std::move(candle_entity));
+	root_entity->add_child(std::move(backpack_entity));
+	root_entity->add_child(std::move(military_uniform_entity));
+	root_entity->add_child(std::move(sponza_entity));
 
 
 	renderer->render_ctx.cam.position = glm::vec3{ 0, 0, -1 };

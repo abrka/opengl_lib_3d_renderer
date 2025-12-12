@@ -9,6 +9,18 @@ namespace Editor {
 		T* selected_node{};
 
 		void render(T& node) {
+			if (ImGui::Button("[-] Remove Entity")) {
+				if (selected_node) {
+					bool success = selected_node->destroy();
+					if (success) {
+						selected_node = nullptr;
+					}
+				}
+			}
+			render_nodes(node);
+		}
+	private:
+		void render_nodes(T& node) {
 			ImGuiTreeNodeFlags flags{};
 			if (&node == selected_node) {
 				flags |= ImGuiTreeNodeFlags_Selected;
@@ -24,7 +36,7 @@ namespace Editor {
 				for (size_t i = 0; i < node.children.size(); i++)
 				{
 					ImGuiTreeNodeFlags child_flags{};
-					render(*node.children[i]);
+					render_nodes(*node.children[i]);
 				}
 				ImGui::TreePop();
 			}
