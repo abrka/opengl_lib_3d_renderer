@@ -1,10 +1,15 @@
 #include <entt/entt.hpp>
 
 #include "renderer/renderer.h"
-#include "engine/entity/entity.h"
-#include "editor/hierarchical_panel.h"
+
+#include "engine/components/name_component.h"
+#include "engine/components/parent_component.h"
+#include "engine/components/children_component.h"
+
 #include "engine/loaders/mesh_loader.h"
 #include "engine/loaders/shader_loader.h"
+
+#include "editor/hierarchical_panel.h"
 
 static float mouse_sensitivity = 0.005f;
 static float cam_speed = 0.02f;
@@ -46,40 +51,55 @@ int main() {
 	auto military_uniform_scene = entt_mesh_cache.load("uniform"_hs, asset_dir + "meshes/military_uniform/military_uniform.gltf").first->second;
 	auto sponza_scene = entt_mesh_cache.load("sponza"_hs, asset_dir + "meshes/sponza_palace/scene.gltf").first->second;
 
-	auto candle_entity = std::make_unique<Engine::Entity>(entt_registry);
-	candle_entity->name = "candle";
-	candle_entity->add_component<Engine::MeshComponent>(candle_scene);
-	candle_entity->add_component<Engine::ShaderComponent>(pbr_shader);
-	candle_entity->add_component<Engine::TransformComponent>(glm::mat4(1.0f));
+	auto candle_entity = entt_registry.create();
+	entt_registry.emplace<Engine::ParentComponent>(candle_entity, std::nullopt);
+	entt_registry.emplace<Engine::ChildrenComponent>(candle_entity, Engine::ChildrenComponent{});
+	entt_registry.emplace<Engine::NameComponent>(candle_entity, "candle");
+	entt_registry.emplace<Engine::MeshComponent>(candle_entity, candle_scene);
+	entt_registry.emplace<Engine::ShaderComponent>(candle_entity, pbr_shader);
+	entt_registry.emplace<Engine::TransformComponent>(candle_entity, glm::mat4(1.0f));
 
-	auto backpack_entity = std::make_unique<Engine::Entity>(entt_registry);
-	backpack_entity->name = "backpack";
-	backpack_entity->add_component<Engine::MeshComponent>(backpack_scene);
-	backpack_entity->add_component<Engine::ShaderComponent>(pbr_shader);
+	auto backpack_entity = entt_registry.create();
+	entt_registry.emplace<Engine::ParentComponent>(backpack_entity, std::nullopt);
+	entt_registry.emplace<Engine::ChildrenComponent>(backpack_entity, Engine::ChildrenComponent{});
+	entt_registry.emplace<Engine::NameComponent>(backpack_entity, "backpack");
+	entt_registry.emplace<Engine::MeshComponent>(backpack_entity, backpack_scene);
+	entt_registry.emplace<Engine::ShaderComponent>(backpack_entity, pbr_shader);
 	glm::mat4 backpack_transform = glm::scale(glm::mat4(1.0f), { 0.1,0.1,-0.1 });
-	backpack_entity->add_component<Engine::TransformComponent>(backpack_transform);
-	
-	
-	auto military_uniform_entity = std::make_unique<Engine::Entity>(entt_registry);
-	military_uniform_entity->name = "military uniform";
-	military_uniform_entity->add_component<Engine::MeshComponent>(military_uniform_scene);
-	military_uniform_entity->add_component<Engine::ShaderComponent>(pbr_shader);
-	glm::mat4 military_uniform_transform = glm::scale(glm::mat4(1.0f), { 0.02,0.02,0.02 });
-	military_uniform_entity->add_component<Engine::TransformComponent>(military_uniform_transform);
-	
-	auto sponza_entity = std::make_unique<Engine::Entity>(entt_registry);
-	sponza_entity->name = "sponza scene";
-	sponza_entity->add_component<Engine::MeshComponent>(sponza_scene);
-	sponza_entity->add_component<Engine::ShaderComponent>(pbr_shader);
-	glm::mat4 sponza_tranform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), { 1,0,0 });
-	sponza_entity->add_component<Engine::TransformComponent>(sponza_tranform);
+	entt_registry.emplace<Engine::TransformComponent>(backpack_entity, backpack_transform);
 
-	auto root_entity = std::make_unique<Engine::Entity>(entt_registry);
-	root_entity->name = "root";
-	root_entity->add_child(std::move(candle_entity));
-	root_entity->add_child(std::move(backpack_entity));
-	root_entity->add_child(std::move(military_uniform_entity));
-	root_entity->add_child(std::move(sponza_entity));
+	
+	auto military_uniform_entity = entt_registry.create();
+	entt_registry.emplace<Engine::ParentComponent>(military_uniform_entity, std::nullopt);
+	entt_registry.emplace<Engine::ChildrenComponent>(military_uniform_entity, Engine::ChildrenComponent{});
+	entt_registry.emplace<Engine::NameComponent>(military_uniform_entity, "military uniform");
+	entt_registry.emplace<Engine::MeshComponent>(military_uniform_entity, military_uniform_scene);
+	entt_registry.emplace<Engine::ShaderComponent>(military_uniform_entity, pbr_shader);
+	glm::mat4 military_uniform_transform = glm::scale(glm::mat4(1.0f), { 0.02,0.02,0.02 });
+	entt_registry.emplace<Engine::TransformComponent>(military_uniform_entity, military_uniform_transform);
+	
+	
+
+
+	auto sponza_entity = entt_registry.create();
+	entt_registry.emplace<Engine::ParentComponent>(sponza_entity, std::nullopt);
+	entt_registry.emplace<Engine::ChildrenComponent>(sponza_entity, Engine::ChildrenComponent{});
+	entt_registry.emplace<Engine::NameComponent>(sponza_entity, "sponza");
+	entt_registry.emplace<Engine::MeshComponent>(sponza_entity, sponza_scene);
+	entt_registry.emplace<Engine::ShaderComponent>(sponza_entity, pbr_shader);
+	glm::mat4 sponza_tranform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), { 1,0,0 });
+	entt_registry.emplace<Engine::TransformComponent>(sponza_entity, sponza_tranform);
+	
+
+	auto root_entity = entt_registry.create();
+	entt_registry.emplace<Engine::ParentComponent>(root_entity, std::nullopt);
+	entt_registry.emplace<Engine::NameComponent>(root_entity, "root");
+	entt_registry.emplace<Engine::ChildrenComponent>(root_entity, Engine::ChildrenComponent{});
+
+	Engine::add_child(entt_registry, root_entity, candle_entity);
+	Engine::add_child(entt_registry, root_entity, backpack_entity);
+	Engine::add_child(entt_registry, root_entity, military_uniform_entity);
+	Engine::add_child(entt_registry, root_entity, sponza_entity);
 
 
 	renderer->render_ctx.cam.position = glm::vec3{ 0, 0, -1 };
@@ -91,11 +111,11 @@ int main() {
 	ImGuizmo::OPERATION imguizmo_operation{ ImGuizmo::OPERATION::UNIVERSAL };
 	ImGuizmo::MODE imguizmo_mode{ ImGuizmo::MODE::LOCAL };
 
-	renderer->custom_imgui_render_function = [&imguizmo_operation, &imguizmo_mode, &root_entity, &hierarchical_panel](Renderer::Renderer3D& renderer) {
+	renderer->custom_imgui_render_function = [&imguizmo_operation, &imguizmo_mode,&entt_registry, &root_entity, &hierarchical_panel](Renderer::Renderer3D& renderer) {
 		ImGui::ShowDemoWindow();
 
 		ImGui::Begin("Nodes");
-		hierarchical_panel.render(*root_entity);
+		hierarchical_panel.render(root_entity);
 		ImGui::End();
 
 		ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());
@@ -103,11 +123,11 @@ int main() {
 		auto [screen_width, screen_height] = renderer.get_screen_width_and_height();
 		ImGuizmo::SetRect(0, 0, screen_width, screen_height);
 
-		Engine::Entity* selected_entity = hierarchical_panel.selected_entity;
-		if (!selected_entity) {
+		auto selected_entity = hierarchical_panel.selected_entity;
+		if (selected_entity == entt::null) {
 			return;
 		}
-		glm::mat4* transform = selected_entity->try_get_component<Engine::TransformComponent>();
+		glm::mat4* transform = entt_registry.try_get<Engine::TransformComponent>(selected_entity);
 		if (!transform) {
 			return;
 		}

@@ -1,20 +1,24 @@
+#pragma once
+
+#include <entt/entt.hpp>
 #include "renderer/renderer.h"
-#include "engine/entity/entity.h"
+
 
 namespace Editor {
 	class HierarchicalPanel
 	{
 	public:
-
-		Engine::Entity* selected_entity{};
+		entt::entity selected_entity{ entt::null };
 
 		HierarchicalPanel(entt::registry& entt_registry) : entt_registry(&entt_registry) {}
 
-		void render(Engine::Entity& node) {
+		void render(entt::entity root_entity) {
 			render_add_button();
 			ImGui::SameLine();
 			render_remove_button();
-			render_entities(node);
+			if (entt_registry->valid(root_entity)) {
+				render_entities(root_entity);
+			}
 		}
 	private:
 		entt::registry* entt_registry{};
@@ -22,41 +26,40 @@ namespace Editor {
 
 		void render_add_button() {
 			if (ImGui::Button("[+] Add Entity")) {
-				if (selected_entity) {
-					auto entity = std::make_unique<Engine::Entity>(*entt_registry);
-					entity->name = "Entity " + std::to_string(added_entity_count);
-					selected_entity->add_child(std::move(entity));
-					added_entity_count++;
+				if (!entt_registry->valid(selected_entity)) {
+					return;
 				}
+				auto entity = entt_registry->create();
+				entt_registry->emplace<Engine::NameComponent>(entity, "Entity " + std::to_string(added_entity_count));
+				Engine::add_child(*entt_registry, selected_entity, entity);
+				added_entity_count++;
 			}
 		}
 		void render_remove_button() {
 			if (ImGui::Button("[-] Remove Entity")) {
-				if (selected_entity) {
-					bool success = selected_entity->destroy();
-					if (success) {
-						selected_entity = nullptr;
-					}
+				if (entt_registry->valid(selected_entity)) {
+					Engine::destroy_entity(*entt_registry, selected_entity);
+					selected_entity = entt::null;
 				}
 			}
 		}
-		void render_entities(Engine::Entity& node) {
-			ImGuiTreeNodeFlags flags{ImGuiTreeNodeFlags_DefaultOpen};
-			if (&node == selected_entity) {
+		void render_entities(const entt::entity entity) {
+			ImGuiTreeNodeFlags flags{ ImGuiTreeNodeFlags_DefaultOpen };
+			if (entity == selected_entity) {
 				flags |= ImGuiTreeNodeFlags_Selected;
 			}
-			if (node.children.empty()) {
+			auto children = entt_registry->get_or_emplace<Engine::ChildrenComponent>(entity);
+			if (children.empty()) {
 				flags |= ImGuiTreeNodeFlags_Leaf;
 			}
-			bool is_open = ImGui::TreeNodeEx(&node, flags, node.name.c_str());
+			auto& name = entt_registry->get_or_emplace<Engine::NameComponent>(entity);
+			bool is_open = ImGui::TreeNodeEx((void*)entity, flags, name.c_str());
 			if (ImGui::IsItemClicked()) {
-				selected_entity = &node;
+				selected_entity = entity;
 			}
 			if (is_open) {
-				for (size_t i = 0; i < node.children.size(); i++)
-				{
-					ImGuiTreeNodeFlags child_flags{};
-					render_entities(*node.children[i]);
+				for (const auto& child : children) {
+					render_entities(child);
 				}
 				ImGui::TreePop();
 			}
