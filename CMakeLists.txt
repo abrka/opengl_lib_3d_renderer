@@ -18,6 +18,11 @@ target_link_libraries(opengl_lib_3d_renderer PRIVATE assimp::assimp)
 add_subdirectory(external/entt)
 target_link_libraries(opengl_lib_3d_renderer PRIVATE EnTT::EnTT)
 
+# Add cereal
+set(JUST_INSTALL_CEREAL ON)
+add_subdirectory(external/cereal)
+target_link_libraries(opengl_lib_3d_renderer PRIVATE cereal::cereal)
+
 # Add tl expected
 target_link_libraries(opengl_lib_3d_renderer PRIVATE tl::expected)
 

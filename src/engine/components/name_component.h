@@ -3,5 +3,7 @@
 #include <string>
 
 namespace Engine {
-	using NameComponent = std::string;
+	struct NameComponent {
+		std::string name{};
+	};
 }

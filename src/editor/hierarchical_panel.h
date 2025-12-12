@@ -53,7 +53,7 @@ namespace Editor {
 				flags |= ImGuiTreeNodeFlags_Leaf;
 			}
 			auto& name = entt_registry->get_or_emplace<Engine::NameComponent>(entity);
-			bool is_open = ImGui::TreeNodeEx((void*)entity, flags, name.c_str());
+			bool is_open = ImGui::TreeNodeEx((void*)entity, flags, name.name.c_str());
 			if (ImGui::IsItemClicked()) {
 				selected_entity = entity;
 			}

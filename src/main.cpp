@@ -1,4 +1,6 @@
 #include <entt/entt.hpp>
+#include <cereal/cereal.hpp>
+#include <cereal/archives/json.hpp>
 
 #include "renderer/renderer.h"
 
@@ -32,6 +34,27 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 }
 
 
+namespace glm {
+	template<class Archive>
+	void serialize(Archive& archive, glm::mat4& m) {
+		// Serialize each column (which are vec4s)
+	 	archive(cereal::make_nvp("0",m[0]), cereal::make_nvp("1",m[1]), cereal::make_nvp("2",m[2]), cereal::make_nvp("3",m[3]));
+	}
+
+	// You might also want to add support for vec4, vec3, etc., similarly
+	template<class Archive>
+	void serialize(Archive& archive, glm::vec4& v) {
+		archive(cereal::make_nvp("x", v.x), cereal::make_nvp("y", v.y), cereal::make_nvp("z", v.z), cereal::make_nvp("w", v.w));
+	}
+} 
+
+namespace Engine {
+	template<class Archive>
+	void serialize(Archive& archive, NameComponent n) {
+		// Serialize each column (which are vec4s)
+		archive(cereal::make_nvp("name", n.name));
+	}
+}
 int main() {
 	entt::registry entt_registry{};
 
@@ -99,6 +122,20 @@ int main() {
 	Engine::add_child(entt_registry, root_entity, backpack_entity);
 	Engine::add_child(entt_registry, root_entity, military_uniform_entity);
 	Engine::add_child(entt_registry, root_entity, sponza_entity);
+
+	std::stringstream ss{};
+	{
+		cereal::JSONOutputArchive archive{ ss };
+		entt::snapshot{ entt_registry }.get<entt::entity>(archive).get<Engine::NameComponent>(archive).get<Engine::TransformComponent>(archive);
+	}
+	std::string output_str = ss.str();
+	std::cout << output_str << "\n";
+	entt::registry output_registry{};
+	{
+		
+		cereal::JSONInputArchive archive{ ss };
+		entt::snapshot_loader{ output_registry }.get<entt::entity>(archive).get<Engine::NameComponent>(archive).get<Engine::TransformComponent>(archive).orphans();
+	}
 
 	renderer->render_ctx.cam.position = glm::vec3{ 0, 0, -1 };
 
