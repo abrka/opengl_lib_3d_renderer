@@ -3,7 +3,7 @@
 
 namespace Editor {
 	template<typename T>
-	class HierarchialPanel
+	class HierarchicalPanel
 	{
 	public:
 		T* selected_node{};

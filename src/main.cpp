@@ -2,7 +2,7 @@
 
 #include "renderer/renderer.h"
 #include "engine/entity/entity.h"
-#include "editor/hierarchial_panel.h"
+#include "editor/hierarchical_panel.h"
 #include "engine/loaders/mesh_loader.h"
 #include "engine/loaders/shader_loader.h"
 
@@ -86,16 +86,16 @@ int main() {
 
 
 
-	Editor::HierarchialPanel<Engine::Entity> hierarchial_panel{};
+	Editor::HierarchicalPanel<Engine::Entity> hierarchical_panel{};
 
 	ImGuizmo::OPERATION imguizmo_operation{ ImGuizmo::OPERATION::UNIVERSAL };
 	ImGuizmo::MODE imguizmo_mode{ ImGuizmo::MODE::LOCAL };
 
-	renderer->custom_imgui_render_function = [&imguizmo_operation, &imguizmo_mode, &root_entity, &hierarchial_panel](Renderer::Renderer3D& renderer) {
+	renderer->custom_imgui_render_function = [&imguizmo_operation, &imguizmo_mode, &root_entity, &hierarchical_panel](Renderer::Renderer3D& renderer) {
 		ImGui::ShowDemoWindow();
 
 		ImGui::Begin("Nodes");
-		hierarchial_panel.render(*root_entity);
+		hierarchical_panel.render(*root_entity);
 		ImGui::End();
 
 		ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());
@@ -103,7 +103,7 @@ int main() {
 		auto [screen_width, screen_height] = renderer.get_screen_width_and_height();
 		ImGuizmo::SetRect(0, 0, screen_width, screen_height);
 
-		Engine::Entity* selected_entity = hierarchial_panel.selected_node;
+		Engine::Entity* selected_entity = hierarchical_panel.selected_node;
 		if (!selected_entity) {
 			return;
 		}
