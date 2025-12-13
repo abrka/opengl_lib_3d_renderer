@@ -49,7 +49,7 @@ namespace Editor {
 				flags |= ImGuiTreeNodeFlags_Selected;
 			}
 			auto children = entt_registry->get_or_emplace<Engine::ChildrenComponent>(entity);
-			if (children.empty()) {
+			if (children.children.empty()) {
 				flags |= ImGuiTreeNodeFlags_Leaf;
 			}
 			auto& name = entt_registry->get_or_emplace<Engine::NameComponent>(entity);
@@ -58,7 +58,7 @@ namespace Editor {
 				selected_entity = entity;
 			}
 			if (is_open) {
-				for (const auto& child : children) {
+				for (const auto& child : children.children) {
 					render_entities(child);
 				}
 				ImGui::TreePop();

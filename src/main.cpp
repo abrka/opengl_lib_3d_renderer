@@ -11,6 +11,8 @@
 #include "engine/loaders/mesh_loader.h"
 #include "engine/loaders/shader_loader.h"
 
+#include "engine/serialize/serialize.h"
+
 #include "editor/hierarchical_panel.h"
 
 static float mouse_sensitivity = 0.005f;
@@ -34,27 +36,6 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 }
 
 
-namespace glm {
-	template<class Archive>
-	void serialize(Archive& archive, glm::mat4& m) {
-		// Serialize each column (which are vec4s)
-	 	archive(cereal::make_nvp("0",m[0]), cereal::make_nvp("1",m[1]), cereal::make_nvp("2",m[2]), cereal::make_nvp("3",m[3]));
-	}
-
-	// You might also want to add support for vec4, vec3, etc., similarly
-	template<class Archive>
-	void serialize(Archive& archive, glm::vec4& v) {
-		archive(cereal::make_nvp("x", v.x), cereal::make_nvp("y", v.y), cereal::make_nvp("z", v.z), cereal::make_nvp("w", v.w));
-	}
-} 
-
-namespace Engine {
-	template<class Archive>
-	void serialize(Archive& archive, NameComponent n) {
-		// Serialize each column (which are vec4s)
-		archive(cereal::make_nvp("name", n.name));
-	}
-}
 int main() {
 	entt::registry entt_registry{};
 
@@ -126,7 +107,13 @@ int main() {
 	std::stringstream ss{};
 	{
 		cereal::JSONOutputArchive archive{ ss };
-		entt::snapshot{ entt_registry }.get<entt::entity>(archive).get<Engine::NameComponent>(archive).get<Engine::TransformComponent>(archive);
+		entt::snapshot{ entt_registry }
+			.get<entt::entity>(archive)
+			.get<Engine::NameComponent>(archive)
+			.get<Engine::TransformComponent>(archive)
+			.get<Engine::ParentComponent>(archive)
+			.get<Engine::ChildrenComponent>(archive)
+			;
 	}
 	std::string output_str = ss.str();
 	std::cout << output_str << "\n";
@@ -134,7 +121,14 @@ int main() {
 	{
 		
 		cereal::JSONInputArchive archive{ ss };
-		entt::snapshot_loader{ output_registry }.get<entt::entity>(archive).get<Engine::NameComponent>(archive).get<Engine::TransformComponent>(archive).orphans();
+		entt::snapshot_loader{ output_registry }
+			.get<entt::entity>(archive)
+			.get<Engine::NameComponent>(archive)
+			.get<Engine::TransformComponent>(archive)
+			.get<Engine::ParentComponent>(archive)
+			.get<Engine::ChildrenComponent>(archive)
+			.orphans()
+			;
 	}
 
 	renderer->render_ctx.cam.position = glm::vec3{ 0, 0, -1 };
@@ -162,12 +156,12 @@ int main() {
 		if (selected_entity == entt::null) {
 			return;
 		}
-		glm::mat4* transform = entt_registry.try_get<Engine::TransformComponent>(selected_entity);
-		if (!transform) {
+		auto* transform_comp = entt_registry.try_get<Engine::TransformComponent>(selected_entity);
+		if (!transform_comp) {
 			return;
 		}
 		auto& camera = renderer.render_ctx.cam;
-		ImGuizmo::Manipulate(glm::value_ptr(camera.get_view_matrix()), glm::value_ptr(camera.get_projection_matrix()), imguizmo_operation, imguizmo_mode, glm::value_ptr(*transform));
+		ImGuizmo::Manipulate(glm::value_ptr(camera.get_view_matrix()), glm::value_ptr(camera.get_projection_matrix()), imguizmo_operation, imguizmo_mode, glm::value_ptr(transform_comp->transform));
 
 		};
 

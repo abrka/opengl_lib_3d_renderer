@@ -126,7 +126,7 @@ namespace Renderer {
 		void render_mesh_system(entt::registry& entt_registry) {
 			auto view = entt_registry.view<const Engine::MeshComponent,const Engine::ShaderComponent, const Engine::TransformComponent>();
 			for (auto [entity, mesh_component, shader_component, transform_component] : view.each()) {
-				MeshBuilderSceneRenderer::render(render_ctx, *mesh_component, *shader_component, transform_component);
+				MeshBuilderSceneRenderer::render(render_ctx, *mesh_component, *shader_component, transform_component.transform);
 			}
 		}
 	};

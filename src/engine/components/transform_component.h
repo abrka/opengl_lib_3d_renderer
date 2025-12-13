@@ -3,5 +3,7 @@
 #include <glm/glm.hpp>
 
 namespace Engine {
-	using TransformComponent = glm::mat4;
+	struct TransformComponent {
+		glm::mat4 transform{};
+	};
 }
