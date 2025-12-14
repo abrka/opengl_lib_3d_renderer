@@ -1,10 +1,13 @@
 #include <entt/entt.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
 #include <cereal/cereal.hpp>
 #include <cereal/archives/json.hpp>
 
 #include "renderer/renderer.h"
 
 #include "engine/components/name_component.h"
+#include "engine/components/root_component.h"
 #include "engine/components/parent_component.h"
 #include "engine/components/children_component.h"
 
@@ -48,7 +51,7 @@ int main() {
 	entt::resource_cache<GL3D::ShaderProgram, Engine::ShaderLoader> entt_shader_cache{};
 	auto pbr_shader = entt_shader_cache.load("pbr"_hs, asset_dir + "shaders/pbr_frag.glsl", asset_dir + "shaders/pbr_vertex.glsl").first->second;
 
-	
+
 	entt::resource_cache<MeshBuilder::Scene, Engine::MeshLoader> entt_mesh_cache{};
 	auto backpack_scene = entt_mesh_cache.load("backpack"_hs, asset_dir + "meshes/backpack/backpack.obj").first->second;
 	auto candle_scene = entt_mesh_cache.load("candle"_hs, asset_dir + "meshes/candle/brass_candleholders_1k.gltf").first->second;
@@ -72,7 +75,7 @@ int main() {
 	glm::mat4 backpack_transform = glm::scale(glm::mat4(1.0f), { 0.1,0.1,-0.1 });
 	entt_registry.emplace<Engine::TransformComponent>(backpack_entity, backpack_transform);
 
-	
+
 	auto military_uniform_entity = entt_registry.create();
 	entt_registry.emplace<Engine::ParentComponent>(military_uniform_entity, Engine::ParentComponent{});
 	entt_registry.emplace<Engine::ChildrenComponent>(military_uniform_entity, Engine::ChildrenComponent{});
@@ -81,8 +84,8 @@ int main() {
 	entt_registry.emplace<Engine::ShaderComponent>(military_uniform_entity, pbr_shader);
 	glm::mat4 military_uniform_transform = glm::scale(glm::mat4(1.0f), { 0.02,0.02,0.02 });
 	entt_registry.emplace<Engine::TransformComponent>(military_uniform_entity, military_uniform_transform);
-	
-	
+
+
 
 
 	auto sponza_entity = entt_registry.create();
@@ -93,10 +96,11 @@ int main() {
 	entt_registry.emplace<Engine::ShaderComponent>(sponza_entity, pbr_shader);
 	glm::mat4 sponza_tranform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), { 1,0,0 });
 	entt_registry.emplace<Engine::TransformComponent>(sponza_entity, sponza_tranform);
-	
+
 
 	auto root_entity = entt_registry.create();
 	entt_registry.emplace<Engine::NameComponent>(root_entity, "root");
+	entt_registry.emplace<Engine::RootComponent>(root_entity);
 	entt_registry.emplace<Engine::ChildrenComponent>(root_entity, Engine::ChildrenComponent{});
 
 	Engine::add_child(entt_registry, root_entity, candle_entity);
@@ -104,48 +108,54 @@ int main() {
 	Engine::add_child(entt_registry, root_entity, military_uniform_entity);
 	Engine::add_child(entt_registry, root_entity, sponza_entity);
 
-	std::stringstream ss{};
-	{
-		cereal::JSONOutputArchive archive{ ss };
-		entt::snapshot{ entt_registry }
-			.get<entt::entity>(archive)
-			.get<Engine::NameComponent>(archive)
-			.get<Engine::TransformComponent>(archive)
-			.get<Engine::ParentComponent>(archive)
-			.get<Engine::ChildrenComponent>(archive)
-			;
-	}
-	std::string output_str = ss.str();
-	std::cout << output_str << "\n";
-	entt::registry output_registry{};
-	{
-		
-		cereal::JSONInputArchive archive{ ss };
-		entt::snapshot_loader{ output_registry }
-			.get<entt::entity>(archive)
-			.get<Engine::NameComponent>(archive)
-			.get<Engine::TransformComponent>(archive)
-			.get<Engine::ParentComponent>(archive)
-			.get<Engine::ChildrenComponent>(archive)
-			.orphans()
-			;
-	}
 
 	renderer->render_ctx.cam.position = glm::vec3{ 0, 0, -1 };
 
 
 
-	Editor::HierarchicalPanel hierarchical_panel{entt_registry};
+	Editor::HierarchicalPanel hierarchical_panel{ entt_registry };
 
 	ImGuizmo::OPERATION imguizmo_operation{ ImGuizmo::OPERATION::UNIVERSAL };
 	ImGuizmo::MODE imguizmo_mode{ ImGuizmo::MODE::LOCAL };
-
-	renderer->custom_imgui_render_function = [&imguizmo_operation, &imguizmo_mode,&entt_registry, &root_entity, &hierarchical_panel](Renderer::Renderer3D& renderer) {
+	renderer->custom_imgui_render_function = [&imguizmo_operation, &imguizmo_mode, &entt_registry, &root_entity, &hierarchical_panel](Renderer::Renderer3D& renderer) {
 		ImGui::ShowDemoWindow();
 
-		ImGui::Begin("Nodes");
-		hierarchical_panel.render(root_entity);
+		ImGui::Begin("Serialize");
+		if (ImGui::Button("Save Scene")) {
+			std::ofstream of("scene.kasset");
+			{
+				cereal::JSONOutputArchive archive{ of };
+				entt::snapshot{ entt_registry }
+					.get<entt::entity>(archive)
+					.get<Engine::RootComponent>(archive)
+					.get<Engine::ParentComponent>(archive)
+					.get<Engine::ChildrenComponent>(archive)
+					.get<Engine::NameComponent>(archive)
+					.get<Engine::TransformComponent>(archive)
+					;
+			}
+		}
+		if (ImGui::Button("Load Scene")) {
+			std::ifstream ifs("scene.kasset");
+			cereal::JSONInputArchive archive{ ifs };
+			entt_registry.clear();
+			entt::snapshot_loader{ entt_registry }
+				.get<entt::entity>(archive)
+				.get<Engine::RootComponent>(archive)
+				.get<Engine::ParentComponent>(archive)
+				.get<Engine::ChildrenComponent>(archive)
+				.get<Engine::NameComponent>(archive)
+				.get<Engine::TransformComponent>(archive)
+				.orphans()
+				;
+		}
 		ImGui::End();
+
+		ImGui::Begin("Nodes");
+		hierarchical_panel.render();
+		ImGui::End();
+
+		// draw gizmos with imguizmo
 
 		ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());
 

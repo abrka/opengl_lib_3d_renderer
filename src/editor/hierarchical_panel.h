@@ -12,13 +12,15 @@ namespace Editor {
 
 		HierarchicalPanel(entt::registry& entt_registry) : entt_registry(&entt_registry) {}
 
-		void render(entt::entity root_entity) {
+		void render() {
 			render_add_button();
 			ImGui::SameLine();
 			render_remove_button();
-			if (entt_registry->valid(root_entity)) {
-				render_entities(root_entity);
+			entt::entity root_entity = entt_registry->view<Engine::RootComponent>().front();
+			if (!entt_registry->valid(root_entity) || (root_entity == entt::null)) {
+				assert(false && "entt registry does not contain an entity with RootComponent. Can't render hierarchial panel");
 			}
+			render_entities(root_entity);
 		}
 	private:
 		entt::registry* entt_registry{};
@@ -48,18 +50,24 @@ namespace Editor {
 			if (entity == selected_entity) {
 				flags |= ImGuiTreeNodeFlags_Selected;
 			}
-			auto children = entt_registry->get_or_emplace<Engine::ChildrenComponent>(entity);
-			if (children.children.empty()) {
+			auto* children = entt_registry->try_get<Engine::ChildrenComponent>(entity);
+			if (!children || (children && children->children.empty())) {
 				flags |= ImGuiTreeNodeFlags_Leaf;
 			}
-			auto& name = entt_registry->get_or_emplace<Engine::NameComponent>(entity);
-			bool is_open = ImGui::TreeNodeEx((void*)entity, flags, name.name.c_str());
+			auto* name = entt_registry->try_get<Engine::NameComponent>(entity);
+			std::string output_name{ "No NameComponent provided" };
+			if (name) {
+				output_name = name->name;
+			}
+			bool is_open = ImGui::TreeNodeEx((void*)entity, flags, output_name.c_str());
 			if (ImGui::IsItemClicked()) {
 				selected_entity = entity;
 			}
 			if (is_open) {
-				for (const auto& child : children.children) {
-					render_entities(child);
+				if (children) {
+					for (const auto& child : children->children) {
+						render_entities(child);
+					}
 				}
 				ImGui::TreePop();
 			}
