@@ -33,7 +33,7 @@ namespace Engine {
 	}
 	template<class Archive>
 	void serialize(Archive& archive, ParentComponent& t) {
-		archive(cereal::make_nvp("parent", entt::to_integral(t.entity)));
+		archive(cereal::make_nvp("parent", t.entity));
 	}
 	template<class Archive>
 	void serialize(Archive& archive, ChildrenComponent& t) {
