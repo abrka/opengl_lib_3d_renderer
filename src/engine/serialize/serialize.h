@@ -3,6 +3,14 @@
 #include <cereal/cereal.hpp>
 #include <cereal/types/vector.hpp> 
 
+#include "engine/components/parent_component.h"
+#include "engine/components/children_component.h"
+#include "engine/components/name_component.h"
+#include "engine/components/transform_component.h"
+
+
+// WARNING: REMEMBER TO USE REFERENCES IN SERIALIZE FUNCTION INSTEAD OF VALUES
+
 namespace glm {
 	template<class Archive>
 	void serialize(Archive& archive, glm::mat4& t) {
@@ -16,19 +24,19 @@ namespace glm {
 
 namespace Engine {
 	template<class Archive>
-	void serialize(Archive& archive, NameComponent t) {
+	void serialize(Archive& archive, NameComponent& t) {
 		archive(cereal::make_nvp("name", t.name));
 	}
 	template<class Archive>
-	void serialize(Archive& archive, TransformComponent t) {
+	void serialize(Archive& archive, TransformComponent& t) {
 		archive(cereal::make_nvp("transform", t.transform));
 	}
 	template<class Archive>
-	void serialize(Archive& archive, ParentComponent t) {
+	void serialize(Archive& archive, ParentComponent& t) {
 		archive(cereal::make_nvp("parent", entt::to_integral(t.entity)));
 	}
 	template<class Archive>
-	void serialize(Archive& archive, ChildrenComponent t) {
+	void serialize(Archive& archive, ChildrenComponent& t) {
 		archive(cereal::make_nvp("children", t.children));
 	}
 }
