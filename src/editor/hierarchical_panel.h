@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include <entt/entt.hpp>
 #include <imgui.h>
 
@@ -8,7 +10,7 @@ namespace Editor {
 	class HierarchicalPanel
 	{
 	public:
-		entt::entity selected_entity{ entt::null };
+		std::optional<entt::entity> selected_entity{ std::nullopt };
 
 		HierarchicalPanel() = default;
 		HierarchicalPanel(entt::registry& entt_registry) : entt_registry(&entt_registry) {}
@@ -33,21 +35,22 @@ namespace Editor {
 
 		void render_add_button() {
 			if (ImGui::Button("[+] Add Entity")) {
-				if (!entt_registry->valid(selected_entity)) {
+				if (!selected_entity.has_value()) {
 					return;
 				}
 				auto entity = entt_registry->create();
 				entt_registry->emplace<Engine::NameComponent>(entity, "Entity " + std::to_string(added_entity_count));
-				Engine::add_child(*entt_registry, selected_entity, entity);
+				Engine::add_child(*entt_registry, selected_entity.value(), entity);
 				added_entity_count++;
 			}
 		}
 		void render_remove_button() {
 			if (ImGui::Button("[-] Remove Entity")) {
-				if (entt_registry->valid(selected_entity)) {
-					Engine::destroy_entity(*entt_registry, selected_entity);
-					selected_entity = entt::null;
+				if (!selected_entity.has_value()) {
+					return;
 				}
+				Engine::destroy_entity(*entt_registry, selected_entity.value());
+				selected_entity.reset();
 			}
 		}
 		void render_entities(const entt::entity entity) {
@@ -60,7 +63,7 @@ namespace Editor {
 				flags |= ImGuiTreeNodeFlags_Leaf;
 			}
 			auto* name = entt_registry->try_get<Engine::NameComponent>(entity);
-			std::string output_name{ "No NameComponent provided" };
+			std::string output_name{ "Entity does not contain a NameComponent" };
 			if (name) {
 				output_name = name->name;
 			}
