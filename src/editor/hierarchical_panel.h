@@ -1,7 +1,7 @@
 #pragma once
 
 #include <entt/entt.hpp>
-#include "renderer/renderer.h"
+#include <imgui.h>
 
 
 namespace Editor {
@@ -13,14 +13,18 @@ namespace Editor {
 		HierarchicalPanel(entt::registry& entt_registry) : entt_registry(&entt_registry) {}
 
 		void render() {
+			ImGui::Begin("Entities");
 			render_add_button();
 			ImGui::SameLine();
 			render_remove_button();
 			entt::entity root_entity = entt_registry->view<Engine::RootComponent>().front();
-			if (!entt_registry->valid(root_entity) || (root_entity == entt::null)) {
-				assert(false && "entt registry does not contain an entity with RootComponent. Can't render hierarchial panel");
+			if (entt_registry->valid(root_entity)) {
+				render_entities(root_entity);
 			}
-			render_entities(root_entity);
+			else {
+				std::cout << "EDITOR::WARNING entt registry does not contain an entity with RootComponent. Can't render hierarchial panel" << "\n";
+			}
+			ImGui::End();
 		}
 	private:
 		entt::registry* entt_registry{};

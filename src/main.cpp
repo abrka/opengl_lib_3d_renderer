@@ -6,10 +6,7 @@
 
 #include "renderer/renderer.h"
 
-#include "engine/components/name_component.h"
-#include "engine/components/root_component.h"
-#include "engine/components/parent_component.h"
-#include "engine/components/children_component.h"
+#include "engine/components/components.h"
 
 #include "engine/loaders/mesh_loader.h"
 #include "engine/loaders/shader_loader.h"
@@ -17,6 +14,8 @@
 #include "engine/serialize/serialize.h"
 
 #include "editor/hierarchical_panel.h"
+#include "editor/load_scene_button.h"
+#include "editor/save_scene_button.h"
 
 static float mouse_sensitivity = 0.005f;
 static float cam_speed = 0.02f;
@@ -121,39 +120,13 @@ int main() {
 		ImGui::ShowDemoWindow();
 
 		ImGui::Begin("Serialize");
-		if (ImGui::Button("Save Scene")) {
-			std::ofstream of("scene.kasset");
-			{
-				cereal::JSONOutputArchive archive{ of };
-				entt::snapshot{ entt_registry }
-					.get<entt::entity>(archive)
-					.get<Engine::RootComponent>(archive)
-					.get<Engine::ParentComponent>(archive)
-					.get<Engine::ChildrenComponent>(archive)
-					.get<Engine::NameComponent>(archive)
-					.get<Engine::TransformComponent>(archive)
-					;
-			}
-		}
-		if (ImGui::Button("Load Scene")) {
-			std::ifstream ifs("scene.kasset");
-			cereal::JSONInputArchive archive{ ifs };
-			entt_registry.clear();
-			entt::snapshot_loader{ entt_registry }
-				.get<entt::entity>(archive)
-				.get<Engine::RootComponent>(archive)
-				.get<Engine::ParentComponent>(archive)
-				.get<Engine::ChildrenComponent>(archive)
-				.get<Engine::NameComponent>(archive)
-				.get<Engine::TransformComponent>(archive)
-				.orphans()
-				;
-		}
+		Editor::SaveSceneButton::render("scene.kasset", "Save Scene", entt_registry);
+		ImGui::SameLine();
+		Editor::LoadSceneButton::render("scene.kasset", "Load Scene", entt_registry);
 		ImGui::End();
 
-		ImGui::Begin("Nodes");
 		hierarchical_panel.render();
-		ImGui::End();
+
 
 		// draw gizmos with imguizmo
 

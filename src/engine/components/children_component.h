@@ -9,7 +9,7 @@ namespace Engine {
 		std::vector<entt::entity> children{};
 	};
 
-	void add_child(entt::registry& entt_registry, entt::entity parent_entity, entt::entity child_entity){
+	void add_child(entt::registry& entt_registry, entt::entity parent_entity, entt::entity child_entity) {
 		entt_registry.get_or_emplace<ParentComponent>(child_entity) = parent_entity;
 		entt_registry.get_or_emplace<ChildrenComponent>(parent_entity).children.push_back(child_entity);
 	}
@@ -17,9 +17,11 @@ namespace Engine {
 	 * @brief private do not call
 	 */
 	void _destroy_entity(entt::registry& entt_registry, entt::entity entity) {
-		auto& children = entt_registry.get<ChildrenComponent>(entity);
-		for (const auto& child : children.children) {
-			_destroy_entity(entt_registry, child);
+		auto* children = entt_registry.try_get<ChildrenComponent>(entity);
+		if (children) {
+			for (const auto& child : children->children) {
+				_destroy_entity(entt_registry, child);
+			}
 		}
 		entt_registry.destroy(entity);
 	}
