@@ -1,6 +1,4 @@
 #include <entt/entt.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/string_cast.hpp>
 #include <cereal/cereal.hpp>
 #include <cereal/archives/json.hpp>
 
@@ -11,11 +9,7 @@
 #include "engine/loaders/mesh_loader.h"
 #include "engine/loaders/shader_loader.h"
 
-#include "engine/serialize/serialize.h"
-
-#include "editor/hierarchical_panel.h"
-#include "editor/load_scene_button.h"
-#include "editor/save_scene_button.h"
+#include "editor/editor.h"
 
 static float mouse_sensitivity = 0.005f;
 static float cam_speed = 0.02f;
@@ -44,6 +38,7 @@ int main() {
 	const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
 	auto window = std::make_shared<GLExternalRAII::Window>(800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR);
 	auto renderer = std::make_shared<Renderer::Renderer3D>(window, entt_registry);
+	renderer->render_ctx.cam.position = glm::vec3{ 0, 0, -1 };
 
 	using namespace entt::literals;
 
@@ -108,45 +103,10 @@ int main() {
 	Engine::add_child(entt_registry, root_entity, sponza_entity);
 
 
-	renderer->render_ctx.cam.position = glm::vec3{ 0, 0, -1 };
-
-
-
-	Editor::HierarchicalPanel hierarchical_panel{ entt_registry };
-
-	ImGuizmo::OPERATION imguizmo_operation{ ImGuizmo::OPERATION::UNIVERSAL };
-	ImGuizmo::MODE imguizmo_mode{ ImGuizmo::MODE::LOCAL };
-	renderer->custom_imgui_render_function = [&imguizmo_operation, &imguizmo_mode, &entt_registry, &root_entity, &hierarchical_panel](Renderer::Renderer3D& renderer) {
-		ImGui::ShowDemoWindow();
-
-		ImGui::Begin("Serialize");
-		Editor::SaveSceneButton::render("scene.kasset", "Save Scene", entt_registry);
-		ImGui::SameLine();
-		Editor::LoadSceneButton::render("scene.kasset", "Load Scene", entt_registry);
-		ImGui::End();
-
-		hierarchical_panel.render();
-
-
-		// draw gizmos with imguizmo
-
-		ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());
-
-		auto [screen_width, screen_height] = renderer.get_screen_width_and_height();
-		ImGuizmo::SetRect(0, 0, screen_width, screen_height);
-
-		auto selected_entity = hierarchical_panel.selected_entity;
-		if (selected_entity == entt::null) {
-			return;
-		}
-		auto* transform_comp = entt_registry.try_get<Engine::TransformComponent>(selected_entity);
-		if (!transform_comp) {
-			return;
-		}
-		auto& camera = renderer.render_ctx.cam;
-		ImGuizmo::Manipulate(glm::value_ptr(camera.get_view_matrix()), glm::value_ptr(camera.get_projection_matrix()), imguizmo_operation, imguizmo_mode, glm::value_ptr(transform_comp->transform));
-
-		};
+	Editor::Editor editor{ *renderer, entt_registry };
+	renderer->custom_imgui_render_function = [&editor](Renderer::Renderer3D& renderer) {
+		editor.render();
+	};
 
 
 	glfwSetInputMode(window->glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);

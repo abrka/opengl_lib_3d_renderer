@@ -10,6 +10,7 @@ namespace Editor {
 	public:
 		entt::entity selected_entity{ entt::null };
 
+		HierarchicalPanel() = default;
 		HierarchicalPanel(entt::registry& entt_registry) : entt_registry(&entt_registry) {}
 
 		void render() {
