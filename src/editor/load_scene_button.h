@@ -5,9 +5,6 @@
 
 #include <entt/entt.hpp>
 #include <cereal/cereal.hpp>
-#include <cereal/archives/json.hpp>
-#include <cereal/archives/binary.hpp>
-#include <cereal/archives/portable_binary.hpp>
 #include <cereal/archives/xml.hpp>
 #include <imgui.h>
 
@@ -19,7 +16,7 @@ namespace Editor {
 		void render(std::filesystem::path saved_file, std::string button_text, entt::registry& entt_registry) {
 			if (ImGui::Button(button_text.c_str())) {
 				std::ifstream ifs(saved_file);
-				cereal::JSONInputArchive archive{ ifs };
+				cereal::XMLInputArchive archive{ ifs };
 				entt_registry.clear();
 				entt::snapshot_loader{ entt_registry }
 					.get<entt::entity>(archive)
