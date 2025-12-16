@@ -15,12 +15,12 @@
 namespace Editor {
 	namespace LoadSceneButton {
 		template<typename Archive>
-		void render(std::filesystem::path saved_file, std::string button_text, entt::registry& entt_registry, Engine::snapshot_get_func<Archive, entt::snapshot_loader> snapshot_get_fn) {
+		void render(std::filesystem::path saved_file, std::string button_text, entt::registry& entt_registry, Engine::snapshot_loader_get_func<Archive> snapshot_loader_get_fn) {
 			if (ImGui::Button(button_text.c_str())) {
 				std::ifstream ifs(saved_file);
 				Archive archive{ ifs };
 				entt_registry.clear();
-				Engine::deserialize_entt(entt_registry, archive, snapshot_get_fn);
+				Engine::deserialize_entt(entt_registry, archive, snapshot_loader_get_fn);
 			}
 		}
 	};

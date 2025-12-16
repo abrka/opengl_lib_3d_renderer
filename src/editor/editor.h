@@ -16,8 +16,8 @@
 namespace Editor {
 	class Editor {
 	public:
-		Engine::snapshot_get_func<cereal::XMLOutputArchive, entt::snapshot> snapshot_get_fn{};
-		Engine::snapshot_get_func<cereal::XMLInputArchive, entt::snapshot_loader> snapshot_loader_get_fn{};
+		Engine::snapshot_get_func<cereal::XMLOutputArchive> snapshot_get_fn{};
+		Engine::snapshot_loader_get_func<cereal::XMLInputArchive> snapshot_loader_get_fn{};
 
 		Editor(Renderer::Renderer3D& renderer, entt::registry& entt_registry) : renderer(&renderer), entt_registry(&entt_registry), hierarchical_panel(entt_registry) {};
 		void render() {

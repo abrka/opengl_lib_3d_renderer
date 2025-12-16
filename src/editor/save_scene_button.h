@@ -15,7 +15,7 @@
 namespace Editor {
 	namespace SaveSceneButton {
 		template<typename Archive>
-		void render(std::filesystem::path saved_file, std::string button_text, entt::registry& entt_registry, Engine::snapshot_get_func<Archive, entt::snapshot> snapshot_get_fn) {
+		void render(std::filesystem::path saved_file, std::string button_text, entt::registry& entt_registry, Engine::snapshot_get_func<Archive> snapshot_get_fn) {
 			if (ImGui::Button(button_text.c_str())) {
 				std::ofstream of(saved_file);
 				{
