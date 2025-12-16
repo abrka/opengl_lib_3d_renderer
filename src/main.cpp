@@ -36,6 +36,8 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 	}
 }
 
+IMGUI_REFLECT(Engine::TransformComponent, transform)
+IMGUI_REFLECT(Engine::NameComponent, name)
 
 int main() {
 	using namespace entt::literals;

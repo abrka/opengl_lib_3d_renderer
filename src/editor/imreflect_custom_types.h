@@ -1,19 +1,35 @@
 #pragma once
 
+#include <glm/glm.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/euler_angles.hpp> // For eulerAngles
+
 #include <imgui.h>
 #include <ImReflect.hpp>
 
 
 void tag_invoke(ImReflect::ImInput_t, const char* label, glm::mat4& value, ImSettings& settings, ImResponse& response) {
-	auto& mat4_response = response.get<glm::mat4>();
+	auto& t_response = response.get<glm::mat4>();
 
 	bool changed = false;
-	changed |= ImGui::InputFloat4(std::string(std::string(label) + " 0").c_str(), glm::value_ptr(value[0]));
-	changed |= ImGui::InputFloat4(std::string(std::string(label) + " 1").c_str(), glm::value_ptr(value[1]));
-	changed |= ImGui::InputFloat4(std::string(std::string(label) + " 2").c_str(), glm::value_ptr(value[2]));
-	changed |= ImGui::InputFloat4(std::string(std::string(label) + " 3").c_str(), glm::value_ptr(value[3]));
-	if (changed) mat4_response.changed();
+
+	glm::vec3 scale{};
+	glm::quat rotation{};
+	glm::vec3 translation{};
+	glm::vec3 skew{};
+	glm::vec4 perspective{};
+	glm::decompose(value, scale, rotation, translation, skew, perspective);
+
+	changed |= ImGui::DragFloat3("translation", glm::value_ptr(translation));
+	auto rotation_euler_angle = glm::degrees(glm::eulerAngles(rotation));
+	changed |= ImGui::DragFloat3("rotation", glm::value_ptr(rotation_euler_angle));
+	changed |= ImGui::DragFloat3("scale", glm::value_ptr(scale), 1.0f, 0.001f);
+	if (changed) { t_response.changed(); }
+
+	value = glm::recompose(scale, glm::quat(glm::radians(rotation_euler_angle)), translation, skew, perspective);
 
 	/* Check hovered, activated, etc*/
-	ImReflect::Detail::check_input_states(mat4_response);
+	ImReflect::Detail::check_input_states(t_response);
 }
