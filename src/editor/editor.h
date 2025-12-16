@@ -16,9 +16,10 @@
 namespace Editor {
 	class Editor {
 	public:
+		Engine::snapshot_get_func<cereal::XMLOutputArchive, entt::snapshot> snapshot_get_fn{};
+		Engine::snapshot_get_func<cereal::XMLInputArchive, entt::snapshot_loader> snapshot_loader_get_fn{};
 
 		Editor(Renderer::Renderer3D& renderer, entt::registry& entt_registry) : renderer(&renderer), entt_registry(&entt_registry), hierarchical_panel(entt_registry) {};
-		
 		void render() {
 			ImGui::ShowDemoWindow();
 
@@ -48,9 +49,9 @@ namespace Editor {
 		}
 		void render_save_load_panel() {
 			ImGui::Begin("Serialize");
-			SaveSceneButton::render("scene.kasset", "Save Scene", *entt_registry);
+			SaveSceneButton::render("scene.kasset", "Save Scene", *entt_registry, snapshot_get_fn);
 			ImGui::SameLine();
-			LoadSceneButton::render("scene.kasset", "Load Scene", *entt_registry);
+			LoadSceneButton::render("scene.kasset", "Load Scene", *entt_registry, snapshot_loader_get_fn);
 			ImGui::End();
 		}
 
@@ -60,5 +61,6 @@ namespace Editor {
 		HierarchicalPanel hierarchical_panel{};
 		ImGuizmo::OPERATION imguizmo_operation{ ImGuizmo::OPERATION::UNIVERSAL };
 		ImGuizmo::MODE imguizmo_mode{ ImGuizmo::MODE::LOCAL };
+		
 	};
 }

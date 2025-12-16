@@ -9,23 +9,18 @@
 #include <imgui.h>
 
 #include "engine/components/components.h"
-#include "engine/serialize/serialize.h"
+#include "engine/serialize/cereal_serialize_custom_types.h"
+#include "engine/serialize/serialize_entt.h"
 
 namespace Editor {
 	namespace SaveSceneButton {
-		void render(std::filesystem::path saved_file, std::string button_text, entt::registry& entt_registry) {
+		template<typename Archive>
+		void render(std::filesystem::path saved_file, std::string button_text, entt::registry& entt_registry, Engine::snapshot_get_func<Archive, entt::snapshot> snapshot_get_fn) {
 			if (ImGui::Button(button_text.c_str())) {
 				std::ofstream of(saved_file);
 				{
-					cereal::XMLOutputArchive archive{ of };
-					entt::snapshot{ entt_registry }
-						.get<entt::entity>(archive)
-						.get<Engine::RootComponent>(archive)
-						.get<Engine::ParentComponent>(archive)
-						.get<Engine::ChildrenComponent>(archive)
-						.get<Engine::NameComponent>(archive)
-						.get<Engine::TransformComponent>(archive)
-						;
+					Archive archive{ of };
+					Engine::serialize_entt(entt_registry, archive, snapshot_get_fn);
 				}
 			}
 		}

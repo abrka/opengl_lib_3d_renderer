@@ -36,6 +36,15 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 	}
 }
 
+template<typename Archive, typename Snapshot>
+void snapshot_get_func_custom(Archive& archive, Snapshot& snapshot) {
+	snapshot.get<Engine::RootComponent>(archive);
+	snapshot.get<Engine::ParentComponent>(archive);
+	snapshot.get<Engine::ChildrenComponent>(archive);
+	snapshot.get<Engine::NameComponent>(archive);
+	snapshot.get<Engine::TransformComponent>(archive);
+}
+
 IMGUI_REFLECT(Engine::TransformComponent, transform)
 IMGUI_REFLECT(Engine::NameComponent, name)
 
@@ -126,6 +135,9 @@ int main() {
 
 
 	Editor::Editor editor{ *renderer, entt_registry };
+	editor.snapshot_get_fn = snapshot_get_func_custom<cereal::XMLOutputArchive, entt::snapshot>;
+	editor.snapshot_loader_get_fn = snapshot_get_func_custom<cereal::XMLInputArchive, entt::snapshot_loader>;
+
 	renderer->custom_imgui_render_function = [&editor](Renderer::Renderer3D& renderer) {
 		editor.render();
 		};
