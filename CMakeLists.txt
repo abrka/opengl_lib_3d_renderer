@@ -5,6 +5,7 @@ project(opengl_lib_3d_renderer_proj)
 add_executable(opengl_lib_3d_renderer ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 target_compile_features(opengl_lib_3d_renderer PUBLIC cxx_std_20)
 target_include_directories(opengl_lib_3d_renderer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_include_directories(opengl_lib_3d_renderer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external/imreflect)
 
 # Add custom OpenGL abstraction library
 add_subdirectory(external/opengl_lib)

@@ -10,6 +10,8 @@
 #include "engine/loaders/shader_loader.h"
 
 #include "editor/editor.h"
+#include "editor/reflected_func_templates.h"
+#include "editor/imreflect_custom_types.h"
 
 #include <ImReflect.hpp>
 
@@ -34,62 +36,31 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 	}
 }
 
-void tag_invoke(ImReflect::ImInput_t, const char* label, glm::mat4& value, ImSettings& settings, ImResponse& response) {
-	auto& mat4_response = response.get<glm::mat4>();
-
-	bool changed = false;
-	changed |= ImGui::InputFloat4( std::string(std::string(label) + "0").c_str(), glm::value_ptr(value[0]));
-	changed |= ImGui::InputFloat4( std::string(std::string(label) + "1").c_str(), glm::value_ptr(value[1]));
-	changed |= ImGui::InputFloat4( std::string(std::string(label) + "2").c_str(), glm::value_ptr(value[2]));
-	changed |= ImGui::InputFloat4( std::string(std::string(label) + "3").c_str(), glm::value_ptr(value[3]));
-	if (changed) mat4_response.changed();
-
-	/* Check hovered, activated, etc*/
-	ImReflect::Detail::check_input_states(mat4_response);
-}
-
-auto get_component_from_entity_name(entt::registry* reg, entt::entity entity) {
-	return reg->try_get<Engine::NameComponent>(entity);
-}
-void render_imgui_for_component_name(Engine::NameComponent* t) {
-	if (!t) {
-		return;
-	}
-	ImReflect::Input("NameComponent", *t);
-}
-
-auto get_component_from_entity_transform(entt::registry* reg, entt::entity entity) {
-	return reg->try_get<Engine::TransformComponent>(entity);
-}
-void render_imgui_for_component_transform(Engine::TransformComponent* t) {
-	if (!t) {
-		return;
-	}
-	ImReflect::Input("TransformComponent", *t);
-}
 
 int main() {
 	using namespace entt::literals;
 	entt::registry entt_registry{};
 	entt::meta_factory<Engine::NameComponent>()
-		.func<&get_component_from_entity_name>("get_component"_hs)
-		.func<&render_imgui_for_component_name>("render_imgui_for_component"_hs);
+		.type("NameComponent")
+		.func<&Editor::get_component_from_entity<Engine::NameComponent>>("get_component"_hs)
+		.func<&Editor::render_imgui_for_component<Engine::NameComponent>>("render_imgui_for_component"_hs);
 	entt::meta_factory<Engine::TransformComponent>()
-		.func<&get_component_from_entity_transform>("get_component"_hs)
-		.func<&render_imgui_for_component_transform>("render_imgui_for_component"_hs);
+		.type("TransformComponent")
+		.func<&Editor::get_component_from_entity<Engine::TransformComponent>>("get_component"_hs)
+		.func<&Editor::render_imgui_for_component<Engine::TransformComponent>>("render_imgui_for_component"_hs);
 
 	const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
 	auto window = std::make_shared<GLExternalRAII::Window>(800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR);
 	glfwSetInputMode(window->glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	// WARNING: set key callbacks before renderer calls imgui. otherwise keys inside imgui wont work.
 	glfwSetKeyCallback(window->glfw_window, key_callback);
-	
+
 	auto renderer = std::make_shared<Renderer::Renderer3D>(window, entt_registry);
 	glfwSetWindowUserPointer(window->glfw_window, renderer.get());
 	glfwSetFramebufferSizeCallback(window->glfw_window, framebuffer_size_callback);
 	renderer->render_ctx.cam.position = glm::vec3{ 0, 0, -1 };
 
-	
+
 
 	entt::resource_cache<GL3D::ShaderProgram, Engine::ShaderLoader> entt_shader_cache{};
 	auto pbr_shader = entt_shader_cache.load("pbr"_hs, asset_dir + "shaders/pbr_frag.glsl", asset_dir + "shaders/pbr_vertex.glsl").first->second;
@@ -155,7 +126,7 @@ int main() {
 	Editor::Editor editor{ *renderer, entt_registry };
 	renderer->custom_imgui_render_function = [&editor](Renderer::Renderer3D& renderer) {
 		editor.render();
-	};
+		};
 
 	while (window->is_running()) {
 		process_input_for_camera_movement(window->glfw_window, renderer->render_ctx.cam);

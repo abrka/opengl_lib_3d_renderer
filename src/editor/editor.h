@@ -10,7 +10,7 @@
 #include "editor/hierarchical_panel.h"
 #include "editor/load_scene_button.h"
 #include "editor/save_scene_button.h"
-
+#include "editor/property_panel.h"
 
 
 namespace Editor {
@@ -26,7 +26,7 @@ namespace Editor {
 
 			hierarchical_panel.render();
 
-			render_property_panel(hierarchical_panel.selected_entity.value_or(entt::null));
+			PropertyPanel::render(*entt_registry, hierarchical_panel.selected_entity.value_or(entt::null));
 
 			// draw gizmos with imguizmo
 
@@ -53,22 +53,7 @@ namespace Editor {
 			LoadSceneButton::render("scene.kasset", "Load Scene", *entt_registry);
 			ImGui::End();
 		}
-		void render_property_panel(entt::entity entity) {
-			ImGui::Begin("Properties");
-			using namespace entt::literals;
 
-			for (auto&& [id, type] : entt::resolve()) {
-				entt::meta_func get_comp_fn = type.func("get_component"_hs);
-				assert(get_comp_fn);
-				auto ret = get_comp_fn.invoke({}, entt_registry, entity);
-				assert(ret);
-				entt::meta_func render_comp_fn = type.func("render_imgui_for_component"_hs);
-				assert(render_comp_fn);
-				auto ret_2 = render_comp_fn.invoke({}, ret);
-				assert(ret_2);
-			}
-			ImGui::End();
-		}
 	private:
 		entt::registry* entt_registry;
 		Renderer::Renderer3D* renderer{};
