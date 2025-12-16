@@ -38,11 +38,11 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 
 template<typename Archive, typename Snapshot>
 void snapshot_get_func_custom(Archive& archive, Snapshot& snapshot) {
-	snapshot.get<Engine::RootComponent>(archive);
-	snapshot.get<Engine::ParentComponent>(archive);
-	snapshot.get<Engine::ChildrenComponent>(archive);
-	snapshot.get<Engine::NameComponent>(archive);
-	snapshot.get<Engine::TransformComponent>(archive);
+	snapshot.template get<Engine::RootComponent>(archive);
+	snapshot.template get<Engine::ParentComponent>(archive);
+	snapshot.template get<Engine::ChildrenComponent>(archive);
+	snapshot.template get<Engine::NameComponent>(archive);
+	snapshot.template get<Engine::TransformComponent>(archive);
 }
 
 IMGUI_REFLECT(Engine::TransformComponent, transform)
