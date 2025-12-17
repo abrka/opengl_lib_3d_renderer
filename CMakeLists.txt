@@ -7,6 +7,18 @@ target_compile_features(opengl_lib_3d_renderer PUBLIC cxx_std_20)
 target_include_directories(opengl_lib_3d_renderer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_include_directories(opengl_lib_3d_renderer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external/imreflect)
 
+set(OPENGL_VERSION_MAJOR "4" CACHE STRING "OpenGL Version Major")
+set(OPENGL_VERSION_MINOR "6" CACHE STRING "OpenGL Version Minor")
+
+target_compile_definitions(opengl_lib_3d_renderer PRIVATE OPENGL_VERSION_MAJOR=${OPENGL_VERSION_MAJOR})
+target_compile_definitions(opengl_lib_3d_renderer PRIVATE OPENGL_VERSION_MINOR=${OPENGL_VERSION_MINOR})
+target_compile_definitions(opengl_lib_3d_renderer PRIVATE ASSET_DIR=${CMAKE_CURRENT_SOURCE_DIR}/data)
+
+option(OPENGL_LIB_3D_RENDERER_BUILD_DOCS "Build Documentation" ON)
+if(${OPENGL_LIB_3D_RENDERER_BUILD_DOCS})
+    add_subdirectory(docs)
+endif()
+
 # Add custom OpenGL abstraction library
 add_subdirectory(external/opengl_lib)
 target_link_libraries(opengl_lib_3d_renderer PRIVATE opengl_lib)
@@ -49,9 +61,4 @@ target_link_libraries(imguizmo PRIVATE imgui)
 target_link_libraries(opengl_lib_3d_renderer PRIVATE imguizmo)
 
 
-set(OPENGL_VERSION_MAJOR "4" CACHE STRING "OpenGL Version Major")
-set(OPENGL_VERSION_MINOR "6" CACHE STRING "OpenGL Version Minor")
 
-target_compile_definitions(opengl_lib_3d_renderer PRIVATE OPENGL_VERSION_MAJOR=${OPENGL_VERSION_MAJOR})
-target_compile_definitions(opengl_lib_3d_renderer PRIVATE OPENGL_VERSION_MINOR=${OPENGL_VERSION_MINOR})
-target_compile_definitions(opengl_lib_3d_renderer PRIVATE ASSET_DIR=${CMAKE_CURRENT_SOURCE_DIR}/data)
