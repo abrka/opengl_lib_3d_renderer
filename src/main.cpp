@@ -1,6 +1,6 @@
 #include <entt/entt.hpp>
 #include <cereal/cereal.hpp>
-#include <cereal/archives/json.hpp>
+#include <cereal/archives/xml.hpp>
 
 #include "renderer/renderer.h"
 
@@ -134,9 +134,13 @@ int main() {
 	Engine::add_child(entt_registry, root_entity, sponza_entity);
 
 
-	Editor::Editor editor{ *renderer, entt_registry };
-	editor.snapshot_get_fn = snapshot_get_func_custom<cereal::XMLOutputArchive, entt::snapshot>;
-	editor.snapshot_loader_get_fn = snapshot_get_func_custom<cereal::XMLInputArchive, entt::snapshot_loader>;
+	Editor::Editor<cereal::XMLInputArchive, cereal::XMLOutputArchive> editor{ *renderer, entt_registry };
+	Engine::Serializer<cereal::XMLInputArchive,cereal::XMLOutputArchive> serializer{
+		&snapshot_get_func_custom<cereal::XMLOutputArchive, entt::snapshot>,
+		&snapshot_get_func_custom<cereal::XMLInputArchive, entt::snapshot_loader> 
+	};
+	
+	editor.serializer = serializer;
 
 	renderer->custom_imgui_render_function = [&editor](Renderer::Renderer3D& renderer) {
 		editor.render();

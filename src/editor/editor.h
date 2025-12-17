@@ -14,10 +14,10 @@
 
 
 namespace Editor {
+	template<typename InputArchive, typename OutputArchive>
 	class Editor {
 	public:
-		Engine::snapshot_get_func<cereal::XMLOutputArchive> snapshot_get_fn{};
-		Engine::snapshot_loader_get_func<cereal::XMLInputArchive> snapshot_loader_get_fn{};
+		Engine::Serializer<InputArchive, OutputArchive> serializer{};
 
 		Editor(Renderer::Renderer3D& renderer, entt::registry& entt_registry) : renderer(&renderer), entt_registry(&entt_registry), hierarchical_panel(entt_registry) {};
 		void render() {
@@ -49,9 +49,9 @@ namespace Editor {
 		}
 		void render_save_load_panel() {
 			ImGui::Begin("Serialize");
-			SaveSceneButton::render("scene.kasset", "Save Scene", *entt_registry, snapshot_get_fn);
+			SaveSceneButton::render("scene.kasset", "Save Scene", *entt_registry, serializer);
 			ImGui::SameLine();
-			LoadSceneButton::render("scene.kasset", "Load Scene", *entt_registry, snapshot_loader_get_fn);
+			LoadSceneButton::render("scene.kasset", "Load Scene", *entt_registry, serializer);
 			ImGui::End();
 		}
 
