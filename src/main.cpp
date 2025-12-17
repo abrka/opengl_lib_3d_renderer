@@ -18,7 +18,7 @@
 static float mouse_sensitivity = 0.005f;
 static float cam_speed = 0.02f;
 
-static void process_input_for_camera_movement(GLFWwindow* window, Camera& cam);
+static void process_input_for_camera_movement(GLFWwindow* window, Renderer::Camera& cam);
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
@@ -164,7 +164,7 @@ int main() {
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-static void process_input_for_camera_movement(GLFWwindow* window, Camera& cam)
+static void process_input_for_camera_movement(GLFWwindow* window, Renderer::Camera& cam)
 {
 
 	static bool first_time_being_called = true;

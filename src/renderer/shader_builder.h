@@ -26,7 +26,7 @@ namespace ShaderBuilder {
 	using FragmentShader = GL3D::Shader<GL3D::FragmentShaderTag>;
 
 	tl::expected<std::unique_ptr<VertexShader>, ShaderBuilderError> build_vert(std::filesystem::path vertex_shader_filepath) {
-		auto vert_shader_source_str = GLUtils::read_string_from_filepath(vertex_shader_filepath);
+		auto vert_shader_source_str = read_string_from_filepath(vertex_shader_filepath);
 		if (!vert_shader_source_str.has_value()) {
 			return tl::unexpected(ShaderBuilderError{ ShaderBuilderErrorWhich::vert_shader_file_not_found, "vertex shader file not found" });
 		}
@@ -43,7 +43,7 @@ namespace ShaderBuilder {
 	}
 
 	tl::expected<std::unique_ptr<FragmentShader>, ShaderBuilderError> build_frag(std::filesystem::path frag_shader_filepath) {
-		auto frag_shader_source_str = GLUtils::read_string_from_filepath(frag_shader_filepath);
+		auto frag_shader_source_str = read_string_from_filepath(frag_shader_filepath);
 		if (!frag_shader_source_str.has_value()) {
 			return tl::unexpected(ShaderBuilderError{ ShaderBuilderErrorWhich::frag_shader_file_not_found, "fragment shader file not found" });
 		}
