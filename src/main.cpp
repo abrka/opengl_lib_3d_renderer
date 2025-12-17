@@ -66,10 +66,10 @@ int main() {
 	// WARNING: set key callbacks before renderer calls imgui. otherwise keys inside imgui wont work.
 	glfwSetKeyCallback(window->glfw_window, key_callback);
 
-	auto renderer = std::make_shared<Renderer::Renderer3D>(window, entt_registry);
-	glfwSetWindowUserPointer(window->glfw_window, renderer.get());
+	Renderer::Renderer3D renderer{ window, entt_registry };
+	glfwSetWindowUserPointer(window->glfw_window, &renderer);
 	glfwSetFramebufferSizeCallback(window->glfw_window, framebuffer_size_callback);
-	renderer->render_ctx.cam.position = glm::vec3{ 0, 0, -1 };
+	renderer.render_ctx.cam.position = glm::vec3{ 0, 0, -1 };
 
 
 
@@ -134,7 +134,7 @@ int main() {
 	Engine::add_child(entt_registry, root_entity, sponza_entity);
 
 
-	Editor::Editor<cereal::XMLInputArchive, cereal::XMLOutputArchive> editor{ *renderer, entt_registry };
+	Editor::Editor<cereal::XMLInputArchive, cereal::XMLOutputArchive> editor{ renderer, entt_registry };
 	Engine::Serializer<cereal::XMLInputArchive,cereal::XMLOutputArchive> serializer{
 		&snapshot_get_func_custom<cereal::XMLOutputArchive, entt::snapshot>,
 		&snapshot_get_func_custom<cereal::XMLInputArchive, entt::snapshot_loader> 
@@ -142,14 +142,14 @@ int main() {
 	
 	editor.serializer = serializer;
 
-	renderer->custom_imgui_render_function = [&editor](Renderer::Renderer3D& renderer) {
+	renderer.custom_imgui_render_function = [&editor](Renderer::Renderer3D& renderer) {
 		editor.render();
 		};
 
 	while (window->is_running()) {
-		process_input_for_camera_movement(window->glfw_window, renderer->render_ctx.cam);
+		process_input_for_camera_movement(window->glfw_window, renderer.render_ctx.cam);
 		double prev_time = glfwGetTime();
-		renderer->render();
+		renderer.render();
 		double delta = glfwGetTime() - prev_time;
 		double fps = 1 / delta;
 		const double fps_set_title_delay = 0.5;
