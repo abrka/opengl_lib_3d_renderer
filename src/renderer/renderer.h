@@ -50,7 +50,7 @@ namespace Renderer {
 
 
 	public:
-		Renderer3D(std::shared_ptr<GLExternalRAII::Window> window, entt::registry& entt_registry) : RendererBase(window), entt_registry(&entt_registry) {
+		Renderer3D(GLExternalRAII::Window& window, entt::registry& entt_registry) : RendererBase(window), entt_registry(&entt_registry) {
 			struct Vertex2 {
 				glm::vec3 position{};
 				glm::vec2 texCoord{};
@@ -76,7 +76,7 @@ namespace Renderer {
 			}
 			screen_shader = std::move(screen_shader_res.value());
 
-			create_screen_framebuffer(window->get_width_and_height().first, window->get_width_and_height().second);
+			create_screen_framebuffer(window.get_width_and_height().first, window.get_width_and_height().second);
 
 		}
 

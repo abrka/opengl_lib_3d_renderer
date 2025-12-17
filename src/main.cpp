@@ -61,14 +61,14 @@ int main() {
 		.func<&Editor::render_imgui_for_component<Engine::TransformComponent>>("render_imgui_for_component"_hs);
 
 	const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
-	auto window = std::make_shared<GLExternalRAII::Window>(800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR);
-	glfwSetInputMode(window->glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	GLExternalRAII::Window window{ 800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR };
+	glfwSetInputMode(window.glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	// WARNING: set key callbacks before renderer calls imgui. otherwise keys inside imgui wont work.
-	glfwSetKeyCallback(window->glfw_window, key_callback);
+	glfwSetKeyCallback(window.glfw_window, key_callback);
 
 	Renderer::Renderer3D renderer{ window, entt_registry };
-	glfwSetWindowUserPointer(window->glfw_window, &renderer);
-	glfwSetFramebufferSizeCallback(window->glfw_window, framebuffer_size_callback);
+	glfwSetWindowUserPointer(window.glfw_window, &renderer);
+	glfwSetFramebufferSizeCallback(window.glfw_window, framebuffer_size_callback);
 	renderer.render_ctx.cam.position = glm::vec3{ 0, 0, -1 };
 
 
@@ -146,8 +146,8 @@ int main() {
 		editor.render();
 		};
 
-	while (window->is_running()) {
-		process_input_for_camera_movement(window->glfw_window, renderer.render_ctx.cam);
+	while (window.is_running()) {
+		process_input_for_camera_movement(window.glfw_window, renderer.render_ctx.cam);
 		double prev_time = glfwGetTime();
 		renderer.render();
 		double delta = glfwGetTime() - prev_time;
@@ -156,7 +156,7 @@ int main() {
 		static double last_time_fps_was_set{};
 		if (glfwGetTime() - last_time_fps_was_set > fps_set_title_delay) {
 			std::string title = "fps: " + std::to_string(fps);
-			glfwSetWindowTitle(window->glfw_window, title.c_str());
+			glfwSetWindowTitle(window.glfw_window, title.c_str());
 			last_time_fps_was_set = glfwGetTime();
 		}
 	}
