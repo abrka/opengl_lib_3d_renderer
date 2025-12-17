@@ -12,6 +12,8 @@ add_subdirectory(external/opengl_lib)
 target_link_libraries(opengl_lib_3d_renderer PRIVATE opengl_lib)
 
 # Add assimp 
+set(ASSIMP_BUILD_TESTS OFF)
+set(ASSIMP_WARNINGS_AS_ERRORS OFF)
 add_subdirectory(external/assimp)
 target_link_libraries(opengl_lib_3d_renderer PRIVATE assimp::assimp)
 
