@@ -20,25 +20,26 @@ if(${OPENGL_LIB_3D_RENDERER_BUILD_DOCS})
 endif()
 
 # Add custom OpenGL abstraction library
-add_subdirectory(external/opengl_lib)
-target_link_libraries(opengl_lib_3d_renderer PRIVATE opengl_lib)
+find_package(opengl_lib CONFIG REQUIRED)
+target_link_libraries(opengl_lib_3d_renderer PRIVATE opengl_lib::opengl_lib)
 
 # Add assimp 
-set(ASSIMP_BUILD_TESTS OFF)
-set(ASSIMP_WARNINGS_AS_ERRORS OFF)
-add_subdirectory(external/assimp)
+find_package(assimp CONFIG REQUIRED)
 target_link_libraries(opengl_lib_3d_renderer PRIVATE assimp::assimp)
 
 # Add entt
-add_subdirectory(external/entt)
+find_package(EnTT CONFIG REQUIRED)
 target_link_libraries(opengl_lib_3d_renderer PRIVATE EnTT::EnTT)
 
 # Add cereal
-set(JUST_INSTALL_CEREAL ON)
-add_subdirectory(external/cereal)
+find_package(cereal CONFIG REQUIRED)
 target_link_libraries(opengl_lib_3d_renderer PRIVATE cereal::cereal)
 
+find_package(imguimzo CONFIG REQUIRED)
+target_link_libraries(opengl_lib_3d_renderer PRIVATE imguizmo)
+
 # Add tl expected
+find_package(tl-expected CONFIG REQUIRED)
 target_link_libraries(opengl_lib_3d_renderer PRIVATE tl::expected)
 
 # Add imguizmo

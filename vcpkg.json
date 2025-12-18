@@ -1,0 +1,12 @@
+{
+  "name": "opengl-lib-3d-renderer",
+  "version": "1.0",
+  "dependencies": [
+    "cereal",
+    "entt",
+    "assimp",
+    "tl-expected",
+    "imguizmo",
+    "opengl-lib"
+  ]
+}

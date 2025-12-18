@@ -1,0 +1,22 @@
+{
+  "default-registry": {
+    "kind": "git",
+    "baseline": "594ad8871e1e8e45f8e626c015fd611163430207",
+    "repository": "https://github.com/microsoft/vcpkg"
+  },
+  "registries": [
+    {
+      "kind": "artifact",
+      "location": "https://github.com/microsoft/vcpkg-ce-catalog/archive/refs/heads/main.zip",
+      "name": "microsoft"
+    },
+    {
+      "kind": "git",
+      "repository": "https://github.com/abrka/vcpkg-registry-custom.git",
+      "baseline": "b7e7b85824916c71676d782fb49b2a61e562843b",
+      "packages": [
+        "opengl-lib"
+      ]
+    }
+  ]
+}

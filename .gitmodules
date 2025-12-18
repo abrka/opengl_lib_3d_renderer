@@ -1,15 +1,6 @@
 [submodule "external/opengl_lib"]
 	path = external/opengl_lib
 	url = https://github.com/abrka/opengl_lib.git
-[submodule "external/assimp"]
-	path = external/assimp
-	url = https://github.com/assimp/assimp.git
 [submodule "external/imgui-gizmo"]
 	path = external/imgui-gizmo
 	url = https://github.com/CedricGuillemet/ImGuizmo.git
-[submodule "external/entt"]
-	path = external/entt
-	url = https://github.com/skypjack/entt.git
-[submodule "external/cereal"]
-	path = external/cereal
-	url = https://github.com/USCiLab/cereal.git
