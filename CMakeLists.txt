@@ -35,31 +35,12 @@ target_link_libraries(opengl_lib_3d_renderer PRIVATE EnTT::EnTT)
 find_package(cereal CONFIG REQUIRED)
 target_link_libraries(opengl_lib_3d_renderer PRIVATE cereal::cereal)
 
-find_package(imguimzo CONFIG REQUIRED)
-target_link_libraries(opengl_lib_3d_renderer PRIVATE imguizmo)
-
 # Add tl expected
 find_package(tl-expected CONFIG REQUIRED)
 target_link_libraries(opengl_lib_3d_renderer PRIVATE tl::expected)
 
-# Add imguizmo
-add_library(imguizmo
-    external/imgui-gizmo/GraphEditor.cpp
-    external/imgui-gizmo/GraphEditor.h
-    external/imgui-gizmo/ImCurveEdit.cpp
-    external/imgui-gizmo/ImCurveEdit.h
-    external/imgui-gizmo/ImGradient.cpp
-    external/imgui-gizmo/ImGradient.h
-    external/imgui-gizmo/ImGuizmo.cpp
-    external/imgui-gizmo/ImGuizmo.h
-    external/imgui-gizmo/ImSequencer.cpp
-    external/imgui-gizmo/ImSequencer.h
-    external/imgui-gizmo/ImZoomSlider.h
-)
-target_include_directories(imguizmo PUBLIC external/imgui-gizmo)
-target_link_libraries(imguizmo PRIVATE imgui)
 
-target_link_libraries(opengl_lib_3d_renderer PRIVATE imguizmo)
-
+find_package(imguizmo CONFIG REQUIRED)
+target_link_libraries(opengl_lib_3d_renderer PRIVATE imguizmo::imguizmo)
 
 

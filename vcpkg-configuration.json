@@ -13,7 +13,7 @@
     {
       "kind": "git",
       "repository": "https://github.com/abrka/vcpkg-registry-custom.git",
-      "baseline": "bc1814282b589710f6b470fb8c024d0fe4b59807",
+      "baseline": "2e664c100ddee0ce0887ec311ffdee10de089996",
       "packages": [
         "opengl-lib"
       ]
