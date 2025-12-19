@@ -2,6 +2,11 @@
   "version": 3,
   "configurePresets": [
     {
+      "name": "default",
+      "binaryDir": "${sourceDir}/build",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+    },
+    {
       "name": "windows-base",
       "description": "Target Windows with the Visual Studio development environment.",
       "hidden": true,
@@ -12,7 +17,7 @@
         "CMAKE_C_COMPILER": "cl.exe",
         "CMAKE_CXX_COMPILER": "cl.exe",
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "CMAKE_CXX_FLAGS":  "/permissive-"
+        "CMAKE_CXX_FLAGS": "/permissive-"
       },
       "condition": {
         "type": "equals",
