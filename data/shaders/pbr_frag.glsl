@@ -1,19 +1,13 @@
 #version 330 core
 
-in vec2 oTexCoord;
+in vec2 o_tex_coord;
 out vec4 FragColor;
 
-uniform sampler2D uDiffuse;
-uniform sampler2D uNormal;
-uniform sampler2D uMetallic;
-uniform sampler2D uRoughness;
+uniform sampler2D u_texture_diffuse;
+uniform sampler2D u_texture_base_color;
 
 void main()
 {   
-	vec4 diff = texture2D(uDiffuse, oTexCoord);
-	vec4 normal = texture2D(uNormal, oTexCoord);
-	vec4 metallic = texture2D(uMetallic, oTexCoord);
-	vec4 roughness = texture2D(uRoughness, oTexCoord);
-
+	vec4 diff = texture2D(u_texture_diffuse, o_tex_coord);
 	FragColor = diff;
 }

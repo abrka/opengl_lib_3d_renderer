@@ -16,6 +16,12 @@ namespace TextureBuilder {
 
 		switch (num_channels)
 		{
+		case 1:
+			return GL_RED;
+			break;
+		case 2:
+			return GL_RG;
+			break;
 		case 3:
 			return GL_RGB;
 			break;
@@ -32,6 +38,12 @@ namespace TextureBuilder {
 
 		switch (num_channels)
 		{
+		case 1:
+			return GL_RED;
+			break;
+		case 2:
+			return GL_RG;
+			break;
 		case 3:
 			return GL_RGB;
 			break;
@@ -45,20 +57,33 @@ namespace TextureBuilder {
 	}
 
 	enum class TextureLoaderError {
+		couldnt_get_texture_format_from_num_channels,
+		couldnt_get_internal_texture_format_from_num_channels,
 		texture_file_doesnt_exist
 	};
 	tl::expected<std::unique_ptr<GL3D::Texture>, TextureLoaderError> build(const std::filesystem::path path) {
 		try {
 			STBImageRAII stb_texture{ path };
 			GL3D::TextureSpec texture_spec{};
-			texture_spec.texture_format = get_texture_format(stb_texture.num_channels).value();
-			texture_spec.internal_texture_format = get_internal_texture_format(stb_texture.num_channels).value();
+
+			auto texture_format_res = get_texture_format(stb_texture.num_channels);
+			if (!texture_format_res.has_value()) {
+				return tl::make_unexpected(TextureLoaderError::couldnt_get_texture_format_from_num_channels);
+			}
+			texture_spec.texture_format = texture_format_res.value();
+
+			auto internal_texture_format_res = get_internal_texture_format(stb_texture.num_channels);
+			if (!internal_texture_format_res.has_value()) {
+				return tl::make_unexpected(TextureLoaderError::couldnt_get_internal_texture_format_from_num_channels);
+			}
+			texture_spec.internal_texture_format = internal_texture_format_res.value();
+
 			return std::make_unique<GL3D::Texture>( (unsigned int)stb_texture.width, (unsigned int)stb_texture.height, stb_texture.image_data, texture_spec );
 
 		}
 		catch (const std::exception&)
 		{
-			return tl::unexpected(TextureLoaderError::texture_file_doesnt_exist);
+			return tl::make_unexpected(TextureLoaderError::texture_file_doesnt_exist);
 		}
 	}
 

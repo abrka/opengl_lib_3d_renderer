@@ -22,7 +22,7 @@
 #include "camera.h"
 #include "stb_image_raii.h"
 #include "render_context.h"
-#include "mesh_builder_scene_renderer.h"
+#include "renderer_detail.h"
 
 
 #include "engine/components/mesh_component.h"
@@ -100,6 +100,7 @@ namespace Renderer {
 			glEnable(GL_BLEND); // enable blending function
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+			set_mvp_uniforms_system(*entt_registry);
 			render_mesh_system(*entt_registry);
 
 			framebuffer->unbind();
@@ -123,10 +124,16 @@ namespace Renderer {
 			framebuffer->attach_renderbuffer(*framebuffer_renderbuffer);
 			assert(framebuffer->get_status());
 		}
+		void set_mvp_uniforms_system(entt::registry& entt_registry) {
+			auto entt_view = entt_registry.view<Engine::MeshComponent,Engine::TransformComponent>();
+			for (auto [entity, mesh_component, transform_component] : entt_view.each()) {
+				detail::set_mvp_uniforms(render_ctx, *mesh_component, transform_component.transform);
+			}
+		}
 		void render_mesh_system(entt::registry& entt_registry) {
-			auto view = entt_registry.view<const Engine::MeshComponent,const Engine::ShaderComponent, const Engine::TransformComponent>();
-			for (auto [entity, mesh_component, shader_component, transform_component] : view.each()) {
-				MeshBuilderSceneRenderer::render(render_ctx, *mesh_component, *shader_component, transform_component.transform);
+			auto view = entt_registry.view<const Engine::MeshComponent,const Engine::ShaderComponent>();
+			for (auto [entity, mesh_component, shader_component] : view.each()) {
+				detail::render_scene(render_ctx, *mesh_component, *shader_component);
 			}
 		}
 	};
