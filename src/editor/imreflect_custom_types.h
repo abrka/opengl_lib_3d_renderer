@@ -12,7 +12,19 @@
 
 IMGUI_REFLECT(Engine::TransformComponent, transform)
 IMGUI_REFLECT(Engine::NameComponent, name)
+IMGUI_REFLECT(Renderer::DirectionalLight, color, ambient_strength)
+IMGUI_REFLECT(Renderer::Camera, position, orientation, fov)
+IMGUI_REFLECT(Renderer::RenderContext, cam, directional_lights)
 
+void tag_invoke(ImReflect::ImInput_t, const char* label, glm::vec3& value, ImSettings& settings, ImResponse& response) {
+	auto& t_response = response.get<glm::mat4>();
+
+	bool changed = ImGui::DragFloat3(label, glm::value_ptr(value));
+	if (changed) { t_response.changed(); }
+
+	/* Check hovered, activated, etc*/
+	ImReflect::Detail::check_input_states(t_response);
+}
 void tag_invoke(ImReflect::ImInput_t, const char* label, glm::mat4& value, ImSettings& settings, ImResponse& response) {
 	auto& t_response = response.get<glm::mat4>();
 
@@ -28,7 +40,7 @@ void tag_invoke(ImReflect::ImInput_t, const char* label, glm::mat4& value, ImSet
 	changed |= ImGui::DragFloat3("translation", glm::value_ptr(translation));
 	auto rotation_euler_angle = glm::degrees(glm::eulerAngles(rotation));
 	changed |= ImGui::DragFloat3("rotation", glm::value_ptr(rotation_euler_angle));
-	changed |= ImGui::DragFloat3("scale", glm::value_ptr(scale), 1.0f, 0.001f);
+	changed |= ImGui::DragFloat3("scale", glm::value_ptr(scale));
 	if (changed) { t_response.changed(); }
 
 	value = glm::recompose(scale, glm::quat(glm::radians(rotation_euler_angle)), translation, skew, perspective);

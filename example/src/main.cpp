@@ -13,28 +13,13 @@
 #include "editor/reflected_func_templates.h"
 #include "editor/imreflect_custom_types.h"
 
-#include <ImReflect.hpp>
 
 static float mouse_sensitivity = 0.005f;
 static float cam_speed = 0.02f;
 
 static void process_input_for_camera_movement(GLFWwindow* window, Renderer::Camera& cam);
-
-static void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-
-	Renderer::Renderer3D* renderer = static_cast<Renderer::Renderer3D*>(glfwGetWindowUserPointer(window));
-	renderer->on_window_resize(width, height);
-}
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (key == GLFW_KEY_CAPS_LOCK && action == GLFW_PRESS) {
-		int prev_cursor_mode = glfwGetInputMode(window, GLFW_CURSOR);
-		int new_cursor_mode = (prev_cursor_mode == GLFW_CURSOR_NORMAL) ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL;
-		glfwSetInputMode(window, GLFW_CURSOR, new_cursor_mode);
-	}
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, true);
-	}
-}
+static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 template<typename Archive, typename Snapshot>
 void snapshot_get_func_custom(Archive& archive, Snapshot& snapshot) {
@@ -66,9 +51,6 @@ int main() {
 	Renderer::Renderer3D renderer{ window, entt_registry };
 	glfwSetWindowUserPointer(window.glfw_window, &renderer);
 	glfwSetFramebufferSizeCallback(window.glfw_window, framebuffer_size_callback);
-	renderer.render_ctx.cam.position = glm::vec3{ 0, 0, -1 };
-
-
 
 	entt::resource_cache<GL3D::ShaderProgram, Engine::ShaderLoader> entt_shader_cache{};
 	auto pbr_shader = entt_shader_cache.load("pbr"_hs, asset_dir + "shaders/pbr_frag.glsl", asset_dir + "shaders/pbr_vertex.glsl").first->second;
@@ -80,6 +62,12 @@ int main() {
 	auto military_uniform_scene = entt_mesh_cache.load("uniform"_hs, asset_dir + "meshes/military_uniform/military_uniform.gltf").first->second;
 	auto sponza_scene = entt_mesh_cache.load("sponza"_hs, asset_dir + "meshes/sponza_palace/scene.gltf").first->second;
 
+
+	auto root_entity = entt_registry.create();
+	entt_registry.emplace<Engine::NameComponent>(root_entity, "root");
+	entt_registry.emplace<Engine::RootComponent>(root_entity);
+	entt_registry.emplace<Engine::ChildrenComponent>(root_entity, Engine::ChildrenComponent{});
+
 	auto candle_entity = entt_registry.create();
 	entt_registry.emplace<Engine::ParentComponent>(candle_entity, Engine::ParentComponent{});
 	entt_registry.emplace<Engine::ChildrenComponent>(candle_entity, Engine::ChildrenComponent{});
@@ -87,6 +75,7 @@ int main() {
 	entt_registry.emplace<Engine::MeshComponent>(candle_entity, candle_scene);
 	entt_registry.emplace<Engine::ShaderComponent>(candle_entity, pbr_shader);
 	entt_registry.emplace<Engine::TransformComponent>(candle_entity, glm::mat4(1.0f));
+	Engine::add_child(entt_registry, root_entity, candle_entity);
 
 	auto backpack_entity = entt_registry.create();
 	entt_registry.emplace<Engine::ParentComponent>(backpack_entity, Engine::ParentComponent{});
@@ -96,7 +85,7 @@ int main() {
 	entt_registry.emplace<Engine::ShaderComponent>(backpack_entity, pbr_shader);
 	glm::mat4 backpack_transform = glm::scale(glm::mat4(1.0f), { 0.1,0.1,-0.1 });
 	entt_registry.emplace<Engine::TransformComponent>(backpack_entity, backpack_transform);
-
+	Engine::add_child(entt_registry, root_entity, backpack_entity);
 
 	auto military_uniform_entity = entt_registry.create();
 	entt_registry.emplace<Engine::ParentComponent>(military_uniform_entity, Engine::ParentComponent{});
@@ -106,29 +95,24 @@ int main() {
 	entt_registry.emplace<Engine::ShaderComponent>(military_uniform_entity, pbr_shader);
 	glm::mat4 military_uniform_transform = glm::scale(glm::mat4(1.0f), { 0.02,0.02,0.02 });
 	entt_registry.emplace<Engine::TransformComponent>(military_uniform_entity, military_uniform_transform);
-
-
-
-
-	auto sponza_entity = entt_registry.create();
-	entt_registry.emplace<Engine::ParentComponent>(sponza_entity, Engine::ParentComponent{});
-	entt_registry.emplace<Engine::ChildrenComponent>(sponza_entity, Engine::ChildrenComponent{});
-	entt_registry.emplace<Engine::NameComponent>(sponza_entity, "sponza");
-	entt_registry.emplace<Engine::MeshComponent>(sponza_entity, sponza_scene);
-	entt_registry.emplace<Engine::ShaderComponent>(sponza_entity, pbr_shader);
-	glm::mat4 sponza_tranform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), { 1,0,0 });
-	entt_registry.emplace<Engine::TransformComponent>(sponza_entity, sponza_tranform);
-
-
-	auto root_entity = entt_registry.create();
-	entt_registry.emplace<Engine::NameComponent>(root_entity, "root");
-	entt_registry.emplace<Engine::RootComponent>(root_entity);
-	entt_registry.emplace<Engine::ChildrenComponent>(root_entity, Engine::ChildrenComponent{});
-
-	Engine::add_child(entt_registry, root_entity, candle_entity);
-	Engine::add_child(entt_registry, root_entity, backpack_entity);
 	Engine::add_child(entt_registry, root_entity, military_uniform_entity);
-	Engine::add_child(entt_registry, root_entity, sponza_entity);
+
+	renderer.render_ctx.cam.position = glm::vec3{ 0, 0, -1 };
+	Renderer::DirectionalLight dir_light{
+		.color = glm::vec3(1.0f),
+		.ambient_strength = 0.3f
+	};
+	renderer.render_ctx.directional_lights.push_back(dir_light);
+
+	// auto sponza_entity = entt_registry.create();
+	// entt_registry.emplace<Engine::ParentComponent>(sponza_entity, Engine::ParentComponent{});
+	// entt_registry.emplace<Engine::ChildrenComponent>(sponza_entity, Engine::ChildrenComponent{});
+	// entt_registry.emplace<Engine::NameComponent>(sponza_entity, "sponza");
+	// entt_registry.emplace<Engine::MeshComponent>(sponza_entity, sponza_scene);
+	// entt_registry.emplace<Engine::ShaderComponent>(sponza_entity, pbr_shader);
+	// glm::mat4 sponza_tranform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), { 1,0,0 });
+	// entt_registry.emplace<Engine::TransformComponent>(sponza_entity, sponza_tranform);
+	// Engine::add_child(entt_registry, root_entity, sponza_entity);
 
 
 	Editor::Editor<cereal::XMLInputArchive, cereal::XMLOutputArchive> editor{ renderer, entt_registry };
@@ -157,6 +141,22 @@ int main() {
 			glfwSetWindowTitle(window.glfw_window, title.c_str());
 			last_time_fps_was_set = glfwGetTime();
 		}
+	}
+}
+
+static void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+	Renderer::Renderer3D* renderer = static_cast<Renderer::Renderer3D*>(glfwGetWindowUserPointer(window));
+	renderer->on_window_resize(width, height);
+}
+
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (key == GLFW_KEY_CAPS_LOCK && action == GLFW_PRESS) {
+		int prev_cursor_mode = glfwGetInputMode(window, GLFW_CURSOR);
+		int new_cursor_mode = (prev_cursor_mode == GLFW_CURSOR_NORMAL) ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL;
+		glfwSetInputMode(window, GLFW_CURSOR, new_cursor_mode);
+	}
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, true);
 	}
 }
 

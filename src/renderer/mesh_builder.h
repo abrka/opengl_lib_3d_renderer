@@ -35,29 +35,45 @@ namespace MeshBuilder {
 		std::shared_ptr<GL3D::Texture> texture{};
 	};
 	struct Material {
+	private:
 		std::map<std::string, Texture> uniforms_texture{};
 		std::map<std::string, int> uniforms_int{};
 		std::map<std::string, float> uniforms_float{};
 		std::map<std::string, glm::vec3> uniforms_vec3{};
 		std::map<std::string, glm::mat4> uniforms_mat4{};
-
+	public:
+		void set_uniform(const std::string& name, int value) {
+			uniforms_int[name] = value;
+		}
+		void set_uniform(const std::string& name, float value) {
+			uniforms_float[name] = value;
+		}
+		void set_uniform(const std::string& name, glm::vec3 value) {
+			uniforms_vec3[name] = value;
+		}
+		void set_uniform(const std::string& name, glm::mat4 value) {
+			uniforms_mat4[name] = value;
+		}
+		void set_uniform(const std::string& name, Texture value) {
+			uniforms_texture[name] = value;
+		}
 		template<typename MapType>
-		void set_uniforms(const GL3D::ShaderProgram& shader, MapType& uniform_map) const {
+		void update_uniforms(const GL3D::ShaderProgram& shader, MapType& uniform_map) const {
 			for (const auto& [uniform_name, value] : uniform_map) {
 				shader.set_uniform(uniform_name, value);
 			}
 		}
-		void set_uniforms(const GL3D::ShaderProgram& shader, std::map<std::string, Texture> textures_map) const {
+		void update_uniforms(const GL3D::ShaderProgram& shader, std::map<std::string, Texture> textures_map) const {
 			for (const auto& [uniform_name, texture] : uniforms_texture) {
 				shader.set_texture(uniform_name, *texture.texture, texture.texture_unit);
 			}
 		}
-		void set_all_uniforms(const GL3D::ShaderProgram& shader) const {
-			set_uniforms(shader, uniforms_texture);
-			set_uniforms(shader, uniforms_int);
-			set_uniforms(shader, uniforms_float);
-			set_uniforms(shader, uniforms_vec3);
-			set_uniforms(shader, uniforms_mat4);
+		void update_all_uniforms(const GL3D::ShaderProgram& shader) const {
+			update_uniforms(shader, uniforms_texture);
+			update_uniforms(shader, uniforms_int);
+			update_uniforms(shader, uniforms_float);
+			update_uniforms(shader, uniforms_vec3);
+			update_uniforms(shader, uniforms_mat4);
 		}
 	};
 	struct Mesh {
@@ -102,7 +118,7 @@ namespace MeshBuilder {
 		std::unique_ptr<Node> root_node{};
 		std::string name{};
 
-		std::vector<Material*> get_all_materials() {
+		std::vector<Material*> get_all_materials() const {
 			return root_node->get_all_materials();
 		}
 	};
@@ -121,7 +137,7 @@ namespace MeshBuilder {
 		std::vector<std::filesystem::path> get_all_texture_paths_from_type(const aiMaterial* ai_material, const aiTextureType ai_texture_type) {
 			std::vector<std::filesystem::path> texture_paths{};
 			auto num_textures = ai_material->GetTextureCount(ai_texture_type);
-			for (auto i = 0; i < num_textures; i++) {
+			for (size_t i = 0; i < num_textures; i++) {
 				aiString texture_path{};
 				aiReturn ret = ai_material->GetTexture(ai_texture_type, i, &texture_path);
 				std::string texture_path_str = std::string{ texture_path.data, texture_path.length };
@@ -136,33 +152,33 @@ namespace MeshBuilder {
 		std::string ai_texture_type_to_uniform_name(const aiTextureType tex_type) {
 			static std::map<aiTextureType, std::string> map
 			{
-				{ aiTextureType_NONE				   , "u_texture_none"},
-				{ aiTextureType_DIFFUSE				   , "u_texture_diffuse"},
-				{ aiTextureType_SPECULAR			   , "u_texture_specular"},
-				{ aiTextureType_AMBIENT				   , "u_texture_ambient"},
-				{ aiTextureType_EMISSIVE			   , "u_texture_emissive"},
-				{ aiTextureType_HEIGHT				   , "u_texture_height"},
-				{ aiTextureType_NORMALS				   , "u_texture_normals"},
-				{ aiTextureType_SHININESS			   , "u_texture_shininess"},
-				{ aiTextureType_OPACITY				   , "u_texture_opacity"},
-				{ aiTextureType_DISPLACEMENT		   , "u_texture_displacement"},
-				{ aiTextureType_LIGHTMAP			   , "u_texture_lightmap"},
-				{ aiTextureType_REFLECTION			   , "u_texture_reflection"},
-				{ aiTextureType_BASE_COLOR			   , "u_texture_base_color"},
-				{ aiTextureType_NORMAL_CAMERA		   , "u_texture_nomral_camera"},
-				{ aiTextureType_EMISSION_COLOR		   , "u_texture_emission_color"},
-				{ aiTextureType_METALNESS 			   , "u_texture_metalness"},
-				{ aiTextureType_DIFFUSE_ROUGHNESS	   , "u_texture_diffuse_roughness"},
-				{ aiTextureType_AMBIENT_OCCLUSION 	   , "u_texture_ambient_occlusion"},
-				{ aiTextureType_UNKNOWN 			   , "u_texture_unknown"},
-				{ aiTextureType_SHEEN 				   , "u_texture_sheen"},
-				{ aiTextureType_CLEARCOAT			   , "u_texture_clearcoat"},
-				{ aiTextureType_TRANSMISSION		   , "u_texture_transmission"},
-				{ aiTextureType_MAYA_BASE			   , "u_texture_maya_base"},
-				{ aiTextureType_MAYA_SPECULAR		   , "u_texture_maya_specular"},
-				{ aiTextureType_MAYA_SPECULAR_COLOR	   , "u_texture_maya_specular_color"},
+				{ aiTextureType_NONE				   , "u_texture_none"					},
+				{ aiTextureType_DIFFUSE				   , "u_texture_diffuse"				},
+				{ aiTextureType_SPECULAR			   , "u_texture_specular"				},
+				{ aiTextureType_AMBIENT				   , "u_texture_ambient"				},
+				{ aiTextureType_EMISSIVE			   , "u_texture_emissive"				},
+				{ aiTextureType_HEIGHT				   , "u_texture_height"					},
+				{ aiTextureType_NORMALS				   , "u_texture_normals"				},
+				{ aiTextureType_SHININESS			   , "u_texture_shininess"				},
+				{ aiTextureType_OPACITY				   , "u_texture_opacity"				},
+				{ aiTextureType_DISPLACEMENT		   , "u_texture_displacement"			},
+				{ aiTextureType_LIGHTMAP			   , "u_texture_lightmap"				},
+				{ aiTextureType_REFLECTION			   , "u_texture_reflection"				},
+				{ aiTextureType_BASE_COLOR			   , "u_texture_base_color"				},
+				{ aiTextureType_NORMAL_CAMERA		   , "u_texture_normal_camera"			},
+				{ aiTextureType_EMISSION_COLOR		   , "u_texture_emission_color"			},
+				{ aiTextureType_METALNESS 			   , "u_texture_metalness"				},
+				{ aiTextureType_DIFFUSE_ROUGHNESS	   , "u_texture_diffuse_roughness"		},
+				{ aiTextureType_AMBIENT_OCCLUSION 	   , "u_texture_ambient_occlusion"		},
+				{ aiTextureType_UNKNOWN 			   , "u_texture_unknown"				},
+				{ aiTextureType_SHEEN 				   , "u_texture_sheen"					},
+				{ aiTextureType_CLEARCOAT			   , "u_texture_clearcoat"				},
+				{ aiTextureType_TRANSMISSION		   , "u_texture_transmission"			},
+				{ aiTextureType_MAYA_BASE			   , "u_texture_maya_base"				},
+				{ aiTextureType_MAYA_SPECULAR		   , "u_texture_maya_specular"			},
+				{ aiTextureType_MAYA_SPECULAR_COLOR	   , "u_texture_maya_specular_color"	},
 				{ aiTextureType_MAYA_SPECULAR_ROUGHNESS, "u_texture_maya_specular_roughness"},
-				{ aiTextureType_ANISOTROPY			   , "u_texture_anisotropy"},
+				{ aiTextureType_ANISOTROPY			   , "u_texture_anisotropy"				},
 				{ aiTextureType_GLTF_METALLIC_ROUGHNESS, "u_texture_gltf_metallic_roughness"}
 			};
 			return map.at(tex_type);
@@ -185,7 +201,7 @@ namespace MeshBuilder {
 				std::string texture_uniform_name = ai_texture_type_to_uniform_name(tex_type);
 				auto texture = textures.at(texture_path);
 				assert(texture);
-				mat.uniforms_texture[texture_uniform_name] = Texture{ i_valid, texture };
+				mat.set_uniform(texture_uniform_name, Texture{ i_valid, texture });
 				i_valid++;
 			}
 			return mat;

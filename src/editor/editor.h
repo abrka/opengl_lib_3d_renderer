@@ -11,6 +11,7 @@
 #include "editor/load_scene_button.h"
 #include "editor/save_scene_button.h"
 #include "editor/property_panel.h"
+#include "editor/imreflect_custom_types.h"
 
 
 namespace Editor {
@@ -28,6 +29,10 @@ namespace Editor {
 			hierarchical_panel.render();
 
 			PropertyPanel::render(*entt_registry, hierarchical_panel.selected_entity.value_or(entt::null));
+
+			ImGui::Begin("Renderer: Render Context");
+			ImReflect::Input("Render Context", &renderer->render_ctx);
+			ImGui::End();
 
 			// draw gizmos with imguizmo
 

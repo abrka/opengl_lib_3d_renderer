@@ -6,7 +6,7 @@
 namespace Renderer {
 	namespace detail {
 		void draw_mesh(const Camera& cam, const MeshBuilder::Node& node, const MeshBuilder::Mesh& mesh, const GL3D::ShaderProgram& shader) {
-			mesh.material.set_all_uniforms(shader);
+			mesh.material.update_all_uniforms(shader);
 			mesh.mesh->draw(shader);
 		}
 		void draw_single_node(const Camera& cam, const MeshBuilder::Node& node, const GL3D::ShaderProgram& shader) {
@@ -28,9 +28,9 @@ namespace Renderer {
 			glm::mat4 model = node.get_global_transform() * transform;
 			glm::mat4 view = ctx.cam.get_view_matrix();
 			glm::mat4 projection = ctx.cam.get_projection_matrix();
-			mesh.material.uniforms_mat4["u_mat_model"] = model;
-			mesh.material.uniforms_mat4["u_mat_view"] = view;
-			mesh.material.uniforms_mat4["u_mat_projection"] = projection;
+			mesh.material.set_uniform("u_mat_model", model);
+			mesh.material.set_uniform("u_mat_view", view);
+			mesh.material.set_uniform("u_mat_projection", projection);
 		}
 		void set_mvp_uniforms(const RenderContext& ctx, MeshBuilder::Node& node, glm::mat4 transform) {
 			for (size_t i = 0; i < node.meshes.size(); i++)

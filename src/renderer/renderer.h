@@ -100,6 +100,7 @@ namespace Renderer {
 			glEnable(GL_BLEND); // enable blending function
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+			set_light_uniforms_system(*entt_registry);
 			set_mvp_uniforms_system(*entt_registry);
 			render_mesh_system(*entt_registry);
 
@@ -124,13 +125,27 @@ namespace Renderer {
 			framebuffer->attach_renderbuffer(*framebuffer_renderbuffer);
 			assert(framebuffer->get_status());
 		}
-		void set_mvp_uniforms_system(entt::registry& entt_registry) {
+		void set_light_uniforms_system(entt::registry& entt_registry) {
+			auto entt_view = entt_registry.view<Engine::MeshComponent>();
+			for (auto [entity, mesh_component] : entt_view.each()) {
+				auto materials = mesh_component->get_all_materials();
+				for (MeshBuilder::Material* material : materials) {
+					for (size_t i = 0; i < render_ctx.directional_lights.size(); i++) {
+						Renderer::DirectionalLight dir_light = render_ctx.directional_lights[i];
+						std::string dir_light_uniform = "u_dir_lights[" + std::to_string(i) + "]";
+						material->set_uniform(dir_light_uniform + ".color", dir_light.color);
+						material->set_uniform(dir_light_uniform + ".ambient_strength", dir_light.ambient_strength);
+					}
+				}
+			}
+		}
+		void set_mvp_uniforms_system(entt::registry& entt_registry) const {
 			auto entt_view = entt_registry.view<Engine::MeshComponent,Engine::TransformComponent>();
 			for (auto [entity, mesh_component, transform_component] : entt_view.each()) {
 				detail::set_mvp_uniforms(render_ctx, *mesh_component, transform_component.transform);
 			}
 		}
-		void render_mesh_system(entt::registry& entt_registry) {
+		void render_mesh_system(entt::registry& entt_registry) const {
 			auto view = entt_registry.view<const Engine::MeshComponent,const Engine::ShaderComponent>();
 			for (auto [entity, mesh_component, shader_component] : view.each()) {
 				detail::render_scene(render_ctx, *mesh_component, *shader_component);
