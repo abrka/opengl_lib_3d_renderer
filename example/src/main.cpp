@@ -45,9 +45,6 @@ void snapshot_get_func_custom(Archive& archive, Snapshot& snapshot) {
 	snapshot.template get<Engine::TransformComponent>(archive);
 }
 
-IMGUI_REFLECT(Engine::TransformComponent, transform)
-IMGUI_REFLECT(Engine::NameComponent, name)
-
 int main() {
 	using namespace entt::literals;
 	entt::registry entt_registry{};
