@@ -78,10 +78,33 @@ namespace MeshBuilder {
 			}
 			return transform * parent->get_global_transform();
 		}
+		std::vector<Material*> get_all_materials() {
+			auto materials = get_all_materials_single();
+			for (size_t i = 0; i < child_nodes.size(); i++)
+			{
+				auto child_materials = child_nodes[i]->get_all_materials();
+				materials.insert(std::end(materials), std::begin(child_materials), std::end(child_materials));
+			}
+			return materials;
+		}
+	private:
+		std::vector<Material*> get_all_materials_single() {
+			std::vector<Material*> materials{};
+			for (size_t i = 0; i < meshes.size(); i++)
+			{
+				Material* mat = &meshes[i].material;
+				materials.push_back(mat);
+			}
+			return materials;
+		}
 	};
 	struct Scene {
 		std::unique_ptr<Node> root_node{};
 		std::string name{};
+
+		std::vector<Material*> get_all_materials() {
+			return root_node->get_all_materials();
+		}
 	};
 
 

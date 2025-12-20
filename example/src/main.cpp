@@ -148,6 +148,7 @@ int main() {
 		double prev_time = glfwGetTime();
 		renderer.render();
 		double delta = glfwGetTime() - prev_time;
+
 		double fps = 1 / delta;
 		const double fps_set_title_delay = 0.5;
 		static double last_time_fps_was_set{};
