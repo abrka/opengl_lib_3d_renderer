@@ -13,11 +13,11 @@ namespace Renderer {
 			}
 			return nullptr;
 		}
+
 		void draw_mesh(const MeshBuilder::Mesh& mesh, const GL3D::ShaderProgram& shader) {
 			mesh.material.update_all_uniforms(shader);
 			mesh.mesh->draw(shader);
 		}
-
 		void render_scene(const MeshBuilder::Scene& scene, const GL3D::ShaderProgram& shader) {
 			for (auto* mesh : scene.get_all_meshes()) {
 				draw_mesh(*mesh, shader);
@@ -38,7 +38,6 @@ namespace Renderer {
 			mesh.material.set_uniform("u_mat_view", view);
 			mesh.material.set_uniform("u_mat_projection", projection);
 		}
-
 		void set_mvp_uniforms(MeshBuilder::Scene& scene, glm::mat4 transform, const Camera& camera) {
 			for (auto* mesh : scene.get_all_meshes()) {
 				set_mvp_uniforms_single(*mesh, transform, camera);
@@ -55,21 +54,25 @@ namespace Renderer {
 			}
 		}
 
-		// void set_light_uniforms_system(entt::registry& entt_registry) {
-		// 	auto entt_view = entt_registry.view<Engine::MeshComponent>();
-		// 	for (auto [entity, mesh_component] : entt_view.each()) {
-		// 		auto materials = mesh_component->get_all_materials();
-		// 		for (MeshBuilder::Material* material : materials) {
-		// 			for (size_t i = 0; i < render_ctx.point_lights.size(); i++) {
-		// 				Renderer::PointLight point_light = render_ctx.point_lights[i];
-		// 				std::string dir_light_uniform = "u_point_lights[" + std::to_string(i) + "]";
-		// 				material->set_uniform(dir_light_uniform + ".color", point_light.color);
-		// 				material->set_uniform(dir_light_uniform + ".position", point_light.position);
-		// 				material->set_uniform(dir_light_uniform + ".ambient_strength", point_light.ambient_strength);
-		// 			}
-		// 		}
-		// 	}
-		// }
+		void set_light_uniforms_system(entt::registry& entt_registry) {
+			auto entt_view_meshes = entt_registry.view<Engine::MeshComponent>();
+			for (auto [entity, mesh_component] : entt_view_meshes.each()) {
+				auto materials = mesh_component->get_all_materials();
+				for (MeshBuilder::Material* material : materials) {
+					auto entt_view_point_lights = entt_registry.view<const Engine::PointLightComponent, const Engine::TransformComponent>();
+					size_t i = 0;
+					for (auto [entity, point_light_component, transform_component] : entt_view_point_lights.each()) {
+						Renderer::PointLight point_light = point_light_component.light;
+						std::string dir_light_uniform = "u_point_lights[" + std::to_string(i) + "]";
+						material->set_uniform(dir_light_uniform + ".color", point_light.color);
+						glm::vec3 position = transform_component.transform[3];
+						material->set_uniform(dir_light_uniform + ".position", position);
+						material->set_uniform(dir_light_uniform + ".ambient_strength", point_light.ambient_strength);
+						i++;
+					}
+				}
+			}
+		}
 
 
 	}

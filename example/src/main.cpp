@@ -38,6 +38,7 @@ int main() {
 	Editor::register_component<Engine::NameComponent>("NameComponent");
 	Editor::register_component<Engine::TransformComponent>("TransformComponent");
 	Editor::register_component<Engine::CameraComponent>("CameraComponent");
+	Editor::register_component<Engine::PointLightComponent>("PointLightComponent");
 
 	const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
 	GLExternalRAII::Window window{ 800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR };
@@ -63,20 +64,15 @@ int main() {
 	entt::entity root_entity = entt_registry.create();
 	entt_registry.emplace<Engine::NameComponent>(root_entity, "root");
 	entt_registry.emplace<Engine::RootComponent>(root_entity);
-	entt_registry.emplace<Engine::ChildrenComponent>(root_entity, Engine::ChildrenComponent{});
 
 	entt::entity candle_entity = entt_registry.create();
-	entt_registry.emplace<Engine::ParentComponent>(candle_entity, Engine::ParentComponent{});
-	entt_registry.emplace<Engine::ChildrenComponent>(candle_entity, Engine::ChildrenComponent{});
 	entt_registry.emplace<Engine::NameComponent>(candle_entity, "candle");
 	entt_registry.emplace<Engine::MeshComponent>(candle_entity, candle_scene);
 	entt_registry.emplace<Engine::ShaderComponent>(candle_entity, pbr_shader);
-	entt_registry.emplace<Engine::TransformComponent>(candle_entity, glm::mat4(1.0f));
+	entt_registry.emplace<Engine::TransformComponent>(candle_entity);
 	Engine::add_child(entt_registry, root_entity, candle_entity);
 
 	entt::entity backpack_entity = entt_registry.create();
-	entt_registry.emplace<Engine::ParentComponent>(backpack_entity, Engine::ParentComponent{});
-	entt_registry.emplace<Engine::ChildrenComponent>(backpack_entity, Engine::ChildrenComponent{});
 	entt_registry.emplace<Engine::NameComponent>(backpack_entity, "backpack");
 	entt_registry.emplace<Engine::MeshComponent>(backpack_entity, backpack_scene);
 	entt_registry.emplace<Engine::ShaderComponent>(backpack_entity, pbr_shader);
@@ -85,8 +81,6 @@ int main() {
 	Engine::add_child(entt_registry, root_entity, backpack_entity);
 
 	entt::entity military_uniform_entity = entt_registry.create();
-	entt_registry.emplace<Engine::ParentComponent>(military_uniform_entity, Engine::ParentComponent{});
-	entt_registry.emplace<Engine::ChildrenComponent>(military_uniform_entity, Engine::ChildrenComponent{});
 	entt_registry.emplace<Engine::NameComponent>(military_uniform_entity, "military uniform");
 	entt_registry.emplace<Engine::MeshComponent>(military_uniform_entity, military_uniform_scene);
 	entt_registry.emplace<Engine::ShaderComponent>(military_uniform_entity, pbr_shader);
@@ -94,40 +88,32 @@ int main() {
 	entt_registry.emplace<Engine::TransformComponent>(military_uniform_entity, military_uniform_transform);
 	Engine::add_child(entt_registry, root_entity, military_uniform_entity);
 
+	auto sponza_entity = entt_registry.create();
+	entt_registry.emplace<Engine::NameComponent>(sponza_entity, "sponza");
+	entt_registry.emplace<Engine::MeshComponent>(sponza_entity, sponza_scene);
+	entt_registry.emplace<Engine::ShaderComponent>(sponza_entity, pbr_shader);
+	glm::mat4 sponza_tranform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), { 1,0,0 });
+	entt_registry.emplace<Engine::TransformComponent>(sponza_entity, sponza_tranform);
+	Engine::add_child(entt_registry, root_entity, sponza_entity);
+
 	entt::entity camera_entity = entt_registry.create();
-	entt_registry.emplace<Engine::ParentComponent>(camera_entity, Engine::ParentComponent{});
-	entt_registry.emplace<Engine::ChildrenComponent>(camera_entity, Engine::ChildrenComponent{});
 	entt_registry.emplace<Engine::NameComponent>(camera_entity, "camera");
 	Engine::CameraComponent camera_component{};
 	camera_component.camera.position = { 0, 0, -1 };
 	entt_registry.emplace<Engine::CameraComponent>(camera_entity, camera_component);
 	Engine::add_child(entt_registry, root_entity, camera_entity);
 
-
-	// Renderer::PointLight point_light{
-	// 	.position = glm::vec3(0.0f),
-	// 	.color = glm::vec3(1.0f),
-	// 	.ambient_strength = 0.3f
-	// };
-	// renderer.render_ctx.point_lights.push_back(point_light);
-
-	// auto sponza_entity = entt_registry.create();
-	// entt_registry.emplace<Engine::ParentComponent>(sponza_entity, Engine::ParentComponent{});
-	// entt_registry.emplace<Engine::ChildrenComponent>(sponza_entity, Engine::ChildrenComponent{});
-	// entt_registry.emplace<Engine::NameComponent>(sponza_entity, "sponza");
-	// entt_registry.emplace<Engine::MeshComponent>(sponza_entity, sponza_scene);
-	// entt_registry.emplace<Engine::ShaderComponent>(sponza_entity, pbr_shader);
-	// glm::mat4 sponza_tranform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), { 1,0,0 });
-	// entt_registry.emplace<Engine::TransformComponent>(sponza_entity, sponza_tranform);
-	// Engine::add_child(entt_registry, root_entity, sponza_entity);
-
+	entt::entity point_light_entity = entt_registry.create();
+	entt_registry.emplace<Engine::NameComponent>(point_light_entity, "point light");
+	entt_registry.emplace<Engine::PointLightComponent>(point_light_entity);
+	entt_registry.emplace<Engine::TransformComponent>(point_light_entity);
+	Engine::add_child(entt_registry, root_entity, point_light_entity);
 
 	Editor::Editor<cereal::XMLInputArchive, cereal::XMLOutputArchive> editor{ renderer, entt_registry };
 	Engine::EnttRegistrySerializer<cereal::XMLInputArchive,cereal::XMLOutputArchive> serializer{
 		&snapshot_get_func_custom<cereal::XMLOutputArchive, entt::snapshot>,
 		&snapshot_get_func_custom<cereal::XMLInputArchive, entt::snapshot_loader> 
 	};
-	
 	editor.serializer = serializer;
 
 	renderer.custom_imgui_render_function = [&editor](Renderer::Renderer3D& renderer) {
@@ -137,9 +123,9 @@ int main() {
 	while (window.is_running()) {
 		auto entt_view_camera = entt_registry.view<const Engine::CameraComponent>();
 		entt::entity camera_entity = entt_view_camera.front();
-		auto* camera_component = entt_registry.try_get<Engine::CameraComponent>(camera_entity);
-		assert(camera_component && "No entity contains a CameraComponent");
-		process_input_for_camera_movement(window.glfw_window, camera_component->camera);
+		auto* camera = renderer.get_camera();
+		assert(camera && "No entity contains a CameraComponent");
+		process_input_for_camera_movement(window.glfw_window, *camera);
 		double prev_time = glfwGetTime();
 		renderer.render();
 		double delta = glfwGetTime() - prev_time;

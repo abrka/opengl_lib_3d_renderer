@@ -21,11 +21,8 @@ namespace Editor {
 			ImGui::SameLine();
 			render_remove_button();
 			entt::entity root_entity = entt_registry->view<Engine::RootComponent>().front();
-			if (entt_registry->valid(root_entity)) {
+			if (root_entity != entt::null) {
 				render_entities(root_entity);
-			}
-			else {
-				std::cout << "EDITOR::WARNING entt registry does not contain an entity with RootComponent. Can't render hierarchial panel" << "\n";
 			}
 			ImGui::End();
 		}
@@ -35,12 +32,20 @@ namespace Editor {
 
 		void render_add_button() {
 			if (ImGui::Button("[+] Add Entity")) {
-				if (!selected_entity.has_value()) {
-					return;
+				entt::entity which_entity_to_add_to{ entt::null };
+				if (selected_entity.has_value()) {
+					which_entity_to_add_to = selected_entity.value();
+				}
+				else {
+					entt::entity root_entity = entt_registry->view<Engine::RootComponent>().front();
+					if (root_entity == entt::null) {
+						return;
+					}
+					which_entity_to_add_to = root_entity;
 				}
 				auto entity = entt_registry->create();
 				entt_registry->emplace<Engine::NameComponent>(entity, "Entity " + std::to_string(added_entity_count));
-				Engine::add_child(*entt_registry, selected_entity.value(), entity);
+				Engine::add_child(*entt_registry, which_entity_to_add_to , entity);
 				added_entity_count++;
 			}
 		}
@@ -53,7 +58,7 @@ namespace Editor {
 				selected_entity.reset();
 			}
 		}
-		void render_entities(const entt::entity entity) {
+		void render_entities(entt::entity entity) {
 			ImGuiTreeNodeFlags flags{ ImGuiTreeNodeFlags_DefaultOpen };
 			if (entity == selected_entity) {
 				flags |= ImGuiTreeNodeFlags_Selected;

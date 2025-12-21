@@ -92,7 +92,7 @@ namespace Renderer {
 				auto [screen_width, screen_height] = window->get_width_and_height();
 				camera_component.camera.aspect_ratio = (float)screen_width / (float)screen_height;
 			}
-			// detail::set_light_uniforms_system(*entt_registry);
+			detail::set_light_uniforms_system(*entt_registry);
 			detail::set_mvp_uniforms_system(*entt_registry);
 			detail::render_mesh_system(*entt_registry);
 

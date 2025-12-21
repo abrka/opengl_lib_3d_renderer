@@ -4,6 +4,6 @@
 
 namespace Engine {
 	struct TransformComponent {
-		glm::mat4 transform{};
+		glm::mat4 transform{ 1.0f };
 	};
 }

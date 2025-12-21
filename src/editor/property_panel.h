@@ -16,9 +16,8 @@ namespace Editor {
 
 				if (ImGui::Button("[+] Add Component")) {
 					ImGui::OpenPopup("Add Component Popup");
-					is_add_component_popup_open = true;
 				}
-				if (ImGui::BeginPopupModal("Add Component Popup", &is_add_component_popup_open)) {
+				if (ImGui::BeginPopup("Add Component Popup")) {
 					render_add_component_popup(selected_entity.value());
 					ImGui::EndPopup();
 				}
@@ -27,7 +26,6 @@ namespace Editor {
 		}
 	private:
 		entt::registry* entt_registry{};
-		bool is_add_component_popup_open = false;
 
 		void render_components(entt::entity& entity)
 		{
@@ -66,7 +64,6 @@ namespace Editor {
 					assert(add_comp_fn);
 					auto ret = add_comp_fn.invoke({}, entt_registry, entity);
 					assert(ret);
-					is_add_component_popup_open = false;
 				}
 			}
 		}

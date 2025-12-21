@@ -14,7 +14,17 @@ IMGUI_REFLECT(Engine::TransformComponent, transform)
 IMGUI_REFLECT(Engine::NameComponent, name)
 IMGUI_REFLECT(Renderer::Camera, position, orientation, fov, near_plane_dist, far_plane_dist, aspect_ratio)
 IMGUI_REFLECT(Engine::CameraComponent, camera)
+IMGUI_REFLECT(Renderer::PointLight, color, ambient_strength)
+IMGUI_REFLECT(Engine::PointLightComponent, light)
 
+void tag_invoke(ImReflect::ImInput_t, const char* label, Renderer::color_t& value, ImSettings& settings, ImResponse& response) {
+	auto& t_response = response.get<glm::mat4>();
+	bool changed = ImGui::ColorEdit3(label, glm::value_ptr(value.color));
+	if (changed) { t_response.changed(); }
+
+	/* Check hovered, activated, etc*/
+	ImReflect::Detail::check_input_states(t_response);
+}
 
 void tag_invoke(ImReflect::ImInput_t, const char* label, glm::vec3& value, ImSettings& settings, ImResponse& response) {
 	auto& t_response = response.get<glm::mat4>();
