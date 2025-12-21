@@ -28,19 +28,15 @@ void snapshot_get_func_custom(Archive& archive, Snapshot& snapshot) {
 	snapshot.template get<Engine::ChildrenComponent>(archive);
 	snapshot.template get<Engine::NameComponent>(archive);
 	snapshot.template get<Engine::TransformComponent>(archive);
+	snapshot.template get<Engine::CameraComponent>(archive);
 }
 
 int main() {
 	using namespace entt::literals;
 	entt::registry entt_registry{};
-	entt::meta_factory<Engine::NameComponent>()
-		.type("NameComponent")
-		.func<&Editor::get_component_from_entity<Engine::NameComponent>>("get_component"_hs)
-		.func<&Editor::render_imgui_for_component<Engine::NameComponent>>("render_imgui_for_component"_hs);
-	entt::meta_factory<Engine::TransformComponent>()
-		.type("TransformComponent")
-		.func<&Editor::get_component_from_entity<Engine::TransformComponent>>("get_component"_hs)
-		.func<&Editor::render_imgui_for_component<Engine::TransformComponent>>("render_imgui_for_component"_hs);
+	Editor::register_component<Engine::NameComponent>("NameComponent");
+	Editor::register_component<Engine::TransformComponent>("TransformComponent");
+	Editor::register_component<Engine::CameraComponent>("CameraComponent");
 
 	const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
 	GLExternalRAII::Window window{ 800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR };
@@ -63,12 +59,12 @@ int main() {
 	auto sponza_scene = entt_mesh_cache.load("sponza"_hs, asset_dir + "meshes/sponza_palace/scene.gltf").first->second;
 
 
-	auto root_entity = entt_registry.create();
+	entt::entity root_entity = entt_registry.create();
 	entt_registry.emplace<Engine::NameComponent>(root_entity, "root");
 	entt_registry.emplace<Engine::RootComponent>(root_entity);
 	entt_registry.emplace<Engine::ChildrenComponent>(root_entity, Engine::ChildrenComponent{});
 
-	auto candle_entity = entt_registry.create();
+	entt::entity candle_entity = entt_registry.create();
 	entt_registry.emplace<Engine::ParentComponent>(candle_entity, Engine::ParentComponent{});
 	entt_registry.emplace<Engine::ChildrenComponent>(candle_entity, Engine::ChildrenComponent{});
 	entt_registry.emplace<Engine::NameComponent>(candle_entity, "candle");
@@ -77,7 +73,7 @@ int main() {
 	entt_registry.emplace<Engine::TransformComponent>(candle_entity, glm::mat4(1.0f));
 	Engine::add_child(entt_registry, root_entity, candle_entity);
 
-	auto backpack_entity = entt_registry.create();
+	entt::entity backpack_entity = entt_registry.create();
 	entt_registry.emplace<Engine::ParentComponent>(backpack_entity, Engine::ParentComponent{});
 	entt_registry.emplace<Engine::ChildrenComponent>(backpack_entity, Engine::ChildrenComponent{});
 	entt_registry.emplace<Engine::NameComponent>(backpack_entity, "backpack");
@@ -87,7 +83,7 @@ int main() {
 	entt_registry.emplace<Engine::TransformComponent>(backpack_entity, backpack_transform);
 	Engine::add_child(entt_registry, root_entity, backpack_entity);
 
-	auto military_uniform_entity = entt_registry.create();
+	entt::entity military_uniform_entity = entt_registry.create();
 	entt_registry.emplace<Engine::ParentComponent>(military_uniform_entity, Engine::ParentComponent{});
 	entt_registry.emplace<Engine::ChildrenComponent>(military_uniform_entity, Engine::ChildrenComponent{});
 	entt_registry.emplace<Engine::NameComponent>(military_uniform_entity, "military uniform");
@@ -97,12 +93,22 @@ int main() {
 	entt_registry.emplace<Engine::TransformComponent>(military_uniform_entity, military_uniform_transform);
 	Engine::add_child(entt_registry, root_entity, military_uniform_entity);
 
-	renderer.render_ctx.cam.position = glm::vec3{ 0, 0, -1 };
-	Renderer::DirectionalLight dir_light{
-		.color = glm::vec3(1.0f),
-		.ambient_strength = 0.3f
-	};
-	renderer.render_ctx.directional_lights.push_back(dir_light);
+	entt::entity camera_entity = entt_registry.create();
+	entt_registry.emplace<Engine::ParentComponent>(camera_entity, Engine::ParentComponent{});
+	entt_registry.emplace<Engine::ChildrenComponent>(camera_entity, Engine::ChildrenComponent{});
+	entt_registry.emplace<Engine::NameComponent>(camera_entity, "camera");
+	Engine::CameraComponent camera_component{};
+	camera_component.camera.position = { 0, 0, -1 };
+	entt_registry.emplace<Engine::CameraComponent>(camera_entity, camera_component);
+	Engine::add_child(entt_registry, root_entity, camera_entity);
+
+
+	// Renderer::PointLight point_light{
+	// 	.position = glm::vec3(0.0f),
+	// 	.color = glm::vec3(1.0f),
+	// 	.ambient_strength = 0.3f
+	// };
+	// renderer.render_ctx.point_lights.push_back(point_light);
 
 	// auto sponza_entity = entt_registry.create();
 	// entt_registry.emplace<Engine::ParentComponent>(sponza_entity, Engine::ParentComponent{});
@@ -116,7 +122,7 @@ int main() {
 
 
 	Editor::Editor<cereal::XMLInputArchive, cereal::XMLOutputArchive> editor{ renderer, entt_registry };
-	Engine::Serializer<cereal::XMLInputArchive,cereal::XMLOutputArchive> serializer{
+	Engine::EnttRegistrySerializer<cereal::XMLInputArchive,cereal::XMLOutputArchive> serializer{
 		&snapshot_get_func_custom<cereal::XMLOutputArchive, entt::snapshot>,
 		&snapshot_get_func_custom<cereal::XMLInputArchive, entt::snapshot_loader> 
 	};
@@ -125,10 +131,14 @@ int main() {
 
 	renderer.custom_imgui_render_function = [&editor](Renderer::Renderer3D& renderer) {
 		editor.render();
-		};
+	};
 
 	while (window.is_running()) {
-		process_input_for_camera_movement(window.glfw_window, renderer.render_ctx.cam);
+		auto entt_view_camera = entt_registry.view<const Engine::CameraComponent>();
+		entt::entity camera_entity = entt_view_camera.front();
+		auto* camera_component = entt_registry.try_get<Engine::CameraComponent>(camera_entity);
+		assert(camera_component && "No entity contains a CameraComponent");
+		process_input_for_camera_movement(window.glfw_window, camera_component->camera);
 		double prev_time = glfwGetTime();
 		renderer.render();
 		double delta = glfwGetTime() - prev_time;

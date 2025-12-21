@@ -76,10 +76,12 @@ namespace MeshBuilder {
 			update_uniforms(shader, uniforms_mat4);
 		}
 	};
+	struct Node;
 	struct Mesh {
 		std::unique_ptr<GL3D::Mesh> mesh{};
 		std::vector<VertexAttrib> vertex_attribs{};
 		Material material{};
+		Node* node{};
 	};
 	struct Node {
 		std::string name{};
@@ -93,6 +95,14 @@ namespace MeshBuilder {
 				return glm::mat4(1.0f);
 			}
 			return transform * parent->get_global_transform();
+		}
+		std::vector<Mesh*> get_all_meshes() {
+			std::vector<Mesh*> all_meshes = get_all_meshes_single();
+			for (size_t i = 0; i < child_nodes.size(); i++) {
+				std::vector<Mesh*> child_meshes = child_nodes[i]->get_all_meshes();
+				all_meshes.insert(std::end(all_meshes), std::begin(child_meshes), std::end(child_meshes));
+			}
+			return all_meshes;
 		}
 		std::vector<Material*> get_all_materials() {
 			auto materials = get_all_materials_single();
@@ -113,6 +123,14 @@ namespace MeshBuilder {
 			}
 			return materials;
 		}
+		std::vector<Mesh*> get_all_meshes_single() {
+			std::vector<Mesh*> all_meshes{};
+			for (size_t i = 0; i < meshes.size(); i++)
+			{
+				all_meshes.push_back(&meshes[i]);
+			}
+			return all_meshes;
+		}
 	};
 	struct Scene {
 		std::unique_ptr<Node> root_node{};
@@ -121,8 +139,11 @@ namespace MeshBuilder {
 		std::vector<Material*> get_all_materials() const {
 			return root_node->get_all_materials();
 		}
-	};
 
+		std::vector<Mesh*> get_all_meshes() const {
+			return root_node->get_all_meshes();
+		}
+	};
 
 	namespace detail {
 		std::vector<int> get_num_floats_per_attribute(const std::vector<VertexAttrib>& vertex_attribs) {
@@ -209,7 +230,7 @@ namespace MeshBuilder {
 
 
 
-		Mesh process_mesh(std::filesystem::path model_dir, const aiScene* ai_scene, const aiMesh* ai_mesh, const std::map<std::filesystem::path, std::shared_ptr<GL3D::Texture>>& textures) {
+		Mesh process_mesh(std::filesystem::path model_dir, const aiScene* ai_scene, const aiMesh* ai_mesh, const std::map<std::filesystem::path, std::shared_ptr<GL3D::Texture>>& textures, Node& node) {
 			std::vector<VertexAttrib> vertex_attribs{};
 			if (ai_mesh->HasPositions()) {
 				vertex_attribs.push_back({ 3, VertexAttribType::position });
@@ -270,17 +291,17 @@ namespace MeshBuilder {
 
 			auto ai_material = ai_scene->mMaterials[ai_mesh->mMaterialIndex];
 			Material material = process_material(model_dir, ai_material, textures);
-			return Mesh{ std::move(created_mesh), vertex_attribs, std::move(material) };
+			return Mesh{ std::move(created_mesh), vertex_attribs, std::move(material), &node };
 		}
 
-		std::unique_ptr<Node> process_single_node(std::filesystem::path model_dir, const aiScene* scene, const aiNode* node, const std::map<std::filesystem::path, std::shared_ptr<GL3D::Texture>>& textures) {
+		std::unique_ptr<Node> process_single_node(std::filesystem::path model_dir, const aiScene* ai_scene, const aiNode* ai_node, const std::map<std::filesystem::path, std::shared_ptr<GL3D::Texture>>& textures) {
 			auto node_data = std::make_unique<Node>();
-			node_data->name = std::string(node->mName.data, node->mName.length);
-			node_data->transform = assimp_matrix_to_glm_matrix(node->mTransformation);
-			for (size_t i = 0; i < node->mNumMeshes; i++)
+			node_data->name = std::string(ai_node->mName.data, ai_node->mName.length);
+			node_data->transform = assimp_matrix_to_glm_matrix(ai_node->mTransformation);
+			for (size_t i = 0; i < ai_node->mNumMeshes; i++)
 			{
-				unsigned int mesh_idx = node->mMeshes[i];
-				auto result_mesh = process_mesh(model_dir, scene, scene->mMeshes[mesh_idx], textures);
+				unsigned int mesh_idx = ai_node->mMeshes[i];
+				auto result_mesh = process_mesh(model_dir, ai_scene, ai_scene->mMeshes[mesh_idx], textures, *node_data);
 				node_data->meshes.push_back(std::move(result_mesh));
 			}
 			return node_data;
@@ -343,11 +364,6 @@ namespace MeshBuilder {
 	tl::expected<std::unique_ptr<Scene>, std::string> build(std::filesystem::path filepath) {
 		return detail::build(filepath);
 	}
-
-
-
-
-
 
 
 }

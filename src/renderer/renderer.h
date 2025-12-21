@@ -21,13 +21,7 @@
 #include "texture_builder.h"
 #include "camera.h"
 #include "stb_image_raii.h"
-#include "render_context.h"
 #include "renderer_detail.h"
-
-
-#include "engine/components/mesh_component.h"
-#include "engine/components/transform_component.h"
-#include "engine/components/shader_component.h"
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -38,7 +32,6 @@ namespace Renderer {
 	{
 	public:
 		entt::registry* entt_registry{};
-		Renderer::RenderContext render_ctx{};
 		std::function<void(Renderer3D&)> custom_imgui_render_function{};
 	private:
 		std::unique_ptr<GL3D::Mesh> screen_quad_mesh{};
@@ -76,18 +69,12 @@ namespace Renderer {
 			}
 			screen_shader = std::move(screen_shader_res.value());
 
-			create_screen_framebuffer(window.get_width_and_height().first, window.get_width_and_height().second);
+			auto [width, height] = window.get_width_and_height();
+			create_screen_framebuffer(width, height);
 
-		}
-
-		std::pair<int, int> get_screen_width_and_height() {
-			return window->get_width_and_height();
 		}
 		void render_user() override {
 			ImGuizmo::BeginFrame();
-
-			auto [screen_width, screen_height] = window->get_width_and_height();
-			render_ctx.cam.aspect_ratio = (double)screen_width / (double)screen_height;
 
 			framebuffer->bind();
 
@@ -100,9 +87,14 @@ namespace Renderer {
 			glEnable(GL_BLEND); // enable blending function
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-			set_light_uniforms_system(*entt_registry);
-			set_mvp_uniforms_system(*entt_registry);
-			render_mesh_system(*entt_registry);
+			auto entt_view_camera = entt_registry->view<Engine::CameraComponent>();
+			for (auto [entity, camera_component] : entt_view_camera.each()) {
+				auto [screen_width, screen_height] = window->get_width_and_height();
+				camera_component.camera.aspect_ratio = (float)screen_width / (float)screen_height;
+			}
+			// detail::set_light_uniforms_system(*entt_registry);
+			detail::set_mvp_uniforms_system(*entt_registry);
+			detail::render_mesh_system(*entt_registry);
 
 			framebuffer->unbind();
 
@@ -116,7 +108,6 @@ namespace Renderer {
 			create_screen_framebuffer(width, height);
 			glViewport(0, 0, width, height);
 		}
-	private:
 		void create_screen_framebuffer(int width, int height) {
 			framebuffer = std::make_unique<GL3D::Framebuffer>();
 			framebuffer_texture = std::make_unique<GL3D::Texture>(width, height, std::span<unsigned char>{}, GL3D::TextureSpec{ .generate_mipmap = false });
@@ -125,31 +116,16 @@ namespace Renderer {
 			framebuffer->attach_renderbuffer(*framebuffer_renderbuffer);
 			assert(framebuffer->get_status());
 		}
-		void set_light_uniforms_system(entt::registry& entt_registry) {
-			auto entt_view = entt_registry.view<Engine::MeshComponent>();
-			for (auto [entity, mesh_component] : entt_view.each()) {
-				auto materials = mesh_component->get_all_materials();
-				for (MeshBuilder::Material* material : materials) {
-					for (size_t i = 0; i < render_ctx.directional_lights.size(); i++) {
-						Renderer::DirectionalLight dir_light = render_ctx.directional_lights[i];
-						std::string dir_light_uniform = "u_dir_lights[" + std::to_string(i) + "]";
-						material->set_uniform(dir_light_uniform + ".color", dir_light.color);
-						material->set_uniform(dir_light_uniform + ".ambient_strength", dir_light.ambient_strength);
-					}
-				}
-			}
+		std::pair<int, int> get_screen_width_and_height() {
+			return window->get_width_and_height();
 		}
-		void set_mvp_uniforms_system(entt::registry& entt_registry) const {
-			auto entt_view = entt_registry.view<Engine::MeshComponent,Engine::TransformComponent>();
-			for (auto [entity, mesh_component, transform_component] : entt_view.each()) {
-				detail::set_mvp_uniforms(render_ctx, *mesh_component, transform_component.transform);
+		Camera* get_camera() {
+			auto* camera_component = detail::get_first_component_of_type<Engine::CameraComponent>(*entt_registry);
+			if (!camera_component) {
+				return nullptr;
 			}
+			return &camera_component->camera;
 		}
-		void render_mesh_system(entt::registry& entt_registry) const {
-			auto view = entt_registry.view<const Engine::MeshComponent,const Engine::ShaderComponent>();
-			for (auto [entity, mesh_component, shader_component] : view.each()) {
-				detail::render_scene(render_ctx, *mesh_component, *shader_component);
-			}
-		}
+
 	};
 }

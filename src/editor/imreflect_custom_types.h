@@ -12,9 +12,9 @@
 
 IMGUI_REFLECT(Engine::TransformComponent, transform)
 IMGUI_REFLECT(Engine::NameComponent, name)
-IMGUI_REFLECT(Renderer::DirectionalLight, color, ambient_strength)
-IMGUI_REFLECT(Renderer::Camera, position, orientation, fov)
-IMGUI_REFLECT(Renderer::RenderContext, cam, directional_lights)
+IMGUI_REFLECT(Renderer::Camera, position, orientation, fov, near_plane_dist, far_plane_dist, aspect_ratio)
+IMGUI_REFLECT(Engine::CameraComponent, camera)
+
 
 void tag_invoke(ImReflect::ImInput_t, const char* label, glm::vec3& value, ImSettings& settings, ImResponse& response) {
 	auto& t_response = response.get<glm::mat4>();

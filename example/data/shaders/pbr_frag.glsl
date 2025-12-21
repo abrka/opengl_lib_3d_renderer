@@ -1,25 +1,45 @@
 #version 330 core
 
-in vec2 o_tex_coord;
-out vec4 FragColor;
 
 uniform sampler2D u_texture_diffuse;
 
-struct DirectionalLight{
+struct PointLight{
 	vec3 color;
+	vec3 position;
 	float ambient_strength;
 };
-#define NUM_DIR_LIGHTS 1
-uniform DirectionalLight u_dir_lights[NUM_DIR_LIGHTS];
+#define NUM_POINT_LIGHTS 10
+uniform PointLight u_point_lights[NUM_POINT_LIGHTS];
+
+in VS_OUT{
+	vec2 tex_coord;
+	vec3 position_world;
+	vec3 normal_world;
+} fs_in;
+
+out vec4 FragColor;
 
 void main()
 {   
-	vec3 diffuse_texture_color = texture2D(u_texture_diffuse, o_tex_coord).xyz;
+	vec3 diffuse_texture_color = texture2D(u_texture_diffuse, fs_in.tex_coord).xyz;
 
-	vec3 ambient_dir_light = vec3(0.0);
-	for (int i = 0; i < NUM_DIR_LIGHTS; i++){
-		vec3 ambient = diffuse_texture_color * u_dir_lights[i].ambient_strength * u_dir_lights[i].color;
-		ambient_dir_light += ambient;
+	vec3 ambient_point_light = vec3(0.0);
+	vec3 diffuse_point_light = vec3(0.0);
+
+	for (int i = 0; i < NUM_POINT_LIGHTS; i++){
+		vec3 ambient = u_point_lights[i].ambient_strength * u_point_lights[i].color;
+		ambient_point_light += ambient;
+
+		vec3 L = normalize(u_point_lights[i].position - fs_in.position_world);
+		vec3 N = normalize(fs_in.normal_world);
+		float diffuse_factor = max(dot(N, L), 0.0);
+		vec3 diffuse = diffuse_factor * u_point_lights[i].color;
+		diffuse_point_light += diffuse;
 	}
-	FragColor = vec4(ambient_dir_light, 1.0);
+
+	vec3 ambient_tot = ambient_point_light;
+	vec3 diffuse_tot = diffuse_point_light;
+
+	vec3 color = diffuse_texture_color * (ambient_tot + diffuse_tot); 
+	FragColor = vec4(color, 1.0);
 }

@@ -7,3 +7,5 @@
 #include "engine/components/transform_component.h"
 #include "engine/components/mesh_component.h"
 #include "engine/components/shader_component.h"
+#include "engine/components/point_light_component.h"
+#include "engine/components/camera_component.h"

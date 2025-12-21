@@ -18,9 +18,10 @@ namespace Editor {
 	template<typename InputArchive, typename OutputArchive>
 	class Editor {
 	public:
-		Engine::Serializer<InputArchive, OutputArchive> serializer{};
+		Engine::EnttRegistrySerializer<InputArchive, OutputArchive> serializer{};
 
-		Editor(Renderer::Renderer3D& renderer, entt::registry& entt_registry) : renderer(&renderer), entt_registry(&entt_registry), hierarchical_panel(entt_registry) {};
+		Editor(Renderer::Renderer3D& renderer, entt::registry& entt_registry) : renderer(&renderer), entt_registry(&entt_registry), hierarchical_panel(entt_registry), component_panel(entt_registry) {};
+		
 		void render() {
 			ImGui::ShowDemoWindow();
 
@@ -28,11 +29,7 @@ namespace Editor {
 
 			hierarchical_panel.render();
 
-			PropertyPanel::render(*entt_registry, hierarchical_panel.selected_entity.value_or(entt::null));
-
-			ImGui::Begin("Renderer: Render Context");
-			ImReflect::Input("Render Context", &renderer->render_ctx);
-			ImGui::End();
+			component_panel.render(hierarchical_panel.selected_entity);
 
 			// draw gizmos with imguizmo
 
@@ -49,9 +46,11 @@ namespace Editor {
 			if (!transform_comp) {
 				return;
 			}
-			auto& camera = renderer->render_ctx.cam;
-			ImGuizmo::Manipulate(glm::value_ptr(camera.get_view_matrix()), glm::value_ptr(camera.get_projection_matrix()), imguizmo_operation, imguizmo_mode, glm::value_ptr(transform_comp->transform));
+			const Renderer::Camera* camera = renderer->get_camera();
+			assert(camera);
+			ImGuizmo::Manipulate(glm::value_ptr(camera->get_view_matrix()), glm::value_ptr(camera->get_projection_matrix()), imguizmo_operation, imguizmo_mode, glm::value_ptr(transform_comp->transform));
 		}
+
 		void render_save_load_panel() {
 			ImGui::Begin("Serialize");
 			SaveSceneButton::render("scene.kasset", "Save Scene", *entt_registry, serializer);
@@ -64,6 +63,7 @@ namespace Editor {
 		entt::registry* entt_registry;
 		Renderer::Renderer3D* renderer{};
 		HierarchicalPanel hierarchical_panel{};
+		PropertyPanel component_panel{};
 		ImGuizmo::OPERATION imguizmo_operation{ ImGuizmo::OPERATION::UNIVERSAL };
 		ImGuizmo::MODE imguizmo_mode{ ImGuizmo::MODE::LOCAL };
 		

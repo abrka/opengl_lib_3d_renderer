@@ -9,12 +9,12 @@
 
 #include "engine/components/components.h"
 #include "engine/serialize/cereal_serialize_custom_types.h"
-#include "engine/serialize/serializer.h"
+#include "engine/serialize/entt_registry_serializer.h"
 
 namespace Editor {
 	namespace SaveSceneButton {
 		template<typename InputArchive, typename OutputArchive>
-		void render(std::filesystem::path saved_file, std::string button_text, entt::registry& entt_registry, Engine::Serializer<InputArchive, OutputArchive>& serializer) {
+		void render(std::filesystem::path saved_file, std::string button_text, entt::registry& entt_registry, Engine::EnttRegistrySerializer<InputArchive, OutputArchive>& serializer) {
 			if (ImGui::Button(button_text.c_str())) {
 				std::ofstream of(saved_file);
 				{

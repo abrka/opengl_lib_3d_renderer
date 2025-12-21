@@ -8,7 +8,7 @@
 
 namespace Engine {
 	template<typename InputArchive, typename OutputArchive>
-	struct Serializer {
+	struct EnttRegistrySerializer {
 		using snapshot_get_func = std::function<void(OutputArchive&, entt::snapshot&)>;
 		snapshot_get_func snapshot_get_fn{};
 
