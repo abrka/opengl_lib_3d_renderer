@@ -32,8 +32,8 @@ namespace Editor {
 		using namespace entt::literals;
 		entt::meta_factory<T>()
 			.type(name)
-			.func<&get_component_from_entity<T>>("get_component"_hs)
-			.func<&render_imgui_for_component<T>>("render_imgui_for_component"_hs)
-			.func<&add_component_to_entity<T>>("add_component"_hs);
+			.template func<&get_component_from_entity<T>>("get_component"_hs)
+			.template func<&render_imgui_for_component<T>>("render_imgui_for_component"_hs)
+			.template func<&add_component_to_entity<T>>("add_component"_hs);
 	}
 }
