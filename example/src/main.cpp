@@ -14,6 +14,7 @@
 #include "editor/imreflect_custom_types.h"
 
 
+static bool cursor_state_changed = false;
 static float mouse_sensitivity = 0.005f;
 static float cam_speed = 0.02f;
 
@@ -164,6 +165,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		int prev_cursor_mode = glfwGetInputMode(window, GLFW_CURSOR);
 		int new_cursor_mode = (prev_cursor_mode == GLFW_CURSOR_NORMAL) ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL;
 		glfwSetInputMode(window, GLFW_CURSOR, new_cursor_mode);
+		cursor_state_changed = true;
 	}
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
@@ -183,7 +185,7 @@ static void process_input_for_camera_movement(GLFWwindow* window, Renderer::Came
 	static double ypos{};
 
 	glfwGetCursorPos(window, &xpos, &ypos);
-	if (first_time_being_called) {
+	if (first_time_being_called || cursor_state_changed) {
 		xpos_prev = xpos;
 		ypos_prev = ypos;
 	}
@@ -238,4 +240,5 @@ static void process_input_for_camera_movement(GLFWwindow* window, Renderer::Came
 		}
 	}
 	first_time_being_called = false;
+	cursor_state_changed = false;
 }
