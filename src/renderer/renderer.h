@@ -4,23 +4,17 @@
 
 #include <entt/entt.hpp>
 
-
-
 #include "GL3D/mesh.h"
 #include "GL3D/shader.h"
 #include "GL3D/texture.h"
 #include "GL3D/framebuffer.h"
 #include "GL3D/renderbuffer.h"
-
 #include "GLRenderer/renderer_base.h"
 
 #include "ImGuizmo.h"
 
 #include "shader_builder.h"
-#include "mesh_builder.h"
-#include "texture_builder.h"
 #include "camera.h"
-#include "stb_image_raii.h"
 #include "renderer_detail.h"
 
 #define STRINGIFY(x) #x

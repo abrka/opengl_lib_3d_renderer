@@ -18,7 +18,7 @@
 #include "assimp_glm.h"
 #include "texture_builder.h"
 
-namespace MeshBuilder {
+namespace AssetBuilder {
 
 	enum class VertexAttribType {
 		none = 0,

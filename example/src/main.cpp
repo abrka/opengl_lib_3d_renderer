@@ -54,7 +54,7 @@ int main() {
 	auto pbr_shader = entt_shader_cache.load("pbr"_hs, asset_dir + "shaders/pbr_frag.glsl", asset_dir + "shaders/pbr_vertex.glsl").first->second;
 
 
-	entt::resource_cache<MeshBuilder::Scene, Engine::MeshLoader> entt_mesh_cache{};
+	entt::resource_cache<AssetBuilder::Scene, Engine::MeshLoader> entt_mesh_cache{};
 	auto backpack_scene = entt_mesh_cache.load("backpack"_hs, asset_dir + "meshes/backpack/backpack.obj").first->second;
 	auto candle_scene = entt_mesh_cache.load("candle"_hs, asset_dir + "meshes/candle/brass_candleholders_1k.gltf").first->second;
 	auto military_uniform_scene = entt_mesh_cache.load("uniform"_hs, asset_dir + "meshes/military_uniform/military_uniform.gltf").first->second;

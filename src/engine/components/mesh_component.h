@@ -2,9 +2,9 @@
 
 #include <memory>
 #include <entt/entt.hpp>
-#include "renderer/mesh_builder.h"
+#include "renderer/asset_builder.h"
 
 
 namespace Engine {
-	using MeshComponent = entt::resource<MeshBuilder::Scene>;
+	using MeshComponent = entt::resource<AssetBuilder::Scene>;
 }

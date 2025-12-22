@@ -1,7 +1,7 @@
 #pragma once
 
 #include "engine/components/components.h"
-#include "mesh_builder.h"
+#include "asset_builder.h"
 
 namespace Renderer {
 	namespace detail {
@@ -14,11 +14,11 @@ namespace Renderer {
 			return nullptr;
 		}
 
-		void draw_mesh(const MeshBuilder::Mesh& mesh, const GL3D::ShaderProgram& shader) {
+		void draw_mesh(const AssetBuilder::Mesh& mesh, const GL3D::ShaderProgram& shader) {
 			mesh.material.update_all_uniforms(shader);
 			mesh.mesh->draw(shader);
 		}
-		void render_scene(const MeshBuilder::Scene& scene, const GL3D::ShaderProgram& shader) {
+		void render_scene(const AssetBuilder::Scene& scene, const GL3D::ShaderProgram& shader) {
 			for (auto* mesh : scene.get_all_meshes()) {
 				draw_mesh(*mesh, shader);
 			}
@@ -30,7 +30,7 @@ namespace Renderer {
 			}
 		}
 
-		void set_mvp_uniforms_single(MeshBuilder::Mesh& mesh, glm::mat4 transform, const Renderer::Camera& camera) {
+		void set_mvp_uniforms_single(AssetBuilder::Mesh& mesh, glm::mat4 transform, const Renderer::Camera& camera) {
 			glm::mat4 model = mesh.node->get_global_transform() * transform;
 			glm::mat4 view = camera.get_view_matrix();
 			glm::mat4 projection = camera.get_projection_matrix();
@@ -38,7 +38,7 @@ namespace Renderer {
 			mesh.material.set_uniform("u_mat_view", view);
 			mesh.material.set_uniform("u_mat_projection", projection);
 		}
-		void set_mvp_uniforms(MeshBuilder::Scene& scene, glm::mat4 transform, const Camera& camera) {
+		void set_mvp_uniforms(AssetBuilder::Scene& scene, glm::mat4 transform, const Camera& camera) {
 			for (auto* mesh : scene.get_all_meshes()) {
 				set_mvp_uniforms_single(*mesh, transform, camera);
 			}
@@ -54,7 +54,7 @@ namespace Renderer {
 			}
 		}
 
-		void set_point_light_uniform(MeshBuilder::Material& material, Renderer::PointLight& point_light, glm::mat4 transform, size_t i)
+		void set_point_light_uniform(AssetBuilder::Material& material, Renderer::PointLight& point_light, glm::mat4 transform, size_t i)
 		{
 			std::string dir_light_uniform = "u_point_lights[" + std::to_string(i) + "]";
 			material.set_uniform(dir_light_uniform + ".color", point_light.color);
@@ -67,7 +67,7 @@ namespace Renderer {
 			auto entt_view_meshes = entt_registry.view<Engine::MeshComponent>();
 			for (auto [entity, mesh_component] : entt_view_meshes.each()) {
 				auto materials = mesh_component->get_all_materials();
-				for (MeshBuilder::Material* material : materials) {
+				for (AssetBuilder::Material* material : materials) {
 					auto entt_view_point_lights = entt_registry.view<Engine::PointLightComponent, Engine::TransformComponent>();
 					size_t i = 0;
 					for (auto [entity, point_light_component, transform_component] : entt_view_point_lights.each()) {
