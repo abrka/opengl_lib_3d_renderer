@@ -149,7 +149,7 @@ namespace MeshBuilder {
 		std::vector<int> get_num_floats_per_attribute(const std::vector<VertexAttrib>& vertex_attribs) {
 			std::vector<int> num_floats_per_attribute{};
 			for (const auto& vertex_attrib : vertex_attribs) {
-				num_floats_per_attribute.push_back(vertex_attrib.size);
+				num_floats_per_attribute.push_back((int)vertex_attrib.size);
 			}
 			return num_floats_per_attribute;
 		}
@@ -160,7 +160,7 @@ namespace MeshBuilder {
 			auto num_textures = ai_material->GetTextureCount(ai_texture_type);
 			for (size_t i = 0; i < num_textures; i++) {
 				aiString texture_path{};
-				aiReturn ret = ai_material->GetTexture(ai_texture_type, i, &texture_path);
+				aiReturn ret = ai_material->GetTexture(ai_texture_type, (unsigned int)i, &texture_path);
 				std::string texture_path_str = std::string{ texture_path.data, texture_path.length };
 				texture_paths.push_back(texture_path_str);
 				if (ret != aiReturn_SUCCESS) {

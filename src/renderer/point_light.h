@@ -5,7 +5,7 @@
 
 namespace Renderer {
 	struct PointLight {
-		color_t color{glm::vec3(1.0f)};
-		float ambient_strength{0.1f};
+		color_t color{};
+		float ambient_strength{};
 	};
 }

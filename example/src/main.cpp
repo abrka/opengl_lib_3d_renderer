@@ -105,16 +105,20 @@ int main() {
 
 	entt::entity point_light_entity = entt_registry.create();
 	entt_registry.emplace<Engine::NameComponent>(point_light_entity, "point light");
-	entt_registry.emplace<Engine::PointLightComponent>(point_light_entity);
+	Engine::PointLightComponent point_light_comp{};
+	point_light_comp.light.ambient_strength = 0.1f;
+	point_light_comp.light.color = glm::vec3(1.0f);
+	entt_registry.emplace<Engine::PointLightComponent>(point_light_entity, point_light_comp);
 	entt_registry.emplace<Engine::TransformComponent>(point_light_entity);
 	Engine::add_child(entt_registry, root_entity, point_light_entity);
 
-	Editor::Editor<cereal::XMLInputArchive, cereal::XMLOutputArchive> editor{ renderer, entt_registry };
-	Engine::EnttRegistrySerializer<cereal::XMLInputArchive,cereal::XMLOutputArchive> serializer{
+
+	Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive> serializer{
 		&snapshot_get_func_custom<cereal::XMLOutputArchive, entt::snapshot>,
-		&snapshot_get_func_custom<cereal::XMLInputArchive, entt::snapshot_loader> 
+		&snapshot_get_func_custom<cereal::XMLInputArchive, entt::snapshot_loader>
 	};
-	editor.serializer = serializer;
+	Editor::Editor<cereal::XMLInputArchive, cereal::XMLOutputArchive> editor{ renderer, entt_registry, serializer};
+
 
 	renderer.custom_imgui_render_function = [&editor](Renderer::Renderer3D& renderer) {
 		editor.render();
@@ -176,22 +180,22 @@ static void process_input_for_camera_movement(GLFWwindow* window, Renderer::Came
 		ypos_prev = ypos;
 	}
 	// calculate 
-	float del_x = xpos - xpos_prev;
-	float rot_y = del_x * mouse_sensitivity;
+	double del_x = xpos - xpos_prev;
+	double rot_y = del_x * mouse_sensitivity;
 
-	static float cam_rot_x{};
-	static float cam_rot_y{};
+	static double cam_rot_x{};
+	static double cam_rot_y{};
 
 	if (glfwGetInputMode(window, GLFW_CURSOR) != GLFW_CURSOR_NORMAL) {
 		cam_rot_y -= rot_y;
 	}
 
-	float del_y = ypos - ypos_prev;
-	float rot_x = del_y * mouse_sensitivity;
+	double del_y = ypos - ypos_prev;
+	double rot_x = del_y * mouse_sensitivity;
 
 	if (glfwGetInputMode(window, GLFW_CURSOR) != GLFW_CURSOR_NORMAL) {
 		cam_rot_x += rot_x;
-		cam_rot_x = glm::clamp(cam_rot_x, glm::radians(-89.0f), glm::radians(89.0f));
+		cam_rot_x = glm::clamp(cam_rot_x, glm::radians(-89.0), glm::radians(89.0));
 	}
 	// calculate finished
 	xpos_prev = xpos;
@@ -202,8 +206,8 @@ static void process_input_for_camera_movement(GLFWwindow* window, Renderer::Came
 	glm::vec3 cam_forward = cam.orientation[2];
 
 
-	cam.orientation = glm::rotate(glm::mat4(1.0f), cam_rot_y, glm::vec3(0.0f, 1.0f, 0.0f));
-	cam.orientation = glm::rotate(cam.orientation, cam_rot_x, glm::vec3(1.0f, 0.0f, 0.0f));
+	cam.orientation = glm::rotate(glm::mat4(1.0f), (float)cam_rot_y, glm::vec3(0.0f, 1.0f, 0.0f));
+	cam.orientation = glm::rotate(cam.orientation, (float)cam_rot_x, glm::vec3(1.0f, 0.0f, 0.0f));
 
 	if (glfwGetInputMode(window, GLFW_CURSOR) != GLFW_CURSOR_NORMAL) {
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {

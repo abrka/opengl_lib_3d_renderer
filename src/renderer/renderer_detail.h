@@ -54,22 +54,36 @@ namespace Renderer {
 			}
 		}
 
-		void set_light_uniforms_system(entt::registry& entt_registry) {
+		void set_point_light_uniform(MeshBuilder::Material& material, Renderer::PointLight& point_light, glm::mat4 transform, size_t i)
+		{
+			std::string dir_light_uniform = "u_point_lights[" + std::to_string(i) + "]";
+			material.set_uniform(dir_light_uniform + ".color", point_light.color);
+			glm::vec3 position = transform[3];
+			material.set_uniform(dir_light_uniform + ".position", position);
+			material.set_uniform(dir_light_uniform + ".ambient_strength", point_light.ambient_strength);
+		}
+
+		void set_light_uniforms_system(entt::registry& entt_registry, size_t num_point_lights) {
 			auto entt_view_meshes = entt_registry.view<Engine::MeshComponent>();
 			for (auto [entity, mesh_component] : entt_view_meshes.each()) {
 				auto materials = mesh_component->get_all_materials();
 				for (MeshBuilder::Material* material : materials) {
-					auto entt_view_point_lights = entt_registry.view<const Engine::PointLightComponent, const Engine::TransformComponent>();
+					auto entt_view_point_lights = entt_registry.view<Engine::PointLightComponent, Engine::TransformComponent>();
 					size_t i = 0;
 					for (auto [entity, point_light_component, transform_component] : entt_view_point_lights.each()) {
+						if (i >= num_point_lights) {
+							return;
+						}
 						Renderer::PointLight point_light = point_light_component.light;
-						std::string dir_light_uniform = "u_point_lights[" + std::to_string(i) + "]";
-						material->set_uniform(dir_light_uniform + ".color", point_light.color);
-						glm::vec3 position = transform_component.transform[3];
-						material->set_uniform(dir_light_uniform + ".position", position);
-						material->set_uniform(dir_light_uniform + ".ambient_strength", point_light.ambient_strength);
+						set_point_light_uniform(*material, point_light, transform_component.transform, i);
 						i++;
 					}
+					while (i < num_point_lights) {
+						PointLight empty_light{};
+						set_point_light_uniform(*material, empty_light, glm::mat4(1.0f), i);
+						i++;
+					}
+
 				}
 			}
 		}

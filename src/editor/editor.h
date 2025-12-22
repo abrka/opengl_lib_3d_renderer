@@ -18,9 +18,7 @@ namespace Editor {
 	template<typename InputArchive, typename OutputArchive>
 	class Editor {
 	public:
-		Engine::EnttRegistrySerializer<InputArchive, OutputArchive> serializer{};
-
-		Editor(Renderer::Renderer3D& renderer, entt::registry& entt_registry) : renderer(&renderer), entt_registry(&entt_registry), hierarchical_panel(entt_registry), component_panel(entt_registry) {};
+		Editor(Renderer::Renderer3D& renderer, entt::registry& entt_registry, Engine::EnttRegistrySerializer<InputArchive, OutputArchive>& serializer) : renderer(&renderer), entt_registry(&entt_registry), hierarchical_panel(entt_registry), component_panel(entt_registry), serializer(serializer) {};
 		
 		void render() {
 			ImGui::ShowDemoWindow();
@@ -36,7 +34,7 @@ namespace Editor {
 			ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());
 
 			auto [screen_width, screen_height] = renderer->get_screen_width_and_height();
-			ImGuizmo::SetRect(0, 0, screen_width, screen_height);
+			ImGuizmo::SetRect(0, 0, (float)screen_width, (float)screen_height);
 
 			auto selected_entity = hierarchical_panel.selected_entity;
 			if (!selected_entity.has_value()) {
@@ -62,6 +60,7 @@ namespace Editor {
 	private:
 		entt::registry* entt_registry;
 		Renderer::Renderer3D* renderer{};
+		Engine::EnttRegistrySerializer<InputArchive, OutputArchive> serializer{};
 		HierarchicalPanel hierarchical_panel{};
 		PropertyPanel component_panel{};
 		ImGuizmo::OPERATION imguizmo_operation{ ImGuizmo::OPERATION::UNIVERSAL };
