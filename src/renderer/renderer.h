@@ -90,6 +90,7 @@ namespace Renderer {
 			size_t num_point_lights = 10;
 			detail::set_light_uniforms_system(*entt_registry, num_point_lights);
 			detail::set_mvp_uniforms_system(*entt_registry);
+			detail::set_camera_uniform_system(*entt_registry);
 			detail::render_mesh_system(*entt_registry);
 
 			framebuffer->unbind();
@@ -116,11 +117,11 @@ namespace Renderer {
 			return window->get_width_and_height();
 		}
 		Camera* get_camera() {
-			auto* camera_component = detail::get_first_component_of_type<Engine::CameraComponent>(*entt_registry);
-			if (!camera_component) {
-				return nullptr;
+			auto entt_view_camera = entt_registry->view<Engine::CameraComponent>();
+			for (auto [entity, camera_component] : entt_view_camera.each()) {
+				return &camera_component.camera;
 			}
-			return &camera_component->camera;
+			return nullptr;
 		}
 
 	};

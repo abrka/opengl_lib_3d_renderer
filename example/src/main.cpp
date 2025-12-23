@@ -106,12 +106,20 @@ int main() {
 	entt::entity point_light_entity = entt_registry.create();
 	entt_registry.emplace<Engine::NameComponent>(point_light_entity, "point light");
 	Engine::PointLightComponent point_light_comp{};
-	point_light_comp.light.ambient_strength = 0.1f;
 	point_light_comp.light.color = glm::vec3(1.0f);
+	point_light_comp.light.ambient_strength = 0.1f;
+	point_light_comp.light.specular_strength = 0.5f;
 	entt_registry.emplace<Engine::PointLightComponent>(point_light_entity, point_light_comp);
 	entt_registry.emplace<Engine::TransformComponent>(point_light_entity);
 	Engine::add_child(entt_registry, root_entity, point_light_entity);
 
+	auto entt_view_meshes = entt_registry.view<Engine::MeshComponent>();
+	for (auto [entity, mesh_component] : entt_view_meshes.each()) {
+		auto materials = mesh_component->get_all_materials();
+		for (AssetBuilder::Material* material : materials) {
+			material->set_uniform("u_material.specular_alpha", 32.0f);
+		}
+	}
 
 	Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive> serializer{
 		&snapshot_get_func_custom<cereal::XMLOutputArchive, entt::snapshot>,

@@ -5,15 +5,6 @@
 
 namespace Renderer {
 	namespace detail {
-		template<typename T>
-		T* get_first_component_of_type(entt::registry& entt_registry) {
-			auto view = entt_registry.view<T>();
-			for (auto [entity, component] : view.each()) {
-				return &component;
-			}
-			return nullptr;
-		}
-
 		void draw_mesh(const AssetBuilder::Mesh& mesh, const GL3D::ShaderProgram& shader) {
 			mesh.material.update_all_uniforms(shader);
 			mesh.mesh->draw(shader);
@@ -44,23 +35,23 @@ namespace Renderer {
 			}
 		}
 		void set_mvp_uniforms_system(entt::registry& entt_registry) {
-			auto entt_view = entt_registry.view<Engine::MeshComponent, Engine::TransformComponent>();
-			for (auto [entity, mesh_component, transform_component] : entt_view.each()) {
-				const Engine::CameraComponent* camera_component = get_first_component_of_type<const Engine::CameraComponent>(entt_registry);
-				if (!camera_component) {
-					return;
+			auto entt_view_mesh = entt_registry.view<Engine::MeshComponent, Engine::TransformComponent>();
+			auto entt_view_camera = entt_registry.view<Engine::CameraComponent>();
+			for (auto [entity, mesh_component, transform_component] : entt_view_mesh.each()) {
+				for (auto [entity, camera_component] : entt_view_camera.each()) {
+					set_mvp_uniforms(*mesh_component, transform_component.transform, camera_component.camera);
 				}
-				set_mvp_uniforms(*mesh_component, transform_component.transform, camera_component->camera);
 			}
 		}
 
 		void set_point_light_uniform(AssetBuilder::Material& material, Renderer::PointLight& point_light, glm::mat4 transform, size_t i)
 		{
-			std::string dir_light_uniform = "u_point_lights[" + std::to_string(i) + "]";
-			material.set_uniform(dir_light_uniform + ".color", point_light.color);
+			std::string point_light_uniform_name = "u_point_lights[" + std::to_string(i) + "]";
+			material.set_uniform(point_light_uniform_name + ".color", point_light.color);
 			glm::vec3 position = transform[3];
-			material.set_uniform(dir_light_uniform + ".position", position);
-			material.set_uniform(dir_light_uniform + ".ambient_strength", point_light.ambient_strength);
+			material.set_uniform(point_light_uniform_name + ".position", position);
+			material.set_uniform(point_light_uniform_name + ".ambient_strength", point_light.ambient_strength);
+			material.set_uniform(point_light_uniform_name + ".specular_strength", point_light.specular_strength);
 		}
 
 		void set_light_uniforms_system(entt::registry& entt_registry, size_t num_point_lights) {
@@ -88,6 +79,17 @@ namespace Renderer {
 			}
 		}
 
-
+		void set_camera_uniform_system(entt::registry& entt_registry) {
+			auto entt_view_meshes = entt_registry.view<Engine::MeshComponent>();
+			for (auto [entity, mesh_component] : entt_view_meshes.each()) {
+				auto materials = mesh_component->get_all_materials();
+				for (AssetBuilder::Material* material : materials) {
+					auto entt_view_camera = entt_registry.view<Engine::CameraComponent>();
+					for (auto [entity, camera_component] : entt_view_camera.each()) {
+						material->set_uniform("u_camera.position", camera_component.camera.position);
+					}
+				}
+			}
+		}
 	}
 }
