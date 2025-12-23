@@ -14,7 +14,7 @@ IMGUI_REFLECT(Engine::TransformComponent, transform)
 IMGUI_REFLECT(Engine::NameComponent, name)
 IMGUI_REFLECT(Renderer::Camera, position, orientation, fov, near_plane_dist, far_plane_dist, aspect_ratio)
 IMGUI_REFLECT(Engine::CameraComponent, camera)
-IMGUI_REFLECT(Renderer::PointLight, color, ambient_strength, specular_strength)
+IMGUI_REFLECT(Renderer::PointLight, color, ambient_strength, diffuse_strength, specular_strength)
 IMGUI_REFLECT(Engine::PointLightComponent, light)
 
 void tag_invoke(ImReflect::ImInput_t, const char* label, Renderer::color_t& value, ImSettings& settings, ImResponse& response) {

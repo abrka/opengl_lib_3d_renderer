@@ -51,6 +51,7 @@ namespace Renderer {
 			glm::vec3 position = transform[3];
 			material.set_uniform(point_light_uniform_name + ".position", position);
 			material.set_uniform(point_light_uniform_name + ".ambient_strength", point_light.ambient_strength);
+			material.set_uniform(point_light_uniform_name + ".diffuse_strength", point_light.diffuse_strength);
 			material.set_uniform(point_light_uniform_name + ".specular_strength", point_light.specular_strength);
 		}
 

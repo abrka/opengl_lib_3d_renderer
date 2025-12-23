@@ -108,6 +108,7 @@ int main() {
 	Engine::PointLightComponent point_light_comp{};
 	point_light_comp.light.color = glm::vec3(1.0f);
 	point_light_comp.light.ambient_strength = 0.1f;
+	point_light_comp.light.diffuse_strength = 1.0f;
 	point_light_comp.light.specular_strength = 0.5f;
 	entt_registry.emplace<Engine::PointLightComponent>(point_light_entity, point_light_comp);
 	entt_registry.emplace<Engine::TransformComponent>(point_light_entity);
@@ -118,6 +119,9 @@ int main() {
 		auto materials = mesh_component->get_all_materials();
 		for (AssetBuilder::Material* material : materials) {
 			material->set_uniform("u_material.specular_alpha", 32.0f);
+			material->set_uniform("u_material.ambient_strength", 1.0f);
+			material->set_uniform("u_material.diffuse_strength", 1.0f);
+			material->set_uniform("u_material.specular_strength", 1.0f);
 		}
 	}
 
