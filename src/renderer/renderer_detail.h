@@ -53,6 +53,9 @@ namespace Renderer {
 			material.set_uniform(point_light_uniform_name + ".ambient_strength", point_light.ambient_strength);
 			material.set_uniform(point_light_uniform_name + ".diffuse_strength", point_light.diffuse_strength);
 			material.set_uniform(point_light_uniform_name + ".specular_strength", point_light.specular_strength);
+			material.set_uniform(point_light_uniform_name + ".constant", point_light.constant);
+			material.set_uniform(point_light_uniform_name + ".linear", point_light.linear);
+			material.set_uniform(point_light_uniform_name + ".quadratic", point_light.quadratic);
 		}
 
 		void set_light_uniforms_system(entt::registry& entt_registry, size_t num_point_lights) {

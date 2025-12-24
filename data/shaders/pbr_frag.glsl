@@ -17,11 +17,16 @@ struct Material{
 uniform Material u_material;
 
 struct PointLight{
-	vec3 color;
 	vec3 position;
+	vec3 color;
+	
 	float ambient_strength;
 	float diffuse_strength;
 	float specular_strength;
+
+	float constant;
+	float linear;
+	float quadratic;
 };
 #define NUM_POINT_LIGHTS 10
 uniform PointLight u_point_lights[NUM_POINT_LIGHTS];
@@ -42,22 +47,26 @@ void main()
 	vec3 diffuse_point_light = vec3(0.0);
 	vec3 specular_point_light = vec3(0.0);
 
+	
 	for (int i = 0; i < NUM_POINT_LIGHTS; i++){
-		vec3 ambient = u_material.ambient_strength * u_point_lights[i].ambient_strength * u_point_lights[i].color;
+		float dist = length(u_point_lights[i].position - fs_in.position_world);
+		float attenuation = 1.0 / (u_point_lights[i].constant + u_point_lights[i].linear * dist + 
+    		    u_point_lights[i].quadratic * (dist * dist)); 
+
+		vec3 ambient = u_material.ambient_strength * attenuation * u_point_lights[i].ambient_strength * u_point_lights[i].color;
 		ambient_point_light += ambient;
 
 		vec3 L = normalize(u_point_lights[i].position - fs_in.position_world);
 		vec3 N = normalize(fs_in.normal_world);
 
 		float diffuse_factor = max(dot(N, L), 0.0);
-		vec3 diffuse = diffuse_factor * u_material.diffuse_strength * u_point_lights[i].diffuse_strength * u_point_lights[i].color;
-
+		vec3 diffuse = diffuse_factor * attenuation * u_material.diffuse_strength * u_point_lights[i].diffuse_strength * u_point_lights[i].color;
 		diffuse_point_light += diffuse;
 
 		vec3 V = normalize(u_camera.position - fs_in.position_world);
 		vec3 R = reflect(-L , N);
 		float specular_factor = pow(max(dot(V, R), 0.0), u_material.specular_alpha);
-		vec3 specular =  specular_factor * u_material.specular_strength * u_point_lights[i].specular_strength * u_point_lights[i].color;
+		vec3 specular =  specular_factor * attenuation * u_material.specular_strength * u_point_lights[i].specular_strength * u_point_lights[i].color;
 		
 		specular_point_light += specular;
 	}

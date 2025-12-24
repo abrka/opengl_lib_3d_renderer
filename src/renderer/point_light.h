@@ -9,5 +9,8 @@ namespace Renderer {
 		float ambient_strength{};
 		float diffuse_strength{};
 		float specular_strength{};
+		float constant{ 1.0f };
+		float linear{ 0.09f };
+		float quadratic{ 0.032f };
 	};
 }
