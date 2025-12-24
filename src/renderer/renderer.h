@@ -54,7 +54,7 @@ namespace Renderer {
 			int num_floats_per_attr[] = { 3,2 };
 			screen_quad_mesh = std::make_unique<GL3D::Mesh>(std::span<float>(screen_quad_vertices), std::span<int>(num_floats_per_attr), std::span<unsigned int>(quad_indices));
 
-			const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
+			const std::string asset_dir = std::string(TOSTRING(ENGINE_ASSET_DIR)) + "/";
 
 			auto screen_shader_res = ShaderBuilder::build(asset_dir + "shaders/screen_frag.glsl", asset_dir + "shaders/screen_vertex.glsl");
 			if (!screen_shader_res.has_value()) {

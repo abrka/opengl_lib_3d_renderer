@@ -41,6 +41,7 @@ int main() {
 	Editor::register_component<Engine::PointLightComponent>("PointLightComponent");
 
 	const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
+	const std::string engine_asset_dir = std::string(TOSTRING(ENGINE_ASSET_DIR)) + "/";
 	GLExternalRAII::Window window{ 800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR };
 	glfwSetInputMode(window.glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	// WARNING: set key callbacks before renderer calls imgui. otherwise keys inside imgui wont work.
@@ -51,7 +52,7 @@ int main() {
 	glfwSetFramebufferSizeCallback(window.glfw_window, framebuffer_size_callback);
 
 	entt::resource_cache<GL3D::ShaderProgram, Engine::ShaderLoader> entt_shader_cache{};
-	auto pbr_shader = entt_shader_cache.load("pbr"_hs, asset_dir + "shaders/pbr_frag.glsl", asset_dir + "shaders/pbr_vertex.glsl").first->second;
+	auto pbr_shader = entt_shader_cache.load("pbr"_hs, engine_asset_dir + "shaders/pbr_frag.glsl", engine_asset_dir + "shaders/pbr_vertex.glsl").first->second;
 
 
 	entt::resource_cache<AssetBuilder::Scene, Engine::MeshLoader> entt_mesh_cache{};
@@ -59,7 +60,6 @@ int main() {
 	auto candle_scene = entt_mesh_cache.load("candle"_hs, asset_dir + "meshes/candle/brass_candleholders_1k.gltf").first->second;
 	auto military_uniform_scene = entt_mesh_cache.load("uniform"_hs, asset_dir + "meshes/military_uniform/military_uniform.gltf").first->second;
 	auto sponza_scene = entt_mesh_cache.load("sponza"_hs, asset_dir + "meshes/sponza_palace/scene.gltf").first->second;
-
 
 	entt::entity root_entity = entt_registry.create();
 	entt_registry.emplace<Engine::NameComponent>(root_entity, "root");

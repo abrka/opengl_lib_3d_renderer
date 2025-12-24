@@ -10,6 +10,8 @@ target_include_directories(opengl_lib_3d_renderer INTERFACE ${CMAKE_CURRENT_SOUR
 
 target_compile_features(opengl_lib_3d_renderer INTERFACE cxx_std_20)
 
+target_compile_definitions(opengl_lib_3d_renderer INTERFACE ENGINE_ASSET_DIR=${CMAKE_CURRENT_SOURCE_DIR}/data)
+
 find_package(opengl_lib CONFIG REQUIRED)
 target_link_libraries(opengl_lib_3d_renderer INTERFACE opengl_lib::opengl_lib)
 
