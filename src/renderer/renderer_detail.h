@@ -64,6 +64,7 @@ namespace Renderer {
 				auto materials = mesh_component->get_all_materials();
 				for (AssetBuilder::Material* material : materials) {
 					auto entt_view_point_lights = entt_registry.view<Engine::PointLightComponent, Engine::TransformComponent>();
+					
 					size_t i = 0;
 					for (auto [entity, point_light_component, transform_component] : entt_view_point_lights.each()) {
 						if (i >= num_point_lights) {
@@ -73,12 +74,8 @@ namespace Renderer {
 						set_point_light_uniform(*material, point_light, transform_component.transform, i);
 						i++;
 					}
-					while (i < num_point_lights) {
-						PointLight empty_light{};
-						set_point_light_uniform(*material, empty_light, glm::mat4(1.0f), i);
-						i++;
-					}
-
+					size_t num_point_lights = i;
+					material->set_uniform("u_num_point_lights", (int)num_point_lights);
 				}
 			}
 		}

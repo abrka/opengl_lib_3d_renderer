@@ -28,8 +28,9 @@ struct PointLight{
 	float linear;
 	float quadratic;
 };
-#define NUM_POINT_LIGHTS 10
-uniform PointLight u_point_lights[NUM_POINT_LIGHTS];
+#define MAX_NUM_POINT_LIGHTS 10
+uniform PointLight u_point_lights[MAX_NUM_POINT_LIGHTS];
+uniform int u_num_point_lights;
 
 in VS_OUT{
 	vec2 tex_coord;
@@ -48,7 +49,7 @@ void main()
 	vec3 specular_point_light = vec3(0.0);
 
 	
-	for (int i = 0; i < NUM_POINT_LIGHTS; i++){
+	for (int i = 0; i < u_num_point_lights; i++){
 		float dist = length(u_point_lights[i].position - fs_in.position_world);
 		float attenuation = 1.0 / (u_point_lights[i].constant + u_point_lights[i].linear * dist + 
     		    u_point_lights[i].quadratic * (dist * dist)); 
