@@ -143,6 +143,7 @@ int main() {
 		editor.render();
 	};
 
+	Engine::script_system_init(entt_registry);
 
 	while (window.is_running()) {
 		double prev_time = glfwGetTime();
@@ -152,7 +153,7 @@ int main() {
 			process_input_for_camera_movement(window.glfw_window, camera_component.camera);
 		}
 		
-		Engine::script_system_run(entt_registry);
+		Engine::script_system_tick(entt_registry);
 		renderer.render();
 
 		double current_time = glfwGetTime();
