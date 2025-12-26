@@ -1,10 +1,6 @@
 #include <entt/entt.hpp>
 #include <cereal/cereal.hpp>
 #include <cereal/archives/xml.hpp>
-
-#define SOL_ALL_SAFETIES_ON 1
-#include <sol/sol.hpp>
-
 #include "renderer/renderer.h"
 
 #include "engine/components/components.h"
@@ -73,13 +69,14 @@ int main() {
 	entt::entity root_entity = entt_registry.create();
 	entt_registry.emplace<Engine::NameComponent>(root_entity, "root");
 	entt_registry.emplace<Engine::RootComponent>(root_entity);
-	entt_registry.emplace<Engine::ScriptComponent>(root_entity, Engine::ScriptComponent{ sol_state, asset_dir + "scripts/main.lua" });
+	Engine::add_script_component( sol_state, entt_registry, root_entity, asset_dir + "scripts/main.lua");
 
 	entt::entity candle_entity = entt_registry.create();
 	entt_registry.emplace<Engine::NameComponent>(candle_entity, "candle");
 	entt_registry.emplace<Engine::MeshComponent>(candle_entity, candle_scene);
 	entt_registry.emplace<Engine::ShaderComponent>(candle_entity, pbr_shader);
 	entt_registry.emplace<Engine::TransformComponent>(candle_entity);
+	Engine::add_script_component(sol_state, entt_registry, candle_entity, asset_dir + "scripts/main.lua");
 	Engine::add_child(entt_registry, root_entity, candle_entity);
 
 	entt::entity backpack_entity = entt_registry.create();

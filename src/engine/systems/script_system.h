@@ -16,7 +16,7 @@ namespace Engine {
 			if (!sol_tick_fn.has_value()) {
 				continue;
 			}
-			auto sol_ret = sol_tick_fn->call();
+			auto sol_ret = sol_tick_fn->call(sol_module);
 			if (!sol_ret.valid()) {
 				sol::error sol_err = sol_ret;
 				std::cout << "[ERROR] Lua Script Error: " << sol_err.what() << "\n";
