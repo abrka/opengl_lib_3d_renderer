@@ -4,6 +4,10 @@ u_mat_model        |
 u_mat_view         |
 u_mat_projection   |
 
+Light Uniform Name |
+-------------------|
+u_point_lights	   |
+u_num_point_lights |
 
 Texture Uniform Name			   |
 -----------------------------------|

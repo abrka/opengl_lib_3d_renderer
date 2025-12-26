@@ -2,9 +2,13 @@
 #include <cereal/cereal.hpp>
 #include <cereal/archives/xml.hpp>
 
+#define SOL_ALL_SAFETIES_ON 1
+#include <sol/sol.hpp>
+
 #include "renderer/renderer.h"
 
 #include "engine/components/components.h"
+#include "engine/systems/script_system.h"
 
 #include "engine/loaders/mesh_loader.h"
 #include "engine/loaders/shader_loader.h"
@@ -33,6 +37,12 @@ void snapshot_get_func_custom(Archive& archive, Snapshot& snapshot) {
 }
 
 int main() {
+	const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
+	const std::string engine_asset_dir = std::string(TOSTRING(ENGINE_ASSET_DIR)) + "/";
+
+	sol::state sol_state{};
+	sol_state.open_libraries(sol::lib::base);
+
 	using namespace entt::literals;
 	entt::registry entt_registry{};
 	Editor::register_component<Engine::NameComponent>("NameComponent");
@@ -40,8 +50,7 @@ int main() {
 	Editor::register_component<Engine::CameraComponent>("CameraComponent");
 	Editor::register_component<Engine::PointLightComponent>("PointLightComponent");
 
-	const std::string asset_dir = std::string(TOSTRING(ASSET_DIR)) + "/";
-	const std::string engine_asset_dir = std::string(TOSTRING(ENGINE_ASSET_DIR)) + "/";
+	
 	GLExternalRAII::Window window{ 800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR };
 	glfwSetInputMode(window.glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	// WARNING: set key callbacks before renderer calls imgui. otherwise keys inside imgui wont work.
@@ -64,6 +73,7 @@ int main() {
 	entt::entity root_entity = entt_registry.create();
 	entt_registry.emplace<Engine::NameComponent>(root_entity, "root");
 	entt_registry.emplace<Engine::RootComponent>(root_entity);
+	entt_registry.emplace<Engine::ScriptComponent>(root_entity, Engine::ScriptComponent{ sol_state, asset_dir + "scripts/main.lua" });
 
 	entt::entity candle_entity = entt_registry.create();
 	entt_registry.emplace<Engine::NameComponent>(candle_entity, "candle");
@@ -136,24 +146,31 @@ int main() {
 		editor.render();
 	};
 
+
 	while (window.is_running()) {
-		auto entt_view_camera = entt_registry.view<const Engine::CameraComponent>();
-		entt::entity camera_entity = entt_view_camera.front();
-		auto* camera = renderer.get_camera();
-		assert(camera && "No entity contains a CameraComponent");
-		process_input_for_camera_movement(window.glfw_window, *camera);
 		double prev_time = glfwGetTime();
+
+		auto entt_view_camera = entt_registry.view<Engine::CameraComponent>();
+		for (auto [entity, camera_component] : entt_view_camera.each()) {
+			process_input_for_camera_movement(window.glfw_window, camera_component.camera);
+		}
+		
+		Engine::script_system_run(entt_registry);
 		renderer.render();
-		double delta = glfwGetTime() - prev_time;
+
+		double current_time = glfwGetTime();
+		double delta = current_time - prev_time;
+
 
 		double fps = 1 / delta;
 		const double fps_set_title_delay = 0.5;
 		static double last_time_fps_was_set{};
-		if (glfwGetTime() - last_time_fps_was_set > fps_set_title_delay) {
+		if (current_time - last_time_fps_was_set > fps_set_title_delay) {
 			std::string title = "fps: " + std::to_string(fps);
 			glfwSetWindowTitle(window.glfw_window, title.c_str());
-			last_time_fps_was_set = glfwGetTime();
+			last_time_fps_was_set = current_time;
 		}
+
 	}
 }
 

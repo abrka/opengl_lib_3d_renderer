@@ -116,13 +116,5 @@ namespace Renderer {
 		std::pair<int, int> get_screen_width_and_height() {
 			return window->get_width_and_height();
 		}
-		Camera* get_camera() {
-			auto entt_view_camera = entt_registry->view<Engine::CameraComponent>();
-			for (auto [entity, camera_component] : entt_view_camera.each()) {
-				return &camera_component.camera;
-			}
-			return nullptr;
-		}
-
 	};
 }

@@ -44,9 +44,11 @@ namespace Editor {
 			if (!transform_comp) {
 				return;
 			}
-			const Renderer::Camera* camera = renderer->get_camera();
-			assert(camera);
-			ImGuizmo::Manipulate(glm::value_ptr(camera->get_view_matrix()), glm::value_ptr(camera->get_projection_matrix()), imguizmo_operation, imguizmo_mode, glm::value_ptr(transform_comp->transform));
+			auto entt_view_camera = entt_registry->view<const Engine::CameraComponent>();
+			for (auto [entity, camera_component] : entt_view_camera.each()) {
+				auto& camera = camera_component.camera;
+				ImGuizmo::Manipulate(glm::value_ptr(camera.get_view_matrix()), glm::value_ptr(camera.get_projection_matrix()), imguizmo_operation, imguizmo_mode, glm::value_ptr(transform_comp->transform));
+			}
 		}
 
 		void render_save_load_panel() {

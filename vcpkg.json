@@ -2,12 +2,14 @@
   "name": "opengl-lib-3d-renderer",
   "version": "1.0",
   "dependencies": [
-    "opengl-lib",
+    "assimp",
     "cereal",
     "entt",
-    "assimp",
-    "tl-expected",
     "imgui",
-    "imguizmo"
+    "imguizmo",
+    "opengl-lib",
+    "sol2",
+    "tl-expected",
+    "lua"
   ]
 }
