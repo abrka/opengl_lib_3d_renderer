@@ -10,9 +10,9 @@
 #include "engine/loaders/shader_loader.h"
 
 #include "editor/editor.h"
-#include "editor/reflected_func_templates.h"
 #include "editor/imreflect_custom_types.h"
 
+#include "reflect/reflect.h"
 
 static bool cursor_state_changed = false;
 static float mouse_sensitivity = 0.005f;
@@ -37,14 +37,16 @@ int main() {
 	const std::string engine_asset_dir = std::string(TOSTRING(ENGINE_ASSET_DIR)) + "/";
 
 	sol::state sol_state{};
-	sol_state.open_libraries(sol::lib::base);
+	sol_state.open_libraries(sol::lib::base, sol::lib::package);
+	sol_state.new_usertype<Engine::NameComponent>("NameComponent",
+		"name", &Engine::NameComponent::name);
 
 	using namespace entt::literals;
 	entt::registry entt_registry{};
-	Editor::register_component<Engine::NameComponent>("NameComponent");
-	Editor::register_component<Engine::TransformComponent>("TransformComponent");
-	Editor::register_component<Engine::CameraComponent>("CameraComponent");
-	Editor::register_component<Engine::PointLightComponent>("PointLightComponent");
+	Reflect::register_component<Engine::NameComponent>("NameComponent");
+	Reflect::register_component<Engine::TransformComponent>("TransformComponent");
+	Reflect::register_component<Engine::PointLightComponent>("PointLightComponent");
+	Reflect::register_component<Engine::CameraComponent>("CameraComponent");
 
 	
 	GLExternalRAII::Window window{ 800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR };
@@ -69,14 +71,24 @@ int main() {
 	entt::entity root_entity = entt_registry.create();
 	entt_registry.emplace<Engine::NameComponent>(root_entity, "root");
 	entt_registry.emplace<Engine::RootComponent>(root_entity);
-	Engine::add_script_component( sol_state, entt_registry, root_entity, asset_dir + "scripts/main.lua");
+	auto script_res = Engine::build_script_component(sol_state, asset_dir + "scripts/main.lua");
+	if (!script_res.has_value()) {
+		std::cout << "[ERROR][MAIN] Couldn't load lua script: " << script_res.error().what() << "\n";
+		assert(false);
+	}
+	entt_registry.emplace<Engine::ScriptComponent>(root_entity, script_res.value());
 
 	entt::entity candle_entity = entt_registry.create();
 	entt_registry.emplace<Engine::NameComponent>(candle_entity, "candle");
 	entt_registry.emplace<Engine::MeshComponent>(candle_entity, candle_scene);
 	entt_registry.emplace<Engine::ShaderComponent>(candle_entity, pbr_shader);
 	entt_registry.emplace<Engine::TransformComponent>(candle_entity);
-	Engine::add_script_component(sol_state, entt_registry, candle_entity, asset_dir + "scripts/main.lua");
+	auto script_2_res = Engine::build_script_component(sol_state, asset_dir + "scripts/main.lua");
+	if (!script_2_res.has_value()) {
+		std::cout << "[ERROR][MAIN] Couldn't load lua script: " << script_2_res.error().what() << "\n";
+		assert(false);
+	}
+	entt_registry.emplace<Engine::ScriptComponent>(candle_entity, script_2_res.value());
 	Engine::add_child(entt_registry, root_entity, candle_entity);
 
 	entt::entity backpack_entity = entt_registry.create();
