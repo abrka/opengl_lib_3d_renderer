@@ -9,10 +9,6 @@
 namespace Renderer {
 	class Renderer3D;
 }
-namespace ImGuizmo {
-	enum OPERATION;
-	enum MODE;
-}
 namespace Editor {
 	class Editor3D {
 	public:
@@ -24,9 +20,6 @@ namespace Editor {
 		Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive> serializer{};
 		HierarchicalPanel hierarchical_panel;
 		PropertyPanel component_panel;
-		ImGuizmo::OPERATION imguizmo_operation{};
-		ImGuizmo::MODE imguizmo_mode{};
-
 		void render_save_load_panel();
 	};
 }

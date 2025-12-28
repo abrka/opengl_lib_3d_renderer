@@ -12,7 +12,7 @@ target_compile_features(opengl_lib_3d_renderer PRIVATE cxx_std_20)
 
 target_compile_definitions(opengl_lib_3d_renderer PUBLIC ENGINE_ASSET_DIR=${CMAKE_CURRENT_SOURCE_DIR}/data)
 
-set(OPENGL_LIB_BUILD_EXAMPLE OFF)
+set(OPENGL_LIB_BUILD_EXAMPLE OFF CACHE BOOL "" FORCE)
 add_subdirectory(external/opengl_lib)
 target_link_libraries(opengl_lib_3d_renderer PUBLIC opengl_lib::opengl_lib)
 

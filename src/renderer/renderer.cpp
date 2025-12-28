@@ -2,6 +2,10 @@
 
 #include <functional>
 #include <entt/entt.hpp>
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <ImGuizmo.h>
+
 #include <GL3D/mesh.h>
 #include <GL3D/shader_program.h>
 #include <GL3D/texture.h>
@@ -15,9 +19,8 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
-namespace ImGuizmo {
-	void BeginFrame();
-}
+
+
 namespace Renderer {
 	Renderer3D::Renderer3D(GLExternalRAII::Window& window, entt::registry& entt_registry) : RendererBase(window), entt_registry(&entt_registry) {
 		struct Vertex2 {

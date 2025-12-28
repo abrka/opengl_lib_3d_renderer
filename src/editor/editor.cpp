@@ -2,21 +2,16 @@
 
 #include <glm/gtc/type_ptr.hpp>
 #include <entt/entt.hpp>
-#include <imgui.h>
-#include <imgui_internal.h>
 
-#include "renderer/renderer.h"
 #include "engine/components/components.h"
 #include "editor/hierarchical_panel.h"
 #include "editor/load_scene_button.h"
 #include "editor/save_scene_button.h"
 #include "editor/property_panel.h"
 
-namespace ImGuizmo {
-	void SetDrawlist(ImDrawList* drawlist = nullptr);
-	void SetRect(float x, float y, float width, float height);
-	bool Manipulate(const float* view, const float* projection, OPERATION operation, MODE mode, float* matrix, float* deltaMatrix = NULL, const float* snap = NULL, const float* localBounds = NULL, const float* boundsSnap = NULL);
-}
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <ImGuizmo.h>
 
 namespace Editor {
 	Editor3D::Editor3D(entt::registry& entt_registry, Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive>& serializer) : entt_registry(&entt_registry), hierarchical_panel(entt_registry), component_panel(entt_registry), serializer(serializer) {
@@ -36,7 +31,7 @@ namespace Editor {
 
 		ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());
 
-		auto [screen_width, screen_height] = ImGui::GetWindowSize();
+		auto [screen_width, screen_height] = ImGui::GetMainViewport()->Size;
 		ImGuizmo::SetRect(0, 0, (float)screen_width, (float)screen_height);
 
 		auto selected_entity = hierarchical_panel.selected_entity;
@@ -48,9 +43,10 @@ namespace Editor {
 			return;
 		}
 		auto entt_view_camera = entt_registry->view<const Engine::CameraComponent>();
+
 		for (auto [entity, camera_component] : entt_view_camera.each()) {
 			auto& camera = camera_component.camera;
-			ImGuizmo::Manipulate(glm::value_ptr(camera.get_view_matrix()), glm::value_ptr(camera.get_projection_matrix()), imguizmo_operation, imguizmo_mode, glm::value_ptr(transform_comp->transform));
+			ImGuizmo::Manipulate(glm::value_ptr(camera.get_view_matrix()), glm::value_ptr(camera.get_projection_matrix()), ImGuizmo::OPERATION::UNIVERSAL, ImGuizmo::MODE::LOCAL, glm::value_ptr(transform_comp->transform));
 		}
 	}
 
