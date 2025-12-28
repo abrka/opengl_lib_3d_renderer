@@ -1,72 +1,32 @@
 #pragma once
 
-#include <imgui.h>
-#include <ImGuizmo.h>
+#include <entt/fwd.hpp>
 
-#include "renderer/renderer.h"
+#include "engine/serialize/entt_registry_serializer.h"
+#include "hierarchical_panel.h"
+#include "property_panel.h"
 
-#include "engine/components/components.h"
-
-#include "editor/hierarchical_panel.h"
-#include "editor/load_scene_button.h"
-#include "editor/save_scene_button.h"
-#include "editor/property_panel.h"
-#include "editor/imreflect_custom_types.h"
-
-
+namespace Renderer {
+	class Renderer3D;
+}
+namespace ImGuizmo {
+	enum OPERATION;
+	enum MODE;
+}
 namespace Editor {
-	template<typename InputArchive, typename OutputArchive>
-	class Editor {
+	class Editor3D {
 	public:
-		Editor(Renderer::Renderer3D& renderer, entt::registry& entt_registry, Engine::EnttRegistrySerializer<InputArchive, OutputArchive>& serializer) : renderer(&renderer), entt_registry(&entt_registry), hierarchical_panel(entt_registry), component_panel(entt_registry), serializer(serializer) {};
-		
-		void render() {
-			ImGui::ShowDemoWindow();
-
-			render_save_load_panel();
-
-			hierarchical_panel.render();
-
-			component_panel.render(hierarchical_panel.selected_entity);
-
-			// draw gizmos with imguizmo
-
-			ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());
-
-			auto [screen_width, screen_height] = renderer->get_screen_width_and_height();
-			ImGuizmo::SetRect(0, 0, (float)screen_width, (float)screen_height);
-
-			auto selected_entity = hierarchical_panel.selected_entity;
-			if (!selected_entity.has_value()) {
-				return;
-			}
-			auto* transform_comp = entt_registry->try_get<Engine::TransformComponent>(selected_entity.value());
-			if (!transform_comp) {
-				return;
-			}
-			auto entt_view_camera = entt_registry->view<const Engine::CameraComponent>();
-			for (auto [entity, camera_component] : entt_view_camera.each()) {
-				auto& camera = camera_component.camera;
-				ImGuizmo::Manipulate(glm::value_ptr(camera.get_view_matrix()), glm::value_ptr(camera.get_projection_matrix()), imguizmo_operation, imguizmo_mode, glm::value_ptr(transform_comp->transform));
-			}
-		}
-
-		void render_save_load_panel() {
-			ImGui::Begin("Serialize");
-			SaveSceneButton::render("scene.kasset", "Save Scene", *entt_registry, serializer);
-			ImGui::SameLine();
-			LoadSceneButton::render("scene.kasset", "Load Scene", *entt_registry, serializer);
-			ImGui::End();
-		}
+		Editor3D(entt::registry& entt_registry, Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive>& serializer);
+		void render();
 
 	private:
 		entt::registry* entt_registry;
-		Renderer::Renderer3D* renderer{};
-		Engine::EnttRegistrySerializer<InputArchive, OutputArchive> serializer{};
-		HierarchicalPanel hierarchical_panel{};
-		PropertyPanel component_panel{};
-		ImGuizmo::OPERATION imguizmo_operation{ ImGuizmo::OPERATION::UNIVERSAL };
-		ImGuizmo::MODE imguizmo_mode{ ImGuizmo::MODE::LOCAL };
-		
+		Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive> serializer{};
+		HierarchicalPanel hierarchical_panel;
+		PropertyPanel component_panel;
+		ImGuizmo::OPERATION imguizmo_operation{};
+		ImGuizmo::MODE imguizmo_mode{};
+
+		void render_save_load_panel();
 	};
 }

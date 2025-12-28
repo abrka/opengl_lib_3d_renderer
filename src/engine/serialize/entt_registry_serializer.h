@@ -5,6 +5,9 @@
 #include <ostream>
 
 #include <entt/entt.hpp>
+#include <cereal/archives/xml.hpp>
+
+#include "cereal_serialize_custom_types.h"
 
 namespace Engine {
 	template<typename InputArchive, typename OutputArchive>

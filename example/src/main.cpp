@@ -1,18 +1,18 @@
-#include <entt/entt.hpp>
-#include <cereal/cereal.hpp>
-#include <cereal/archives/xml.hpp>
-#include "renderer/renderer.h"
+#include "editor/imreflect_custom_types.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "engine/components/components.h"
 #include "engine/systems/script_system.h"
-
 #include "engine/loaders/mesh_loader.h"
 #include "engine/loaders/shader_loader.h"
-
-#include "editor/editor.h"
-#include "editor/imreflect_custom_types.h"
-
 #include "reflect/reflect.h"
+#include "editor/editor.h"
+#include "renderer/renderer.h"
+
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
 
 static bool cursor_state_changed = false;
 static float mouse_sensitivity = 0.005f;
@@ -41,13 +41,14 @@ int main() {
 	sol_state.new_usertype<Engine::NameComponent>("NameComponent",
 		"name", &Engine::NameComponent::name);
 
-	using namespace entt::literals;
 	entt::registry entt_registry{};
 	Reflect::register_component<Engine::NameComponent>("NameComponent");
 	Reflect::register_component<Engine::TransformComponent>("TransformComponent");
 	Reflect::register_component<Engine::PointLightComponent>("PointLightComponent");
 	Reflect::register_component<Engine::CameraComponent>("CameraComponent");
-
+	Reflect::register_component<Engine::MeshComponent>("MeshComponent");
+	Reflect::register_component<Engine::ShaderComponent>("ShaderComponent");
+	Reflect::register_component<Engine::ScriptComponent>("ScriptComponent");
 	
 	GLExternalRAII::Window window{ 800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR };
 	glfwSetInputMode(window.glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -58,6 +59,7 @@ int main() {
 	glfwSetWindowUserPointer(window.glfw_window, &renderer);
 	glfwSetFramebufferSizeCallback(window.glfw_window, framebuffer_size_callback);
 
+	using namespace entt::literals;
 	entt::resource_cache<GL3D::ShaderProgram, Engine::ShaderLoader> entt_shader_cache{};
 	auto pbr_shader = entt_shader_cache.load("pbr"_hs, engine_asset_dir + "shaders/pbr_frag.glsl", engine_asset_dir + "shaders/pbr_vertex.glsl").first->second;
 
@@ -135,7 +137,7 @@ int main() {
 
 	auto entt_view_meshes = entt_registry.view<Engine::MeshComponent>();
 	for (auto [entity, mesh_component] : entt_view_meshes.each()) {
-		auto materials = mesh_component->get_all_materials();
+		auto materials = mesh_component.scene->get_all_materials();
 		for (AssetBuilder::Material* material : materials) {
 			material->set_uniform("u_material.specular_alpha", 32.0f);
 			material->set_uniform("u_material.ambient_strength", 1.0f);
@@ -148,7 +150,7 @@ int main() {
 		&snapshot_get_func_custom<cereal::XMLOutputArchive, entt::snapshot>,
 		&snapshot_get_func_custom<cereal::XMLInputArchive, entt::snapshot_loader>
 	};
-	Editor::Editor<cereal::XMLInputArchive, cereal::XMLOutputArchive> editor{ renderer, entt_registry, serializer};
+	Editor::Editor3D editor{entt_registry, serializer};
 
 
 	renderer.custom_imgui_render_function = [&editor](Renderer::Renderer3D& renderer) {

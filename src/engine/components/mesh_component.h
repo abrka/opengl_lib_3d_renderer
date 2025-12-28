@@ -1,10 +1,13 @@
 #pragma once
 
-#include <memory>
-#include <entt/entt.hpp>
+#include <filesystem>
+#include <entt/fwd.hpp>
+#include <entt/resource/resource.hpp>
 #include "renderer/asset_builder.h"
 
-
 namespace Engine {
-	using MeshComponent = entt::resource<AssetBuilder::Scene>;
+	struct MeshComponent {
+		entt::resource<AssetBuilder::Scene> scene{};
+		std::filesystem::path filepath{};
+	};
 }

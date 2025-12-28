@@ -1,9 +1,15 @@
 #pragma once
 
+#include <filesystem>
 #include <memory>
 #include <entt/entt.hpp>
-#include <GL3D/shader_program.h>
 
+namespace GL3D {
+	class ShaderProgram;
+}
 namespace Engine {
-	using ShaderComponent = entt::resource<GL3D::ShaderProgram>;
+	struct ShaderComponent {
+		entt::resource<GL3D::ShaderProgram> shader{};
+		std::filesystem::path filepath{};
+	};
 }

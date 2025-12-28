@@ -1,14 +1,15 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/euler_angles.hpp> // For eulerAngles
-
 #include <imgui.h>
 #include <ImReflect.hpp>
 
+#include "engine/components/components.h"
 
 IMGUI_REFLECT(Engine::TransformComponent, transform)
 IMGUI_REFLECT(Engine::NameComponent, name)
@@ -16,7 +17,16 @@ IMGUI_REFLECT(Renderer::Camera, position, orientation, fov, near_plane_dist, far
 IMGUI_REFLECT(Engine::CameraComponent, camera)
 IMGUI_REFLECT(Renderer::PointLight, color, ambient_strength, diffuse_strength, specular_strength)
 IMGUI_REFLECT(Engine::PointLightComponent, light)
+IMGUI_REFLECT(Engine::MeshComponent, filepath)
+IMGUI_REFLECT(Engine::ShaderComponent, filepath)
+IMGUI_REFLECT(Engine::ScriptComponent, filepath)
 
+void tag_invoke(ImReflect::ImInput_t, const char* label, std::filesystem::path& value, ImSettings& settings, ImResponse& response) {
+	auto& t_response = response.get<std::filesystem::path>();
+	ImGui::Text(value.string().c_str());
+	/* Check hovered, activated, etc*/
+	ImReflect::Detail::check_input_states(t_response);
+}
 void tag_invoke(ImReflect::ImInput_t, const char* label, Renderer::color_t& value, ImSettings& settings, ImResponse& response) {
 	auto& t_response = response.get<glm::mat4>();
 	bool changed = ImGui::ColorEdit3(label, glm::value_ptr(value.color));
@@ -25,7 +35,6 @@ void tag_invoke(ImReflect::ImInput_t, const char* label, Renderer::color_t& valu
 	/* Check hovered, activated, etc*/
 	ImReflect::Detail::check_input_states(t_response);
 }
-
 void tag_invoke(ImReflect::ImInput_t, const char* label, glm::vec3& value, ImSettings& settings, ImResponse& response) {
 	auto& t_response = response.get<glm::mat4>();
 

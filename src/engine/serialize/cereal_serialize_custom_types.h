@@ -3,13 +3,7 @@
 #include <cereal/cereal.hpp>
 #include <cereal/types/vector.hpp> 
 
-#include "engine/components/parent_component.h"
-#include "engine/components/children_component.h"
-#include "engine/components/name_component.h"
-#include "engine/components/transform_component.h"
-
-
-
+#include "engine/components/components.h"
 
 
 // WARNING: REMEMBER TO USE REFERENCES IN SERIALIZE FUNCTION INSTEAD OF VALUES

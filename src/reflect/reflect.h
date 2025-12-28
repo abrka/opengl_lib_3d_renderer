@@ -1,9 +1,9 @@
 #pragma once
 
 #include <sol/sol.hpp>
-#include <entt/entt.hpp>
-#include <imgui.h>
-#include <ImReflect.hpp>
+#include <entt/fwd.hpp>
+
+#include "editor/imreflect_custom_types.h"
 
 namespace Reflect {
 	constexpr entt::hashed_string get_component_func_name{ "get_component" };

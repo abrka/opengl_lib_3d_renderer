@@ -5,8 +5,26 @@
 
 namespace Renderer {
 	namespace detail {
+		template<typename MapType>
+		void update_uniforms(const GL3D::ShaderProgram& shader, MapType& uniform_map) {
+			for (const auto& [uniform_name, value] : uniform_map) {
+				shader.set_uniform(uniform_name, value);
+			}
+		}
+		void update_uniforms(const GL3D::ShaderProgram& shader, std::map<std::string, AssetBuilder::Texture> textures_map) {
+			for (const auto& [uniform_name, texture] : textures_map) {
+				shader.set_texture(uniform_name, *texture.texture, texture.texture_unit);
+			}
+		}
+		void update_all_uniforms(const AssetBuilder::Material& material, const GL3D::ShaderProgram& shader) {
+			update_uniforms(shader, material.uniforms_texture);
+			update_uniforms(shader, material.uniforms_int);
+			update_uniforms(shader, material.uniforms_float);
+			update_uniforms(shader, material.uniforms_vec3);
+			update_uniforms(shader, material.uniforms_mat4);
+		}
 		void draw_mesh(const AssetBuilder::Mesh& mesh, const GL3D::ShaderProgram& shader) {
-			mesh.material.update_all_uniforms(shader);
+			update_all_uniforms(mesh.material,shader);
 			mesh.mesh->draw(shader);
 		}
 		void render_scene(const AssetBuilder::Scene& scene, const GL3D::ShaderProgram& shader) {
@@ -17,7 +35,7 @@ namespace Renderer {
 		void render_mesh_system(entt::registry& entt_registry) {
 			auto view = entt_registry.view<const Engine::MeshComponent, const Engine::ShaderComponent>();
 			for (auto [entity, mesh_component, shader_component] : view.each()) {
-				render_scene( *mesh_component, *shader_component);
+				render_scene( *mesh_component.scene, *shader_component.shader);
 			}
 		}
 
@@ -39,7 +57,7 @@ namespace Renderer {
 			auto entt_view_camera = entt_registry.view<Engine::CameraComponent>();
 			for (auto [entity, mesh_component, transform_component] : entt_view_mesh.each()) {
 				for (auto [entity, camera_component] : entt_view_camera.each()) {
-					set_mvp_uniforms(*mesh_component, transform_component.transform, camera_component.camera);
+					set_mvp_uniforms(*mesh_component.scene, transform_component.transform, camera_component.camera);
 				}
 			}
 		}
@@ -61,7 +79,7 @@ namespace Renderer {
 		void set_light_uniforms_system(entt::registry& entt_registry, size_t num_point_lights) {
 			auto entt_view_meshes = entt_registry.view<Engine::MeshComponent>();
 			for (auto [entity, mesh_component] : entt_view_meshes.each()) {
-				auto materials = mesh_component->get_all_materials();
+				auto materials = mesh_component.scene->get_all_materials();
 				for (AssetBuilder::Material* material : materials) {
 					auto entt_view_point_lights = entt_registry.view<Engine::PointLightComponent, Engine::TransformComponent>();
 					
@@ -83,7 +101,7 @@ namespace Renderer {
 		void set_camera_uniform_system(entt::registry& entt_registry) {
 			auto entt_view_meshes = entt_registry.view<Engine::MeshComponent>();
 			for (auto [entity, mesh_component] : entt_view_meshes.each()) {
-				auto materials = mesh_component->get_all_materials();
+				auto materials = mesh_component.scene->get_all_materials();
 				for (AssetBuilder::Material* material : materials) {
 					auto entt_view_camera = entt_registry.view<Engine::CameraComponent>();
 					for (auto [entity, camera_component] : entt_view_camera.each()) {

@@ -2,14 +2,23 @@
   "name": "opengl-lib-3d-renderer",
   "version": "1.0",
   "dependencies": [
+    "glad",
+    "glfw3",
+    "glm",
     "assimp",
     "cereal",
     "entt",
-    "imgui",
     "imguizmo",
-    "opengl-lib",
     "sol2",
     "tl-expected",
-    "lua"
+    "lua",
+    {
+      "name": "imgui",
+      "features": [
+        "docking-experimental",
+        "glfw-binding",
+        "opengl3-binding"
+      ]
+    }
   ]
 }
