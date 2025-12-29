@@ -11,6 +11,7 @@
     "imguizmo",
     "sol2",
     "tl-expected",
+    "tinyfiledialogs",
     "lua",
     {
       "name": "imgui",

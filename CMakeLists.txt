@@ -38,6 +38,9 @@ target_link_libraries(opengl_lib_3d_renderer PUBLIC ${LUA_LIBRARIES})
 find_package(sol2 CONFIG REQUIRED)
 target_link_libraries(opengl_lib_3d_renderer PUBLIC sol2::sol2)
 
+find_package(tinyfiledialogs CONFIG REQUIRED)
+target_link_libraries(opengl_lib_3d_renderer PUBLIC tinyfiledialogs::tinyfiledialogs)
+
 option(OPENGL_LIB_3D_RENDERER_BUILD_DOCS "Build Documentation" ON)
 if(${OPENGL_LIB_3D_RENDERER_BUILD_DOCS})
     add_subdirectory(docs)

@@ -8,7 +8,7 @@
 #include <glm/gtx/euler_angles.hpp> // For eulerAngles
 #include <imgui.h>
 #include <ImReflect.hpp>
-
+#include <tinyfiledialogs/tinyfiledialogs.h>
 #include "engine/components/components.h"
 
 IMGUI_REFLECT(Engine::TransformComponent, transform)
@@ -23,7 +23,17 @@ IMGUI_REFLECT(Engine::ScriptComponent, filepath)
 
 void tag_invoke(ImReflect::ImInput_t, const char* label, std::filesystem::path& value, ImSettings& settings, ImResponse& response) {
 	auto& t_response = response.get<std::filesystem::path>();
+	bool changed = false;
+	if (ImGui::Button("[Load]")) {
+		const char* new_filepath_c_str = tinyfd_openFileDialog("Load File", "", 0, NULL, NULL, 0);
+		std::string new_filepath_str{ new_filepath_c_str };
+		std::filesystem::path new_filepath{ new_filepath_str };
+		value = new_filepath;
+		changed = true;
+	}
+	ImGui::SameLine();
 	ImGui::Text(value.string().c_str());
+	if (changed) { t_response.changed(); }
 	/* Check hovered, activated, etc*/
 	ImReflect::Detail::check_input_states(t_response);
 }
