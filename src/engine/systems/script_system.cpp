@@ -38,7 +38,12 @@ namespace Engine {
 			}
 		}
 	}
-
+	void script_system_reload(entt::registry& entt_registry, sol::state& sol_state) {
+		auto entt_view_scripts = entt_registry.view<ScriptComponent>();
+		for (auto [entity, script_component] : entt_view_scripts.each()) {
+			script_component = Engine::build_script_component(sol_state, script_component.filepath).value();
+		}
+	}
 	void script_system_tick(entt::registry& entt_registry) {
 		auto entt_view_scripts = entt_registry.view<ScriptComponent>();
 		for (auto [entity, script_component] : entt_view_scripts.each()) {

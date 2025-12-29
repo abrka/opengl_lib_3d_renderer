@@ -146,14 +146,11 @@ int main() {
 		&snapshot_get_func_custom<cereal::XMLInputArchive, entt::snapshot_loader>,
 		sol_state
 	};
-	Editor::Editor3D editor{entt_registry, serializer};
-
+	Editor::Editor3D editor{entt_registry,sol_state, serializer};
 
 	renderer.custom_imgui_render_function = [&editor](Renderer::Renderer3D& renderer) {
 		editor.render();
 	};
-
-	Engine::script_system_init(entt_registry);
 
 	while (window.is_running()) {
 		double prev_time = glfwGetTime();
@@ -163,7 +160,6 @@ int main() {
 			process_input_for_camera_movement(window.glfw_window, camera_component.camera);
 		}
 		
-		Engine::script_system_tick(entt_registry);
 
 		auto entt_view_meshes = entt_registry.view<Engine::MeshComponent>();
 		for (auto [entity, mesh_component] : entt_view_meshes.each()) {

@@ -12,10 +12,8 @@ end
 
 
 function M:tick()
-	if self.i < 10 then 
-		print("[SCRIPT] my id is:" , self.entity_id , "iteration is:" , self.i)
-		self.i = self.i + 1 
-	end
+	print("[SCRIPT] my id is:" , self.entity_id , "iteration is:" , self.i)
+	self.i = self.i + 1 
 end
 
 return M

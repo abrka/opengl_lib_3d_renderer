@@ -14,21 +14,56 @@
 #include <ImGuizmo.h>
 
 namespace Editor {
-	Editor3D::Editor3D(entt::registry& entt_registry, Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive>& serializer) : entt_registry(&entt_registry), hierarchical_panel(entt_registry), component_panel(entt_registry), serializer(serializer) {
+	Editor3D::Editor3D(entt::registry& entt_registry,sol::state& sol_state, Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive>& serializer) : entt_registry(&entt_registry),sol_state(&sol_state), hierarchical_panel(entt_registry), component_panel(entt_registry), serializer(serializer) {
 
 	};
 
 	void Editor3D::render() {
-		ImGui::ShowDemoWindow();
-
+		// ImGui::ShowDemoWindow();
+		render_top_bar();
 		render_save_load_panel();
-
 		hierarchical_panel.render();
-
 		component_panel.render(hierarchical_panel.selected_entity);
+		render_imguizmo();
+		if (is_scripts_running) {
+			Engine::script_system_tick(*entt_registry);
+		}
+	}
 
-		// draw gizmos with imguizmo
+	void Editor3D::render_top_bar()
+	{
+		ImGui::Begin("Topbar");
+		if (!is_scripts_running) {
+			if (ImGui::Button("[Run]")) {
+				if (is_first_time_running_scripts) {
+					Engine::script_system_init(*entt_registry);
+				}
+				is_first_time_running_scripts = false;
+				is_scripts_running = true;
+			}
+		}
+		else {
+			if (ImGui::Button("[Pause]")) {
+				is_scripts_running = false;
+			}
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("[Restart]")) {
+			Engine::script_system_reload(*entt_registry, *sol_state);
+			Engine::script_system_init(*entt_registry);
+			is_scripts_running = true;
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("[Stop]")) {
+			Engine::script_system_reload(*entt_registry, *sol_state);
+			is_first_time_running_scripts = true;
+			is_scripts_running = false;
+		}
+		ImGui::End();
+	}
 
+	void Editor3D::render_imguizmo()
+	{
 		ImGuizmo::SetDrawlist(ImGui::GetBackgroundDrawList());
 
 		auto [screen_width, screen_height] = ImGui::GetMainViewport()->Size;

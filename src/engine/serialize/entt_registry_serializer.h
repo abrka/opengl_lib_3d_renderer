@@ -61,7 +61,6 @@ namespace Engine {
 			for (auto [entity, script_component] : entt_view_scripts.each()) {
 				script_component = Engine::build_script_component(*sol_state, script_component.filepath).value();
 			}
-			Engine::script_system_init(entt_registry);
 		}
 		void load(entt::registry& entt_registry, std::istream& is) {
 			InputArchive archive{ is };
