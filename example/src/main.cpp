@@ -19,7 +19,6 @@ static float mouse_sensitivity = 0.005f;
 static float cam_speed = 0.02f;
 
 static void process_input_for_camera_movement(GLFWwindow* window, Renderer::Camera& cam);
-static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 template<typename Archive, typename Snapshot>
@@ -187,11 +186,6 @@ int main() {
 		}
 
 	}
-}
-
-static void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-	Renderer::Renderer3D* renderer = static_cast<Renderer::Renderer3D*>(glfwGetWindowUserPointer(window));
-	renderer->on_window_resize(width, height);
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
