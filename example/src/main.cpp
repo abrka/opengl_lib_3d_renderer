@@ -53,11 +53,14 @@ int main() {
 	GLExternalRAII::Window window{ 800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR };
 	glfwSetInputMode(window.glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	// WARNING: set key callbacks before renderer calls imgui. otherwise keys inside imgui wont work.
-	glfwSetKeyCallback(window.glfw_window, key_callback);
+	window.key_callback = [&window](int key, int scancode, int action, int mods) {
+		key_callback(window.glfw_window, key, scancode, action, mods);
+	};
 
 	Renderer::Renderer3D renderer{ window, entt_registry };
-	glfwSetWindowUserPointer(window.glfw_window, &renderer);
-	glfwSetFramebufferSizeCallback(window.glfw_window, framebuffer_size_callback);
+	window.framebuffer_size_callback = [&renderer](int width, int height) {
+		renderer.on_window_resize(width, height);
+	};
 
 	using namespace entt::literals;
 	entt::resource_cache<GL3D::ShaderProgram, Engine::ShaderLoader> entt_shader_cache{};
