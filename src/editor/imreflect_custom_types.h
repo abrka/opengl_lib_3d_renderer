@@ -17,22 +17,40 @@ IMGUI_REFLECT(Renderer::Camera, position, orientation, fov, near_plane_dist, far
 IMGUI_REFLECT(Engine::CameraComponent, camera)
 IMGUI_REFLECT(Renderer::PointLight, color, ambient_strength, diffuse_strength, specular_strength)
 IMGUI_REFLECT(Engine::PointLightComponent, light)
-IMGUI_REFLECT(Engine::MeshComponent, filepath)
 IMGUI_REFLECT(Engine::ShaderComponent, vertex_filepath, fragment_filepath)
 IMGUI_REFLECT(Engine::ScriptComponent, filepath)
+
+void tag_invoke(ImReflect::ImInput_t, const char* label, Engine::MeshComponent& value, ImSettings& settings, ImResponse& response) {
+	auto& t_response = response.get<Engine::MeshComponent>();
+	ImGui::SeparatorText("MeshComponent");
+	ImGui::Indent();
+	auto file_response = ImReflect::Input("Mesh Filepath", value.filepath, settings);
+	bool changed = file_response.get<std::filesystem::path>().is_changed();
+	if (changed) { 
+		entt::resource_cache<AssetBuilder::Scene, Engine::MeshLoader> entt_mesh_cache{};
+		value.scene = entt_mesh_cache.load(0, value.filepath).first->second;
+		t_response.changed(); 
+	}
+	ImGui::Unindent();
+	ImReflect::Detail::check_input_states(t_response);
+}
+
 
 void tag_invoke(ImReflect::ImInput_t, const char* label, std::filesystem::path& value, ImSettings& settings, ImResponse& response) {
 	auto& t_response = response.get<std::filesystem::path>();
 	bool changed = false;
 	if (ImGui::Button("[Load]")) {
 		const char* new_filepath_c_str = tinyfd_openFileDialog("Load File", "", 0, NULL, NULL, 0);
-		std::string new_filepath_str{ new_filepath_c_str };
-		std::filesystem::path new_filepath{ new_filepath_str };
-		value = new_filepath;
-		changed = true;
+		if (new_filepath_c_str) {
+			std::string new_filepath_str{ new_filepath_c_str };
+			std::filesystem::path new_filepath{ new_filepath_str };
+			value = new_filepath;
+			changed = true;
+		}
 	}
 	ImGui::SameLine();
-	ImGui::Text(value.string().c_str());
+	std::string new_filepath_str = value.string();
+	ImGui::InputText(label, &new_filepath_str);
 	if (changed) { t_response.changed(); }
 	/* Check hovered, activated, etc*/
 	ImReflect::Detail::check_input_states(t_response);
