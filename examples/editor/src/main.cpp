@@ -143,7 +143,8 @@ int main() {
 
 	Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive> serializer{
 		&snapshot_get_func_custom<cereal::XMLOutputArchive, entt::snapshot>,
-		&snapshot_get_func_custom<cereal::XMLInputArchive, entt::snapshot_loader>
+		&snapshot_get_func_custom<cereal::XMLInputArchive, entt::snapshot_loader>,
+		sol_state
 	};
 	Editor::Editor3D editor{entt_registry, serializer};
 

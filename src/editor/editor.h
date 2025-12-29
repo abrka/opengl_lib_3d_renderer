@@ -17,7 +17,7 @@ namespace Editor {
 
 	private:
 		entt::registry* entt_registry;
-		Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive> serializer{};
+		Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive> serializer;
 		HierarchicalPanel hierarchical_panel;
 		PropertyPanel component_panel;
 		void render_save_load_panel();
