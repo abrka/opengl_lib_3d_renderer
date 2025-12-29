@@ -57,10 +57,7 @@ namespace Engine {
 				mesh_component.scene = result.first->second;
 			}
 
-			auto entt_view_scripts = entt_registry.view<Engine::ScriptComponent>();
-			for (auto [entity, script_component] : entt_view_scripts.each()) {
-				script_component = Engine::build_script_component(*sol_state, script_component.filepath).value();
-			}
+			// No need to build script components since they get lazy loaded in Engine::script_system_init
 		}
 		void load(entt::registry& entt_registry, std::istream& is) {
 			InputArchive archive{ is };

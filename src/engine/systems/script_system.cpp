@@ -4,12 +4,13 @@
 #include "engine/components/script_component.h"
 
 namespace Engine {
-	void script_system_init(entt::registry& entt_registry) {
+	void script_system_init(entt::registry& entt_registry, sol::state& sol_state) {
 		auto entt_view_scripts = entt_registry.view<ScriptComponent>();
 		for (auto [entity, script_component] : entt_view_scripts.each()) {
 			auto& sol_module = script_component.sol_module;
 			if (!sol_module.valid()) {
-				continue;
+				// Lazy load script component if it was not loaded already
+				script_component = Engine::build_script_component(sol_state, script_component.filepath).value();
 			}
 			// first setup necessary lua variables
 			sol_module["entity_id"] = entt::to_integral(entity);
@@ -44,13 +45,11 @@ namespace Engine {
 			script_component = Engine::build_script_component(sol_state, script_component.filepath).value();
 		}
 	}
-	void script_system_tick(entt::registry& entt_registry) {
+	void script_system_tick(entt::registry& entt_registry, sol::state& sol_state) {
 		auto entt_view_scripts = entt_registry.view<ScriptComponent>();
 		for (auto [entity, script_component] : entt_view_scripts.each()) {
 			auto& sol_module = script_component.sol_module;
-			if (!sol_module.valid()) {
-				continue;
-			}
+			assert(sol_module.valid());
 			sol::function sol_tick_fn = sol_module["tick"];
 			if (!sol_tick_fn.valid()) {
 				continue;
