@@ -18,7 +18,7 @@ IMGUI_REFLECT(Engine::CameraComponent, camera)
 IMGUI_REFLECT(Renderer::PointLight, color, ambient_strength, diffuse_strength, specular_strength)
 IMGUI_REFLECT(Engine::PointLightComponent, light)
 IMGUI_REFLECT(Engine::MeshComponent, filepath)
-IMGUI_REFLECT(Engine::ShaderComponent, filepath)
+IMGUI_REFLECT(Engine::ShaderComponent, vertex_filepath, fragment_filepath)
 IMGUI_REFLECT(Engine::ScriptComponent, filepath)
 
 void tag_invoke(ImReflect::ImInput_t, const char* label, std::filesystem::path& value, ImSettings& settings, ImResponse& response) {

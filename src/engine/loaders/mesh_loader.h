@@ -18,6 +18,7 @@ namespace Engine {
 			auto res = AssetBuilder::build(path);
 			if (!res.has_value()) {
 				error = res.error();
+				return result_type{};
 			}
 			return result_type(std::move(res.value()));
 		}

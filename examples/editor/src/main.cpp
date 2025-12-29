@@ -27,7 +27,11 @@ void snapshot_get_func_custom(Archive& archive, Snapshot& snapshot) {
 	snapshot.template get<Engine::ChildrenComponent>(archive);
 	snapshot.template get<Engine::NameComponent>(archive);
 	snapshot.template get<Engine::TransformComponent>(archive);
+	snapshot.template get<Engine::PointLightComponent>(archive);
 	snapshot.template get<Engine::CameraComponent>(archive);
+	snapshot.template get<Engine::MeshComponent>(archive);
+	snapshot.template get<Engine::ShaderComponent>(archive);
+	snapshot.template get<Engine::ScriptComponent>(archive);
 }
 
 int main() {
@@ -84,8 +88,8 @@ int main() {
 
 	entt::entity candle_entity = entt_registry.create();
 	entt_registry.emplace<Engine::NameComponent>(candle_entity, "candle");
-	entt_registry.emplace<Engine::MeshComponent>(candle_entity, candle_scene);
-	entt_registry.emplace<Engine::ShaderComponent>(candle_entity, pbr_shader);
+	entt_registry.emplace<Engine::MeshComponent>(candle_entity, candle_scene, asset_dir + "meshes/candle/brass_candleholders_1k.gltf");
+	entt_registry.emplace<Engine::ShaderComponent>(candle_entity, pbr_shader, engine_asset_dir + "shaders/pbr_frag.glsl", engine_asset_dir + "shaders/pbr_vertex.glsl");
 	entt_registry.emplace<Engine::TransformComponent>(candle_entity);
 	auto script_2_res = Engine::build_script_component(sol_state, asset_dir + "scripts/main.lua");
 	if (!script_2_res.has_value()) {
@@ -97,24 +101,24 @@ int main() {
 
 	entt::entity backpack_entity = entt_registry.create();
 	entt_registry.emplace<Engine::NameComponent>(backpack_entity, "backpack");
-	entt_registry.emplace<Engine::MeshComponent>(backpack_entity, backpack_scene);
-	entt_registry.emplace<Engine::ShaderComponent>(backpack_entity, pbr_shader);
+	entt_registry.emplace<Engine::MeshComponent>(backpack_entity, backpack_scene, asset_dir + "meshes/backpack/backpack.obj");
+	entt_registry.emplace<Engine::ShaderComponent>(backpack_entity, pbr_shader, engine_asset_dir + "shaders/pbr_frag.glsl", engine_asset_dir + "shaders/pbr_vertex.glsl");
 	glm::mat4 backpack_transform = glm::scale(glm::mat4(1.0f), { 0.1,0.1,-0.1 });
 	entt_registry.emplace<Engine::TransformComponent>(backpack_entity, backpack_transform);
 	Engine::add_child(entt_registry, root_entity, backpack_entity);
 
 	entt::entity military_uniform_entity = entt_registry.create();
 	entt_registry.emplace<Engine::NameComponent>(military_uniform_entity, "military uniform");
-	entt_registry.emplace<Engine::MeshComponent>(military_uniform_entity, military_uniform_scene);
-	entt_registry.emplace<Engine::ShaderComponent>(military_uniform_entity, pbr_shader);
+	entt_registry.emplace<Engine::MeshComponent>(military_uniform_entity, military_uniform_scene, asset_dir + "meshes/military_uniform/military_uniform.gltf");
+	entt_registry.emplace<Engine::ShaderComponent>(military_uniform_entity, pbr_shader, engine_asset_dir + "shaders/pbr_frag.glsl", engine_asset_dir + "shaders/pbr_vertex.glsl");
 	glm::mat4 military_uniform_transform = glm::scale(glm::mat4(1.0f), { 0.02,0.02,0.02 });
 	entt_registry.emplace<Engine::TransformComponent>(military_uniform_entity, military_uniform_transform);
 	Engine::add_child(entt_registry, root_entity, military_uniform_entity);
 
 	auto sponza_entity = entt_registry.create();
 	entt_registry.emplace<Engine::NameComponent>(sponza_entity, "sponza");
-	entt_registry.emplace<Engine::MeshComponent>(sponza_entity, sponza_scene);
-	entt_registry.emplace<Engine::ShaderComponent>(sponza_entity, pbr_shader);
+	entt_registry.emplace<Engine::MeshComponent>(sponza_entity, sponza_scene, asset_dir + "meshes/sponza_palace/scene.gltf");
+	entt_registry.emplace<Engine::ShaderComponent>(sponza_entity, pbr_shader, engine_asset_dir + "shaders/pbr_frag.glsl", engine_asset_dir + "shaders/pbr_vertex.glsl");
 	glm::mat4 sponza_tranform = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), { 1,0,0 });
 	entt_registry.emplace<Engine::TransformComponent>(sponza_entity, sponza_tranform);
 	Engine::add_child(entt_registry, root_entity, sponza_entity);
@@ -136,17 +140,6 @@ int main() {
 	entt_registry.emplace<Engine::PointLightComponent>(point_light_entity, point_light_comp);
 	entt_registry.emplace<Engine::TransformComponent>(point_light_entity);
 	Engine::add_child(entt_registry, root_entity, point_light_entity);
-
-	auto entt_view_meshes = entt_registry.view<Engine::MeshComponent>();
-	for (auto [entity, mesh_component] : entt_view_meshes.each()) {
-		auto materials = mesh_component.scene->get_all_materials();
-		for (AssetBuilder::Material* material : materials) {
-			material->set_uniform("u_material.specular_alpha", 32.0f);
-			material->set_uniform("u_material.ambient_strength", 1.0f);
-			material->set_uniform("u_material.diffuse_strength", 1.0f);
-			material->set_uniform("u_material.specular_strength", 1.0f);
-		}
-	}
 
 	Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive> serializer{
 		&snapshot_get_func_custom<cereal::XMLOutputArchive, entt::snapshot>,
@@ -170,6 +163,17 @@ int main() {
 		}
 		
 		Engine::script_system_tick(entt_registry);
+
+		auto entt_view_meshes = entt_registry.view<Engine::MeshComponent>();
+		for (auto [entity, mesh_component] : entt_view_meshes.each()) {
+			auto materials = mesh_component.scene->get_all_materials();
+			for (AssetBuilder::Material* material : materials) {
+				material->set_uniform("u_material.specular_alpha", 32.0f);
+				material->set_uniform("u_material.ambient_strength", 1.0f);
+				material->set_uniform("u_material.diffuse_strength", 1.0f);
+				material->set_uniform("u_material.specular_strength", 1.0f);
+			}
+		}
 
 		renderer.render();
 

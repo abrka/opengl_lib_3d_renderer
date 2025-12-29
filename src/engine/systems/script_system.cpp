@@ -8,7 +8,9 @@ namespace Engine {
 		auto entt_view_scripts = entt_registry.view<ScriptComponent>();
 		for (auto [entity, script_component] : entt_view_scripts.each()) {
 			auto& sol_module = script_component.sol_module;
-
+			if (!sol_module.valid()) {
+				continue;
+			}
 			// first setup necessary lua variables
 			sol_module["entity_id"] = entt::to_integral(entity);
 			sol_module["components"] = sol::new_table{};
@@ -41,6 +43,9 @@ namespace Engine {
 		auto entt_view_scripts = entt_registry.view<ScriptComponent>();
 		for (auto [entity, script_component] : entt_view_scripts.each()) {
 			auto& sol_module = script_component.sol_module;
+			if (!sol_module.valid()) {
+				continue;
+			}
 			sol::function sol_tick_fn = sol_module["tick"];
 			if (!sol_tick_fn.valid()) {
 				continue;

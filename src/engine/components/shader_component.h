@@ -10,6 +10,7 @@ namespace GL3D {
 namespace Engine {
 	struct ShaderComponent {
 		entt::resource<GL3D::ShaderProgram> shader{};
-		std::filesystem::path filepath{};
+		std::filesystem::path fragment_filepath{};
+		std::filesystem::path vertex_filepath{};
 	};
 }

@@ -13,6 +13,6 @@ namespace Engine {
 		if (!sol_module.valid()) {
 			return tl::make_unexpected(sol::error{ "[ENGINE] No module in lua script" });
 		}
-		return ScriptComponent{ sol_module };
+		return ScriptComponent{ sol_module, script_filepath };
 	}
 }
