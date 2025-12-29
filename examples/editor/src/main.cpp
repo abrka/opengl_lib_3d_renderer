@@ -1,5 +1,3 @@
-#include "editor/imreflect_custom_types.h"
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -10,6 +8,7 @@
 #include "reflect/reflect.h"
 #include "editor/editor.h"
 #include "renderer/renderer.h"
+#include "input/input.h"
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -56,6 +55,7 @@ int main() {
 		key_callback(window.glfw_window, key, scancode, action, mods);
 	};
 
+	Input::Input input_system{ *window.glfw_window };
 	Renderer::Renderer3D renderer{ window, entt_registry };
 	window.framebuffer_size_callback = [&renderer](int width, int height) {
 		renderer.on_window_resize(width, height);
@@ -170,6 +170,7 @@ int main() {
 		}
 		
 		Engine::script_system_tick(entt_registry);
+
 		renderer.render();
 
 		double current_time = glfwGetTime();

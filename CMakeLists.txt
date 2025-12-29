@@ -45,6 +45,7 @@ endif()
 
 option(OPENGL_LIB_3D_RENDERER_BUILD_EXAMPLE "Build Example Project" ON)
 if(${OPENGL_LIB_3D_RENDERER_BUILD_EXAMPLE})
-    add_subdirectory(example)
+    add_subdirectory(examples/editor)
+    add_subdirectory(examples/game)
 endif()
 

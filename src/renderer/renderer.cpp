@@ -57,7 +57,9 @@ namespace Renderer {
 
 		framebuffer->bind();
 
-		custom_imgui_render_function(*this);
+		if (custom_imgui_render_function) {
+			custom_imgui_render_function(*this);
+		}
 
 		glClearColor(29.0f / 255.0f, 30.0f / 255.0f, 39.0f / 255.0f, 1.0f);
 		glEnable(GL_DEPTH_TEST);
