@@ -49,7 +49,11 @@ namespace Engine {
 		auto entt_view_scripts = entt_registry.view<ScriptComponent>();
 		for (auto [entity, script_component] : entt_view_scripts.each()) {
 			auto& sol_module = script_component.sol_module;
+
+			// This will set off if the game is paused,then a new script is loaded and then the game in run with [Play] button.
+			// to fix this use [Restart] button to play instead of [Play] button
 			assert(sol_module.valid());
+
 			sol::function sol_tick_fn = sol_module["tick"];
 			if (!sol_tick_fn.valid()) {
 				continue;
