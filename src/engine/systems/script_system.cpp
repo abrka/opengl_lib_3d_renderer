@@ -1,5 +1,6 @@
 #include "script_system.h"
 
+#include <iostream>
 #include <entt/entt.hpp>
 #include "engine/components/script_component.h"
 
