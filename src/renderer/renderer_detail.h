@@ -35,7 +35,7 @@ namespace Renderer {
 		void render_mesh_system(entt::registry& entt_registry) {
 			auto view = entt_registry.view<const Engine::MeshComponent, const Engine::ShaderComponent>();
 			for (auto [entity, mesh_component, shader_component] : view.each()) {
-				if (!mesh_component.scene) {
+				if (!mesh_component.scene || !shader_component.shader) {
 					continue;
 				}
 				render_scene( *mesh_component.scene, *shader_component.shader);

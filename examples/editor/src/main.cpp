@@ -163,6 +163,9 @@ int main() {
 
 		auto entt_view_meshes = entt_registry.view<Engine::MeshComponent>();
 		for (auto [entity, mesh_component] : entt_view_meshes.each()) {
+			if (!mesh_component.scene) {
+				continue;
+			}
 			auto materials = mesh_component.scene->get_all_materials();
 			for (AssetBuilder::Material* material : materials) {
 				material->set_uniform("u_material.specular_alpha", 32.0f);

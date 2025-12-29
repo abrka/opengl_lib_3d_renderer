@@ -25,13 +25,34 @@ void tag_invoke(ImReflect::ImInput_t, const char* label, Engine::MeshComponent& 
 	ImGui::SeparatorText("MeshComponent");
 	ImGui::Indent();
 	auto file_response = ImReflect::Input("Mesh Filepath", value.filepath, settings);
-	bool changed = file_response.get<std::filesystem::path>().is_changed();
-	if (changed) { 
+
+	bool changed = false;
+	if (ImGui::Button("[Reload Mesh]")) {
 		entt::resource_cache<AssetBuilder::Scene, Engine::MeshLoader> entt_mesh_cache{};
 		value.scene = entt_mesh_cache.load(0, value.filepath).first->second;
-		t_response.changed(); 
+		changed = true;
 	}
 	ImGui::Unindent();
+
+	if (changed) { t_response.changed(); }
+	ImReflect::Detail::check_input_states(t_response);
+}
+
+void tag_invoke(ImReflect::ImInput_t, const char* label, Engine::ShaderComponent& value, ImSettings& settings, ImResponse& response) {
+	auto& t_response = response.get<Engine::ShaderComponent>();
+	ImGui::SeparatorText("ShaderComponent");
+	ImGui::Indent();
+	auto vertex_file_response = ImReflect::Input("Vertex Shader Filepath", value.vertex_filepath, settings);
+	auto fragment_file_response = ImReflect::Input("Fragment Shader Filepath", value.fragment_filepath, settings);
+	bool changed = false;
+	if (ImGui::Button("[Reload Shader]")) {
+		entt::resource_cache<GL3D::ShaderProgram, Engine::ShaderLoader> entt_shader_cache{};
+		value.shader = entt_shader_cache.load(0, value.fragment_filepath, value.vertex_filepath).first->second;
+		changed = true;
+	}
+	ImGui::Unindent();
+
+	if (changed) { t_response.changed(); }
 	ImReflect::Detail::check_input_states(t_response);
 }
 
@@ -39,7 +60,8 @@ void tag_invoke(ImReflect::ImInput_t, const char* label, Engine::MeshComponent& 
 void tag_invoke(ImReflect::ImInput_t, const char* label, std::filesystem::path& value, ImSettings& settings, ImResponse& response) {
 	auto& t_response = response.get<std::filesystem::path>();
 	bool changed = false;
-	if (ImGui::Button("[Load]")) {
+	ImGui::PushID(label);
+	if (ImGui::ButtonEx("[Load]")) {
 		const char* new_filepath_c_str = tinyfd_openFileDialog("Load File", "", 0, NULL, NULL, 0);
 		if (new_filepath_c_str) {
 			std::string new_filepath_str{ new_filepath_c_str };
@@ -48,6 +70,7 @@ void tag_invoke(ImReflect::ImInput_t, const char* label, std::filesystem::path& 
 			changed = true;
 		}
 	}
+	ImGui::PopID();
 	ImGui::SameLine();
 	std::string new_filepath_str = value.string();
 	ImGui::InputText(label, &new_filepath_str);
@@ -90,6 +113,15 @@ void tag_invoke(ImReflect::ImInput_t, const char* label, glm::mat4& value, ImSet
 	changed |= ImGui::DragFloat3("scale", glm::value_ptr(scale));
 	if (changed) { t_response.changed(); }
 
+	if (std::abs(scale.x) < 0.01) {
+		scale.x = 0.01;
+	}
+	if (std::abs(scale.y) < 0.01) {
+		scale.y = 0.01;
+	}
+	if (std::abs(scale.z) < 0.01) {
+		scale.z = 0.01;
+	}
 	value = glm::recompose(scale, glm::quat(glm::radians(rotation_euler_angle)), translation, skew, perspective);
 
 	/* Check hovered, activated, etc*/
