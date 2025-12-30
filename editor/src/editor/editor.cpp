@@ -4,6 +4,7 @@
 #include <entt/entt.hpp>
 
 #include "engine/components/components.h"
+#include "engine/systems/script_system.h"
 #include "editor/hierarchical_panel.h"
 #include "editor/load_scene_button.h"
 #include "editor/save_scene_button.h"

@@ -18,6 +18,7 @@ namespace Engine {
 			auto res = ShaderBuilder::build(fragment_shader_path, vertex_shader_path);
 			if (!res.has_value()) {
 				error = res.error();
+				std::cout << "[ERROR][ENGINE][SHADER LOADER]: " << error.err_msg << std::endl;
 				return result_type{};
 			}
 			return result_type(std::move(res.value()));

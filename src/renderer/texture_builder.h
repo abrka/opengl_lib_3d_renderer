@@ -12,6 +12,7 @@ namespace TextureBuilder {
 		couldnt_get_internal_texture_format_from_num_channels,
 		texture_file_doesnt_exist
 	};
+	std::string texture_loader_error_to_string(TextureLoaderError err);
 	tl::expected<std::unique_ptr<GL3D::Texture>, TextureLoaderError> build(const std::filesystem::path path);
 
 }

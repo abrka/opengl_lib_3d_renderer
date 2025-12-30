@@ -24,8 +24,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 int main() {
 	sol::state sol_state{};
 	sol_state.open_libraries(sol::lib::base, sol::lib::package);
-	sol_state.new_usertype<Engine::NameComponent>("NameComponent",
-		"name", &Engine::NameComponent::name);
+	Reflect::register_sol_usertypes(sol_state);
 
 	entt::registry entt_registry{};
 	Reflect::register_all_components();
@@ -68,21 +67,6 @@ int main() {
 		for (auto [entity, camera_component] : entt_view_camera.each()) {
 			process_input_for_camera_movement(window.glfw_window, camera_component.camera);
 		}
-		
-
-		auto entt_view_meshes = entt_registry.view<Engine::MeshComponent>();
-		for (auto [entity, mesh_component] : entt_view_meshes.each()) {
-			if (!mesh_component.scene) {
-				continue;
-			}
-			auto materials = mesh_component.scene->get_all_materials();
-			for (AssetBuilder::Material* material : materials) {
-				material->set_uniform("u_material.specular_alpha", 32.0f);
-				material->set_uniform("u_material.ambient_strength", 1.0f);
-				material->set_uniform("u_material.diffuse_strength", 1.0f);
-				material->set_uniform("u_material.specular_strength", 1.0f);
-			}
-		}
 
 		renderer.render();
 
@@ -101,6 +85,8 @@ int main() {
 
 	}
 }
+
+
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (key == GLFW_KEY_LEFT_ALT && action == GLFW_PRESS) {

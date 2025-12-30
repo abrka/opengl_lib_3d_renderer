@@ -51,8 +51,8 @@ if(${ABRKA_GAME_ENGINE_BUILD_EDITOR})
     add_subdirectory(editor)
 endif()
 
-option(ABRKA_GAME_ENGINE_BUILD_EXAMPLE "Build Example Project" ON)
-if(${ABRKA_GAME_ENGINE_BUILD_EXAMPLE})
-    add_subdirectory(examples/game)
+option(ABRKA_GAME_ENGINE_BUILD_GAME "Build Game Framework Project" ON)
+if(${ABRKA_GAME_ENGINE_BUILD_GAME})
+    add_subdirectory(game)
 endif()
 

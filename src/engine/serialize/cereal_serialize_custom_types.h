@@ -53,6 +53,18 @@ namespace glm {
 	}
 }
 
+namespace AssetBuilder {
+	// TODO: this doesnt serialize any AssetBuilder::Texture
+	template<class Archive>
+	void serialize(Archive& archive, Material& t) {
+		archive(
+			cereal::make_nvp("uniforms_int", t.uniforms_int),
+			cereal::make_nvp("uniforms_float", t.uniforms_float),
+			cereal::make_nvp("uniforms_vec3", t.uniforms_vec3),
+			cereal::make_nvp("uniforms_mat4", t.uniforms_mat4)
+		);
+	}
+}
 namespace Engine {
 	template<class Archive>
 	void serialize(Archive& archive, NameComponent& t) {
@@ -92,6 +104,10 @@ namespace Engine {
 	template<class Archive>
 	void serialize(Archive& archive, ScriptComponent& t) {
 		archive(cereal::make_nvp("filepath", t.filepath));
+	}
+	template<class Archive>
+	void serialize(Archive& archive, MaterialComponent& t) {
+		archive(cereal::make_nvp("material", t.material));
 	}
 }
 

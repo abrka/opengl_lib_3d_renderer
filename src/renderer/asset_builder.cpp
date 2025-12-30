@@ -222,7 +222,7 @@ namespace AssetBuilder {
 			auto texture_res = TextureBuilder::build(texture_complete_path);
 			if (!texture_res.has_value()) {
 				auto err = texture_res.error();
-				std::string err_str = "Error loading texture. error was" + std::to_string((int)err);
+				std::string err_str = "Error loading texture:\"" + tex_path.string() + "\" error was: " + TextureBuilder::texture_loader_error_to_string(err);
 				return tl::make_unexpected(err_str);
 			}
 			textures[tex_path] = std::move(texture_res.value());

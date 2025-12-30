@@ -4,7 +4,7 @@
 #include <entt/fwd.hpp>
 
 #include "engine/components/components.h"
-#include "editor/imreflect_custom_types.h"
+#include "ImReflect.hpp"
 
 namespace Reflect {
 	constexpr entt::hashed_string get_component_func_name{ "get_component" };
@@ -55,14 +55,6 @@ namespace Reflect {
 			.template func<&add_component_to_entity<T>>(add_component_func_name)
 			.template func<&sol_add_component<T>>(sol_add_component_func_name);
 	}
-	void register_all_components()
-	{
-		register_component<Engine::NameComponent>("NameComponent");
-		register_component<Engine::TransformComponent>("TransformComponent");
-		register_component<Engine::PointLightComponent>("PointLightComponent");
-		register_component<Engine::CameraComponent>("CameraComponent");
-		register_component<Engine::MeshComponent>("MeshComponent");
-		register_component<Engine::ShaderComponent>("ShaderComponent");
-		register_component<Engine::ScriptComponent>("ScriptComponent");
-	}
+	void register_all_components();
+	void register_sol_usertypes(sol::state& sol_state);
 }

@@ -23,22 +23,23 @@ namespace Renderer {
 			update_uniforms(shader, material.uniforms_vec3);
 			update_uniforms(shader, material.uniforms_mat4);
 		}
-		void draw_mesh(const AssetBuilder::Mesh& mesh, const GL3D::ShaderProgram& shader) {
-			update_all_uniforms(mesh.material,shader);
+		void draw_mesh(const AssetBuilder::Mesh& mesh, const AssetBuilder::Material& material, const GL3D::ShaderProgram& shader) {
+			update_all_uniforms(mesh.material, shader); // first set mesh specific uniforms like textures
+			update_all_uniforms(material, shader); // then set MeshComponent specific uniforms like ambient strength
 			mesh.mesh->draw(shader);
 		}
-		void render_scene(const AssetBuilder::Scene& scene, const GL3D::ShaderProgram& shader) {
+		void render_scene(const AssetBuilder::Scene& scene, const AssetBuilder::Material& material, const GL3D::ShaderProgram& shader) {
 			for (auto* mesh : scene.get_all_meshes()) {
-				draw_mesh(*mesh, shader);
+				draw_mesh(*mesh, material, shader);
 			}
 		}
 		void render_mesh_system(entt::registry& entt_registry) {
-			auto view = entt_registry.view<const Engine::MeshComponent, const Engine::ShaderComponent>();
-			for (auto [entity, mesh_component, shader_component] : view.each()) {
+			auto view = entt_registry.view<const Engine::MeshComponent,const Engine::MaterialComponent, const Engine::ShaderComponent>();
+			for (auto [entity, mesh_component, material_component, shader_component] : view.each()) {
 				if (!mesh_component.scene || !shader_component.shader) {
 					continue;
 				}
-				render_scene( *mesh_component.scene, *shader_component.shader);
+				render_scene(*mesh_component.scene, material_component.material, *shader_component.shader);
 			}
 		}
 
@@ -91,7 +92,7 @@ namespace Renderer {
 				auto materials = mesh_component.scene->get_all_materials();
 				for (AssetBuilder::Material* material : materials) {
 					auto entt_view_point_lights = entt_registry.view<Engine::PointLightComponent, Engine::TransformComponent>();
-					
+
 					size_t i = 0;
 					for (auto [entity, point_light_component, transform_component] : entt_view_point_lights.each()) {
 						if (i >= num_point_lights) {

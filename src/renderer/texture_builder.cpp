@@ -54,6 +54,24 @@ namespace TextureBuilder {
 			break;
 		}
 	}
+	std::string texture_loader_error_to_string(TextureLoaderError err)
+	{
+		switch (err)
+		{
+		case TextureLoaderError::couldnt_get_texture_format_from_num_channels:
+			return "Invalid number of channels in texture file";
+			break;
+		case TextureLoaderError::couldnt_get_internal_texture_format_from_num_channels:
+			return "Invalid number of channels in texture file (internal format)";
+			break;
+		case TextureLoaderError::texture_file_doesnt_exist:
+			return "File doesn't exist";
+			break;
+		default:
+			return "Unknown error";
+			break;
+		}
+	}
 	tl::expected<std::unique_ptr<GL3D::Texture>, TextureLoaderError> build(const std::filesystem::path path) {
 		try {
 			STBImageRAII stb_texture{ path };
