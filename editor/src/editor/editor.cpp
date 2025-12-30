@@ -1,5 +1,7 @@
 #include "editor.h"
 
+#include <istream>
+#include <fstream>
 #include <glm/gtc/type_ptr.hpp>
 #include <entt/entt.hpp>
 
@@ -86,14 +88,14 @@ namespace Editor {
 
 	void Editor3D::render_save_load_panel() {
 		ImGui::Begin("Serialize");
-		if (ImGui::Button("[LOAD]")) {
+		if (ImGui::Button("Save")) {
 			std::ofstream of("scene.kasset");
 			{
 				serializer.save(*entt_registry, of);
 			}
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("[SAVE]")) {
+		if (ImGui::Button("Load")) {
 			std::ifstream ifs("scene.kasset");
 			serializer.load(*entt_registry, ifs);
 		}
