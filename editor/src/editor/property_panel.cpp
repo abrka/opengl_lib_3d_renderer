@@ -2,6 +2,7 @@
 
 #include <entt/entt.hpp>
 #include <imgui.h>
+#include "reflect/reflect.h"
 
 namespace Editor {
 	PropertyPanel::PropertyPanel(entt::registry& entt_registry) : entt_registry(&entt_registry) {};
@@ -24,17 +25,15 @@ namespace Editor {
 	{
 		using namespace entt::literals;
 		for (auto&& [id, type] : entt::resolve()) {
-			entt::meta_func get_comp_fn = type.func("get_component"_hs);
+			entt::meta_func get_comp_fn = type.func(Reflect::get_component_func_name);
 			assert(get_comp_fn);
 			auto returned_component = get_comp_fn.invoke({}, entt_registry, entity);
 			assert(returned_component);
 
-			auto component_type = returned_component.type().remove_pointer();
-			assert(component_type);
-			const char* component_name = component_type.name();
-
-			entt::meta_func render_comp_fn = type.func("render_imgui_for_component"_hs);
+			entt::meta_func render_comp_fn = type.func(Reflect::render_imgui_for_component_func_name);
 			assert(render_comp_fn);
+
+			const char* component_name = type.name();
 			auto ret = render_comp_fn.invoke({}, component_name, returned_component);
 			assert(ret);
 		}
@@ -43,7 +42,7 @@ namespace Editor {
 	{
 		using namespace entt::literals;
 		for (auto&& [id, type] : entt::resolve()) {
-			entt::meta_func get_comp_fn = type.func("get_component"_hs);
+			entt::meta_func get_comp_fn = type.func(Reflect::get_component_func_name);
 			assert(get_comp_fn);
 			auto returned_component = get_comp_fn.invoke({}, entt_registry, entity);
 			assert(returned_component);
@@ -53,7 +52,7 @@ namespace Editor {
 			const char* component_name = component_type.name();
 
 			if (ImGui::Button(component_name)) {
-				entt::meta_func add_comp_fn = type.func("add_component"_hs);
+				entt::meta_func add_comp_fn = type.func(Reflect::add_component_func_name);
 				assert(add_comp_fn);
 				auto ret = add_comp_fn.invoke({}, entt_registry, entity);
 				assert(ret);
