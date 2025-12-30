@@ -24,6 +24,8 @@ namespace Editor {
 	void PropertyPanel::render_components(entt::entity& entity)
 	{
 		using namespace entt::literals;
+
+		size_t i = 0;
 		for (auto&& [id, type] : entt::resolve()) {
 			entt::meta_func get_comp_fn = type.func(Reflect::get_component_func_name);
 			assert(get_comp_fn);
@@ -36,6 +38,22 @@ namespace Editor {
 			const char* component_name = type.name();
 			auto ret = render_comp_fn.invoke({}, component_name, returned_component);
 			assert(ret);
+
+			entt::meta_func is_component_null_fn = type.func(Reflect::is_null_func_name);
+			assert(is_component_null_fn);
+			auto is_null = is_component_null_fn.invoke({}, returned_component);
+			assert(is_null);
+			if (!is_null.cast<bool>()) {
+				ImGui::PushID(i);
+				if (ImGui::Button("[-] Remove Component")) {
+					entt::meta_func remove_component_fn = type.func(Reflect::remove_component_func_name);
+					assert(remove_component_fn);
+					auto ret = remove_component_fn.invoke({}, entt_registry, entity);
+					assert(ret);
+				}
+				ImGui::PopID();
+			}
+			i++;
 		}
 	}
 	void PropertyPanel::render_add_component_popup(entt::entity& entity)
