@@ -9,8 +9,6 @@ namespace Editor {
 	void PropertyPanel::render(std::optional<entt::entity> selected_entity) {
 		ImGui::Begin("Components");
 		if (selected_entity.has_value()) {
-			render_components(selected_entity.value());
-
 			if (ImGui::Button("[+] Add Component")) {
 				ImGui::OpenPopup("Add Component Popup");
 			}
@@ -18,6 +16,7 @@ namespace Editor {
 				render_add_component_popup(selected_entity.value());
 				ImGui::EndPopup();
 			}
+			render_components(selected_entity.value());
 		}
 		ImGui::End();
 	}
