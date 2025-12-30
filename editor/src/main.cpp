@@ -20,19 +20,6 @@ static float cam_speed = 0.02f;
 static void process_input_for_camera_movement(GLFWwindow* window, Renderer::Camera& cam);
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-template<typename Archive, typename Snapshot>
-void snapshot_get_func_custom(Archive& archive, Snapshot& snapshot) {
-	snapshot.template get<Engine::RootComponent>(archive);
-	snapshot.template get<Engine::ParentComponent>(archive);
-	snapshot.template get<Engine::ChildrenComponent>(archive);
-	snapshot.template get<Engine::NameComponent>(archive);
-	snapshot.template get<Engine::TransformComponent>(archive);
-	snapshot.template get<Engine::PointLightComponent>(archive);
-	snapshot.template get<Engine::CameraComponent>(archive);
-	snapshot.template get<Engine::MeshComponent>(archive);
-	snapshot.template get<Engine::ShaderComponent>(archive);
-	snapshot.template get<Engine::ScriptComponent>(archive);
-}
 
 int main() {
 	sol::state sol_state{};
@@ -41,13 +28,7 @@ int main() {
 		"name", &Engine::NameComponent::name);
 
 	entt::registry entt_registry{};
-	Reflect::register_component<Engine::NameComponent>("NameComponent");
-	Reflect::register_component<Engine::TransformComponent>("TransformComponent");
-	Reflect::register_component<Engine::PointLightComponent>("PointLightComponent");
-	Reflect::register_component<Engine::CameraComponent>("CameraComponent");
-	Reflect::register_component<Engine::MeshComponent>("MeshComponent");
-	Reflect::register_component<Engine::ShaderComponent>("ShaderComponent");
-	Reflect::register_component<Engine::ScriptComponent>("ScriptComponent");
+	Reflect::register_all_components();
 	
 	GLExternalRAII::Window window{ 800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR };
 	window.key_callback = [&window](int key, int scancode, int action, int mods) {
@@ -73,11 +54,7 @@ int main() {
 	entt_registry.emplace<Engine::CameraComponent>(camera_entity, camera_component);
 	Engine::add_child(entt_registry, root_entity, camera_entity);
 
-	Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive> serializer{
-		&snapshot_get_func_custom<cereal::XMLOutputArchive, entt::snapshot>,
-		&snapshot_get_func_custom<cereal::XMLInputArchive, entt::snapshot_loader>,
-		sol_state
-	};
+	Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive> serializer{};
 	Editor::Editor3D editor{entt_registry,sol_state, serializer};
 
 	renderer.custom_imgui_render_function = [&editor](Renderer::Renderer3D& renderer) {
