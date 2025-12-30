@@ -103,7 +103,7 @@ int main() {
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (key == GLFW_KEY_CAPS_LOCK && action == GLFW_PRESS) {
+	if (key == GLFW_KEY_LEFT_ALT && action == GLFW_PRESS) {
 		int prev_cursor_mode = glfwGetInputMode(window, GLFW_CURSOR);
 		int new_cursor_mode = (prev_cursor_mode == GLFW_CURSOR_NORMAL) ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL;
 		glfwSetInputMode(window, GLFW_CURSOR, new_cursor_mode);
