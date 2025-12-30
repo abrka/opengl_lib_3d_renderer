@@ -88,9 +88,17 @@ namespace Editor {
 
 	void Editor3D::render_save_load_panel() {
 		ImGui::Begin("Serialize");
-		SaveSceneButton::render("scene.kasset", "Save Scene", *entt_registry, serializer);
+		if (ImGui::Button("[LOAD]")) {
+			std::ofstream of("scene.kasset");
+			{
+				serializer.save(*entt_registry, of);
+			}
+		}
 		ImGui::SameLine();
-		LoadSceneButton::render("scene.kasset", "Load Scene", *entt_registry, serializer);
+		if (ImGui::Button("[SAVE]")) {
+			std::ifstream ifs("scene.kasset");
+			serializer.load(*entt_registry, ifs);
+		}
 		ImGui::End();
 	}
 }
