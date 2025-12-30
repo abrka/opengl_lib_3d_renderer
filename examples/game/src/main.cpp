@@ -1,17 +1,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
 #include "renderer/renderer.h"
-
 #include "engine/components/components.h"
 #include "engine/loaders/mesh_loader.h"
 #include "engine/loaders/shader_loader.h"
-
-#include "editor/editor.h"
-
 #include "input/input.h"
-
-#include "reflect/reflect.h"
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)

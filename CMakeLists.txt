@@ -1,54 +1,58 @@
 cmake_minimum_required(VERSION 3.2...3.6)
-project(opengl_lib_3d_renderer_proj)
+project(abrka_game_engine_proj)
 
-file(GLOB_RECURSE OPENGL_LIB_3D_RENDERER_SOURCES "src/*.cpp" "src/*.h" "src/*.hpp")
+file(GLOB_RECURSE ABRKA_GAME_ENGINE_SOURCES "src/*.cpp" "src/*.h" "src/*.hpp")
 
-add_library(opengl_lib_3d_renderer ${OPENGL_LIB_3D_RENDERER_SOURCES})
-add_library(abrka::game_engine ALIAS opengl_lib_3d_renderer)
+add_library(abrka_game_engine ${ABRKA_GAME_ENGINE_SOURCES})
+add_library(abrka::game_engine ALIAS abrka_game_engine)
 
-target_include_directories(opengl_lib_3d_renderer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_include_directories(abrka_game_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_compile_features(opengl_lib_3d_renderer PRIVATE cxx_std_20)
+target_compile_features(abrka_game_engine PRIVATE cxx_std_20)
 
-target_compile_definitions(opengl_lib_3d_renderer PUBLIC ENGINE_ASSET_DIR=${CMAKE_CURRENT_SOURCE_DIR}/data)
+target_compile_definitions(abrka_game_engine PUBLIC ENGINE_ASSET_DIR=${CMAKE_CURRENT_SOURCE_DIR}/data)
 
 set(OPENGL_LIB_BUILD_EXAMPLE OFF CACHE BOOL "" FORCE)
 add_subdirectory(external/opengl_lib)
-target_link_libraries(opengl_lib_3d_renderer PUBLIC opengl_lib::opengl_lib)
+target_link_libraries(abrka_game_engine PUBLIC opengl_lib::opengl_lib)
 
 find_package(assimp CONFIG REQUIRED)
-target_link_libraries(opengl_lib_3d_renderer PUBLIC assimp::assimp)
+target_link_libraries(abrka_game_engine PUBLIC assimp::assimp)
 
 find_package(EnTT CONFIG REQUIRED)
-target_link_libraries(opengl_lib_3d_renderer PUBLIC EnTT::EnTT)
+target_link_libraries(abrka_game_engine PUBLIC EnTT::EnTT)
 
 find_package(cereal CONFIG REQUIRED)
-target_link_libraries(opengl_lib_3d_renderer PUBLIC cereal::cereal)
+target_link_libraries(abrka_game_engine PUBLIC cereal::cereal)
 
 find_package(tl-expected CONFIG REQUIRED)
-target_link_libraries(opengl_lib_3d_renderer PUBLIC tl::expected)
+target_link_libraries(abrka_game_engine PUBLIC tl::expected)
 
 find_package(imguizmo CONFIG REQUIRED)
-target_link_libraries(opengl_lib_3d_renderer PUBLIC imguizmo::imguizmo)
+target_link_libraries(abrka_game_engine PUBLIC imguizmo::imguizmo)
 
 find_package(Lua CONFIG REQUIRED)
-target_include_directories(opengl_lib_3d_renderer PUBLIC ${LUA_INCLUDE_DIR})
-target_link_libraries(opengl_lib_3d_renderer PUBLIC ${LUA_LIBRARIES})
+target_include_directories(abrka_game_engine PUBLIC ${LUA_INCLUDE_DIR})
+target_link_libraries(abrka_game_engine PUBLIC ${LUA_LIBRARIES})
 
 find_package(sol2 CONFIG REQUIRED)
-target_link_libraries(opengl_lib_3d_renderer PUBLIC sol2::sol2)
+target_link_libraries(abrka_game_engine PUBLIC sol2::sol2)
 
 find_package(tinyfiledialogs CONFIG REQUIRED)
-target_link_libraries(opengl_lib_3d_renderer PUBLIC tinyfiledialogs::tinyfiledialogs)
+target_link_libraries(abrka_game_engine PUBLIC tinyfiledialogs::tinyfiledialogs)
 
-option(OPENGL_LIB_3D_RENDERER_BUILD_DOCS "Build Documentation" ON)
-if(${OPENGL_LIB_3D_RENDERER_BUILD_DOCS})
+option(ABRKA_GAME_ENGINE_BUILD_DOCS "Build Documentation" ON)
+if(${ABRKA_GAME_ENGINE_BUILD_DOCS})
     add_subdirectory(docs)
 endif()
 
-option(OPENGL_LIB_3D_RENDERER_BUILD_EXAMPLE "Build Example Project" ON)
-if(${OPENGL_LIB_3D_RENDERER_BUILD_EXAMPLE})
-    add_subdirectory(examples/editor)
+option(ABRKA_GAME_ENGINE_BUILD_EDITOR "Build Editor Project" ON)
+if(${ABRKA_GAME_ENGINE_BUILD_EDITOR})
+    add_subdirectory(editor)
+endif()
+
+option(ABRKA_GAME_ENGINE_BUILD_EXAMPLE "Build Example Project" ON)
+if(${ABRKA_GAME_ENGINE_BUILD_EXAMPLE})
     add_subdirectory(examples/game)
 endif()
 
