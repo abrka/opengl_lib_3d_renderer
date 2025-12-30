@@ -16,6 +16,9 @@ set(OPENGL_LIB_BUILD_EXAMPLE OFF CACHE BOOL "" FORCE)
 add_subdirectory(external/opengl_lib)
 target_link_libraries(abrka_game_engine PUBLIC opengl_lib::opengl_lib)
 
+add_subdirectory(external/ImReflect)
+target_link_libraries(abrka_game_engine PUBLIC ImReflect::ImReflect)
+
 find_package(assimp CONFIG REQUIRED)
 target_link_libraries(abrka_game_engine PUBLIC assimp::assimp)
 
