@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <cereal/cereal.hpp>
 #include <cereal/types/vector.hpp> 
+#include <cereal/types/map.hpp>
 #include "engine/components/components.h"
 
 
