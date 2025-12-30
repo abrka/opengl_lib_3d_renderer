@@ -12,4 +12,3 @@ set(OPENGL_VERSION_MINOR "6" CACHE STRING "OpenGL Version Minor")
 
 target_compile_definitions(abrka_game_editor PRIVATE OPENGL_VERSION_MAJOR=${OPENGL_VERSION_MAJOR})
 target_compile_definitions(abrka_game_editor PRIVATE OPENGL_VERSION_MINOR=${OPENGL_VERSION_MINOR})
-target_compile_definitions(abrka_game_editor PRIVATE ASSET_DIR=${CMAKE_CURRENT_SOURCE_DIR}/data)
