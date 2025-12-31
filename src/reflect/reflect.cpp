@@ -1,5 +1,6 @@
 #include "reflect.h"
 #include "imreflect_custom_types.h"
+#include "input/input.h"
 
 namespace Reflect {
 	void register_all_components()
@@ -18,5 +19,7 @@ namespace Reflect {
 	{
 		sol_state.new_usertype<Engine::NameComponent>("NameComponent",
 			"name", &Engine::NameComponent::name);
+		sol_state.new_usertype<Input::Input>("Input",
+			"is_key_pressed", &Input::Input::is_key_pressed_str);
 	}
 }
