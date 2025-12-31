@@ -4,6 +4,7 @@
 #include <fstream>
 #include <glm/gtc/type_ptr.hpp>
 #include <entt/entt.hpp>
+#include <tinyfiledialogs/tinyfiledialogs.h>
 
 #include "engine/components/components.h"
 #include "engine/systems/script_system.h"
@@ -89,14 +90,30 @@ namespace Editor {
 	void Editor3D::render_save_load_panel() {
 		ImGui::Begin("Serialize");
 		if (ImGui::Button("Save")) {
-			std::ofstream of("scene.kasset");
+			const char* filepath_c_str = tinyfd_saveFileDialog("Save scene to file", "", 0, NULL, NULL);
+			if (!filepath_c_str) {
+				return;
+			}
+			std::string filepath_str{ filepath_c_str };
+			std::ofstream of(filepath_str);
+			if (!of) {
+				return;
+			}
 			{
 				serializer.save(*entt_registry, of);
 			}
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Load")) {
-			std::ifstream ifs("scene.kasset");
+			const char* filepath_c_str = tinyfd_openFileDialog("Load scene from file", "", 0, NULL, NULL, 0);
+			if (!filepath_c_str) {
+				return;
+			}
+			std::string filepath_str{ filepath_c_str };
+			std::ifstream ifs(filepath_str);
+			if (!ifs) {
+				return;
+			}
 			serializer.load(*entt_registry, ifs);
 		}
 		ImGui::End();
