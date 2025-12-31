@@ -2,10 +2,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <sol/sol.hpp>
+#include <tinyfiledialogs/tinyfiledialogs.h>
 #include "renderer/renderer.h"
 #include "engine/components/components.h"
-#include "engine/loaders/mesh_loader.h"
-#include "engine/loaders/shader_loader.h"
+#include "engine/loaders/loaders.h"
+#include "engine/systems/systems.h"
 #include "engine/serialize/entt_registry_serializer.h"
 #include "engine/systems/script_system.h"
 #include "input/input.h"
@@ -28,22 +29,30 @@ int main() {
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
 			glfwSetWindowShouldClose(window.glfw_window, true);
 		}
-	};
+		};
 	Input::Input input_system{ *window.glfw_window };
 	sol_state["Input"] = &input_system;
-	input_system.disable_cursor();
 
 	Renderer::Renderer3D renderer{ window, entt_registry };
 	window.framebuffer_size_callback = [&renderer](int width, int height) {
 		renderer.on_window_resize(width, height);
-	};
+		};
 
-	Engine::EnttRegistrySerializer<cereal::XMLInputArchive,cereal::XMLOutputArchive> serializer{};
-	std::ifstream ifs{ "scene.kasset" };
+	Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive> serializer{};
+	const char* filepath_c_str = tinyfd_openFileDialog("Scene File", NULL, 0, NULL, NULL, 0);
+	std::string filepath_str{ filepath_c_str };
+	std::ifstream ifs{ filepath_str };
 	serializer.load(entt_registry, ifs);
+
+	entt::resource_cache<AssetBuilder::Scene, Engine::MeshLoader> mesh_cache{};
+	entt::resource_cache<GL3D::ShaderProgram, Engine::ShaderLoader> shader_cache{};
 
 	while (window.is_running()) {
 		double prev_time = glfwGetTime();
+
+		Engine::script_load_system(entt_registry, sol_state);
+		Engine::mesh_load_system(entt_registry, mesh_cache);
+		Engine::shader_load_system(entt_registry, shader_cache);
 		Engine::script_system_tick(entt_registry, sol_state);
 		renderer.render();
 		double current_time = glfwGetTime();
