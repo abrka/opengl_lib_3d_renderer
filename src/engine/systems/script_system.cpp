@@ -35,17 +35,18 @@ namespace Engine {
 	}
 	static void sol_module_init(entt::registry& entt_registry, sol::state& sol_state, entt::entity entity, Engine::ScriptComponent& script_component)
 	{
+		assert(script_component.sol_module.valid());
 		// first setup necessary lua variables
 		set_sol_module_variables(script_component.sol_module, entt_registry, entity);
 		// then call init function
 		call_sol_module_init_function(script_component.sol_module);
 	}
-	void sol_module_construct(sol::state& sol_state, Engine::ScriptComponent& script_component)
+	// returns if sol module was constructed successfully
+	tl::expected<void, sol::error> sol_module_construct(sol::state& sol_state, Engine::ScriptComponent& script_component)
 	{
 		auto script_result = Engine::ScriptComponent::build(sol_state, script_component.filepath);
 		if (!script_result) {
-			std::cout << "[ERROR][ENGINE][SCRIPT SYSTEM INIT]: couldnt load script: " << script_result.error().what() << "\n";
-			return;
+			return tl::make_unexpected( script_result.error() );
 		}
 		script_component = script_result.value();
 	}
@@ -53,7 +54,11 @@ namespace Engine {
 		auto entt_view_scripts = entt_registry.view<ScriptComponent>();
 		for (auto [entity, script_component] : entt_view_scripts.each()) {
 			if (!script_component.sol_module.valid()) {
-				sol_module_construct(sol_state, script_component);
+				auto result = sol_module_construct(sol_state, script_component);
+				if (!result) {
+					std::cout << "[ERROR][ENGINE][SCRIPT SYSTEM INIT] couldn't construct sol module: " << result.error().what() << "\n";
+					continue;
+				}
 			}
 			sol_module_init(entt_registry, sol_state, entity, script_component);
 		}
@@ -65,7 +70,11 @@ namespace Engine {
 			auto& sol_module = script_component.sol_module;
 
 			if (!script_component.sol_module.valid()) {
-				sol_module_construct(sol_state, script_component);
+				auto result = sol_module_construct(sol_state, script_component);
+				if (!result) {
+					std::cout << "[ERROR][ENGINE][SCRIPT SYSTEM TICK] couldn't construct sol module: " << result.error().what() << "\n";
+					continue;
+				}
 				sol_module_init(entt_registry, sol_state, entity, script_component);
 			}
 
