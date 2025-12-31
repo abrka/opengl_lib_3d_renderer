@@ -92,18 +92,18 @@ namespace Engine {
 		archive(cereal::make_nvp("camera", t.camera));
 	}
 	template<class Archive>
-	void serialize(Archive& archive, MeshComponent& t) {
+	void serialize(Archive& archive, MeshInfoComponent& t) {
 		archive(cereal::make_nvp("filepath", t.filepath));
 	}
 	template<class Archive>
-	void serialize(Archive& archive, ShaderComponent& t) {
+	void serialize(Archive& archive, ShaderInfoComponent& t) {
 		archive(
 			cereal::make_nvp("vertex_filepath", t.vertex_filepath),
 			cereal::make_nvp("fragment_filepath", t.fragment_filepath)
 		);
 	}
 	template<class Archive>
-	void serialize(Archive& archive, ScriptComponent& t) {
+	void serialize(Archive& archive, ScriptInfoComponent& t) {
 		archive(cereal::make_nvp("filepath", t.filepath));
 	}
 	template<class Archive>

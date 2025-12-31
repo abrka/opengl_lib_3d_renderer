@@ -8,6 +8,5 @@
 namespace Engine {
 	struct MeshComponent {
 		entt::resource<AssetBuilder::Scene> scene{};
-		std::filesystem::path filepath{};
 	};
 }

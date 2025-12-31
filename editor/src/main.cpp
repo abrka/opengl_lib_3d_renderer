@@ -2,9 +2,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "engine/components/components.h"
-#include "engine/systems/script_system.h"
-#include "engine/loaders/mesh_loader.h"
-#include "engine/loaders/shader_loader.h"
+#include "engine/systems/systems.h"
+#include "engine/loaders/loaders.h"
 #include "reflect/reflect.h"
 #include "editor/editor.h"
 #include "renderer/renderer.h"
@@ -61,6 +60,9 @@ int main() {
 		editor.render();
 	};
 
+	entt::resource_cache<AssetBuilder::Scene, Engine::MeshLoader> mesh_cache{};
+	entt::resource_cache<GL3D::ShaderProgram, Engine::ShaderLoader> shader_cache{};
+
 	while (window.is_running()) {
 		double prev_time = glfwGetTime();
 
@@ -68,7 +70,10 @@ int main() {
 		for (auto [entity, camera_component] : entt_view_camera.each()) {
 			process_input_for_camera_movement(window.glfw_window, camera_component.camera);
 		}
-
+	
+		Engine::script_load_system(entt_registry, sol_state);
+		Engine::mesh_load_system(entt_registry, mesh_cache);
+		Engine::shader_load_system(entt_registry, shader_cache);
 		renderer.render();
 
 		double current_time = glfwGetTime();

@@ -12,9 +12,9 @@ namespace Engine {
 		snapshot.template get<Engine::TransformComponent>(archive);
 		snapshot.template get<Engine::PointLightComponent>(archive);
 		snapshot.template get<Engine::CameraComponent>(archive);
-		snapshot.template get<Engine::MeshComponent>(archive);
-		snapshot.template get<Engine::ShaderComponent>(archive);
-		snapshot.template get<Engine::ScriptComponent>(archive);
+		snapshot.template get<Engine::MeshInfoComponent>(archive);
+		snapshot.template get<Engine::ShaderInfoComponent>(archive);
+		snapshot.template get<Engine::ScriptInfoComponent>(archive);
 		snapshot.template get<Engine::MaterialComponent>(archive);
 	}
 }

@@ -19,49 +19,11 @@ IMGUI_REFLECT(Renderer::Camera, position, orientation, fov, near_plane_dist, far
 IMGUI_REFLECT(Engine::CameraComponent, camera)
 IMGUI_REFLECT(Renderer::PointLight, color, ambient_strength, diffuse_strength, specular_strength)
 IMGUI_REFLECT(Engine::PointLightComponent, light)
-IMGUI_REFLECT(Engine::ScriptComponent, filepath)
+IMGUI_REFLECT(Engine::ScriptInfoComponent, filepath)
+IMGUI_REFLECT(Engine::MeshInfoComponent, filepath)
+IMGUI_REFLECT(Engine::ShaderInfoComponent, vertex_filepath, fragment_filepath)
 IMGUI_REFLECT(AssetBuilder::Material, uniforms_int, uniforms_float, uniforms_vec3, uniforms_mat4)
 IMGUI_REFLECT(Engine::MaterialComponent, material)
-
-void tag_invoke(ImReflect::ImInput_t, const char* label, Engine::MeshComponent& value, ImSettings& settings, ImResponse& response) {
-	auto& t_response = response.get<Engine::MeshComponent>();
-	ImGui::SeparatorText("MeshComponent");
-	ImGui::Indent();
-	auto file_response = ImReflect::Input("Mesh Filepath", value.filepath, settings);
-
-	bool changed = false;
-	if (ImGui::Button("[Reload Mesh]")) {
-		entt::resource_cache<AssetBuilder::Scene, Engine::MeshLoader> entt_mesh_cache{};
-		auto result = entt_mesh_cache.load(0, value.filepath);
-		assert(result.first->second);
-		value.scene = result.first->second;
-		changed = true;
-	}
-	ImGui::Unindent();
-
-	if (changed) { t_response.changed(); }
-	ImReflect::Detail::check_input_states(t_response);
-}
-
-void tag_invoke(ImReflect::ImInput_t, const char* label, Engine::ShaderComponent& value, ImSettings& settings, ImResponse& response) {
-	auto& t_response = response.get<Engine::ShaderComponent>();
-	ImGui::SeparatorText("ShaderComponent");
-	ImGui::Indent();
-	auto vertex_file_response = ImReflect::Input("Vertex Shader Filepath", value.vertex_filepath, settings);
-	auto fragment_file_response = ImReflect::Input("Fragment Shader Filepath", value.fragment_filepath, settings);
-	bool changed = false;
-	if (ImGui::Button("[Reload Shader]")) {
-		entt::resource_cache<GL3D::ShaderProgram, Engine::ShaderLoader> entt_shader_cache{};
-		auto result = entt_shader_cache.load(0, value.fragment_filepath, value.vertex_filepath);
-		assert(result.first->second);
-		value.shader = result.first->second;
-		changed = true;
-	}
-	ImGui::Unindent();
-
-	if (changed) { t_response.changed(); }
-	ImReflect::Detail::check_input_states(t_response);
-}
 
 
 void tag_invoke(ImReflect::ImInput_t, const char* label, std::filesystem::path& value, ImSettings& settings, ImResponse& response) {

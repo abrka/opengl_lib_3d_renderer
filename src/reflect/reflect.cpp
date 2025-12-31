@@ -9,10 +9,10 @@ namespace Reflect {
 		register_component<Engine::TransformComponent>("TransformComponent");
 		register_component<Engine::PointLightComponent>("PointLightComponent");
 		register_component<Engine::CameraComponent>("CameraComponent");
-		register_component<Engine::MeshComponent>("MeshComponent");
-		register_component<Engine::ShaderComponent>("ShaderComponent");
-		register_component<Engine::ScriptComponent>("ScriptComponent");
 		register_component<Engine::MaterialComponent>("MaterialComponent");
+		register_component<Engine::MeshInfoComponent>("MeshInfoComponent");
+		register_component<Engine::ShaderInfoComponent>("ShaderInfoComponent");
+		register_component<Engine::ScriptInfoComponent>("ScriptInfoComponent");
 	}
 
 	void register_sol_usertypes(sol::state& sol_state)

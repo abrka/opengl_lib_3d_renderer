@@ -41,7 +41,7 @@ int main() {
 	Engine::EnttRegistrySerializer<cereal::XMLInputArchive,cereal::XMLOutputArchive> serializer{};
 	std::ifstream ifs{ "scene.kasset" };
 	serializer.load(entt_registry, ifs);
-	Engine::script_system_init(entt_registry, sol_state);
+
 	while (window.is_running()) {
 		double prev_time = glfwGetTime();
 		Engine::script_system_tick(entt_registry, sol_state);

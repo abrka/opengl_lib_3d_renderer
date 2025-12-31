@@ -37,10 +37,6 @@ namespace Editor {
 		ImGui::Begin("Topbar");
 		if (!is_scripts_running) {
 			if (ImGui::Button("[Run]")) {
-				if (is_first_time_running_scripts) {
-					Engine::script_system_init(*entt_registry, *sol_state);
-				}
-				is_first_time_running_scripts = false;
 				is_scripts_running = true;
 			}
 		}
@@ -52,13 +48,11 @@ namespace Editor {
 		ImGui::SameLine();
 		if (ImGui::Button("[Restart]")) {
 			// TODO: first we need to reset the scene by loading it from file again
-			Engine::script_system_init(*entt_registry, *sol_state);
 			is_scripts_running = true;
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("[Stop]")) {
 			// TODO: first we need to reset the scene by loading it from file again
-			is_first_time_running_scripts = true;
 			is_scripts_running = false;
 		}
 		ImGui::End();

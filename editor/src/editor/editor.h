@@ -23,7 +23,6 @@ namespace Editor {
 		HierarchicalPanel hierarchical_panel;
 		PropertyPanel component_panel;
 		bool is_scripts_running{ false };
-		bool is_first_time_running_scripts{ true };
 
 		void render_save_load_panel();
 		void render_imguizmo();

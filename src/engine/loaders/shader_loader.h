@@ -11,20 +11,10 @@ namespace Engine {
 		using error_type = ShaderBuilder::ShaderBuilderError;
 
 	private:
-		error_type error{};
+		static error_type error;
 
 	public:
-		result_type operator()(std::filesystem::path fragment_shader_path, std::filesystem::path vertex_shader_path) {
-			auto res = ShaderBuilder::build(fragment_shader_path, vertex_shader_path);
-			if (!res.has_value()) {
-				error = res.error();
-				std::cout << "[ERROR][ENGINE][SHADER LOADER]: " << error.err_msg << std::endl;
-				return result_type{};
-			}
-			return result_type(std::move(res.value()));
-		}
-		error_type get_last_error() {
-			return error;
-		}
+		result_type operator()(std::filesystem::path fragment_shader_path, std::filesystem::path vertex_shader_path);
+		static error_type get_last_error();
 	};
 }

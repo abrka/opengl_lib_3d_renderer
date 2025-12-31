@@ -10,8 +10,6 @@
 namespace Engine {
 	struct ScriptComponent {
 		sol::table sol_module{};
-		std::filesystem::path filepath{};
-
 		static tl::expected<ScriptComponent, sol::error> build(entt::registry& entt_registry, sol::state& sol_state, std::filesystem::path script_filepath, entt::entity entity);
 	};
 }

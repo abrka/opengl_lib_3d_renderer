@@ -36,9 +36,8 @@ namespace Renderer {
 		void render_mesh_system(entt::registry& entt_registry) {
 			auto view = entt_registry.view<const Engine::MeshComponent,const Engine::MaterialComponent, const Engine::ShaderComponent>();
 			for (auto [entity, mesh_component, material_component, shader_component] : view.each()) {
-				if (!mesh_component.scene || !shader_component.shader) {
-					continue;
-				}
+				assert(mesh_component.scene);
+				assert(shader_component.shader);
 				render_scene(*mesh_component.scene, material_component.material, *shader_component.shader);
 			}
 		}

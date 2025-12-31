@@ -11,20 +11,10 @@ namespace Engine {
 		using error_type = std::string;
 
 	private:
-		error_type error{};
+		static error_type error;
 
 	public:
-		result_type operator()(std::filesystem::path path) {
-			auto res = AssetBuilder::build(path);
-			if (!res.has_value()) {
-				error = res.error();
-				std::cout << "[ERROR][ENGINE][MESH LOADER]: " << error << std::endl;
-				return result_type{};
-			}
-			return result_type(std::move(res.value()));
-		}
-		error_type get_last_error() {
-			return error;
-		}
+		result_type operator()(std::filesystem::path path);
+		static error_type get_last_error();
 	};
 }

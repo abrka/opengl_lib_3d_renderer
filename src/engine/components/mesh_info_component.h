@@ -1,0 +1,9 @@
+#pragma once
+
+#include <filesystem>
+
+namespace Engine {
+	struct MeshInfoComponent {
+		std::filesystem::path filepath{};
+	};
+}

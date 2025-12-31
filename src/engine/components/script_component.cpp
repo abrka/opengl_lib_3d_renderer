@@ -45,8 +45,10 @@ namespace Engine {
 			return tl::make_unexpected(sol::error{ "lua script does not return a module table" });
 		}
 		set_sol_module_variables(sol_module, entt_registry, entity);
-		call_sol_module_init_function(sol_module);
-
-		return ScriptComponent{ std::move(sol_module), script_filepath };
+		auto result_init = call_sol_module_init_function(sol_module);
+		if (!result_init) {
+			return tl::make_unexpected(result_init.error());
+		}
+		return ScriptComponent{ std::move(sol_module) };
 	}
 }
