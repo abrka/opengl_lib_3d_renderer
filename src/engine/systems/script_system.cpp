@@ -5,7 +5,7 @@
 #include "engine/components/script_component.h"
 
 namespace Engine {
-	void set_sol_module_variables(sol::table& sol_module, entt::registry& entt_registry, entt::entity entity)
+	static void set_sol_module_variables(sol::table& sol_module, entt::registry& entt_registry, entt::entity entity)
 	{
 		sol_module["entity_id"] = entt::to_integral(entity);
 		sol_module["components"] = sol::new_table{};
@@ -21,7 +21,7 @@ namespace Engine {
 			assert(ret);
 		}
 	}
-	void call_sol_module_init_function(sol::table& sol_module)
+	static void call_sol_module_init_function(sol::table& sol_module)
 	{
 		sol::function sol_init_fn = sol_module["init"];
 		if (!sol_init_fn.valid()) {
@@ -33,41 +33,41 @@ namespace Engine {
 			std::cout << "[ERROR][LUA] init function : " << sol_err.what() << "\n";
 		}
 	}
+	static void sol_module_init(entt::registry& entt_registry, sol::state& sol_state, entt::entity entity, Engine::ScriptComponent& script_component)
+	{
+		// first setup necessary lua variables
+		set_sol_module_variables(script_component.sol_module, entt_registry, entity);
+		// then call init function
+		call_sol_module_init_function(script_component.sol_module);
+	}
+	void sol_module_construct(sol::state& sol_state, Engine::ScriptComponent& script_component)
+	{
+		auto script_result = Engine::ScriptComponent::build(sol_state, script_component.filepath);
+		if (!script_result) {
+			std::cout << "[ERROR][ENGINE][SCRIPT SYSTEM INIT]: couldnt load script: " << script_result.error().what() << "\n";
+			return;
+		}
+		script_component = script_result.value();
+	}
 	void script_system_init(entt::registry& entt_registry, sol::state& sol_state) {
 		auto entt_view_scripts = entt_registry.view<ScriptComponent>();
 		for (auto [entity, script_component] : entt_view_scripts.each()) {
-			auto& sol_module = script_component.sol_module;
-
-			// Lazy load script component if it was not loaded already
-			if (!sol_module.valid()) {
-				auto script_result = Engine::build_script_component(sol_state, script_component.filepath);
-				if (!script_result) {
-					std::cout << "[ERROR][ENGINE][SCRIPT SYSTEM INIT]: couldnt load script: " << script_result.error().what() << "\n";
-					continue;
-				}
-				script_component = script_result.value();
+			if (!script_component.sol_module.valid()) {
+				sol_module_construct(sol_state, script_component);
 			}
-			// first setup necessary lua variables
-			set_sol_module_variables(sol_module, entt_registry, entity);
+			sol_module_init(entt_registry, sol_state, entity, script_component);
+		}
+	}
 
-			// then call init function
-			call_sol_module_init_function(sol_module);
-		}
-	}
-	void script_system_reload(entt::registry& entt_registry, sol::state& sol_state) {
-		auto entt_view_scripts = entt_registry.view<ScriptComponent>();
-		for (auto [entity, script_component] : entt_view_scripts.each()) {
-			script_component = Engine::build_script_component(sol_state, script_component.filepath).value();
-		}
-	}
 	void script_system_tick(entt::registry& entt_registry, sol::state& sol_state) {
 		auto entt_view_scripts = entt_registry.view<ScriptComponent>();
 		for (auto [entity, script_component] : entt_view_scripts.each()) {
 			auto& sol_module = script_component.sol_module;
 
-			// This will set off if the game is paused,then a new script is loaded and then the game in run with [Play] button.
-			// to fix this use [Restart] button to play instead of [Play] button
-			assert(sol_module.valid());
+			if (!script_component.sol_module.valid()) {
+				sol_module_construct(sol_state, script_component);
+				sol_module_init(entt_registry, sol_state, entity, script_component);
+			}
 
 			sol::function sol_tick_fn = sol_module["tick"];
 			if (!sol_tick_fn.valid()) {

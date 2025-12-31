@@ -51,13 +51,13 @@ namespace Editor {
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("[Restart]")) {
-			Engine::script_system_reload(*entt_registry, *sol_state);
+			// TODO: first we need to reset the scene by loading it from file again
 			Engine::script_system_init(*entt_registry, *sol_state);
 			is_scripts_running = true;
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("[Stop]")) {
-			Engine::script_system_reload(*entt_registry, *sol_state);
+			// TODO: first we need to reset the scene by loading it from file again
 			is_first_time_running_scripts = true;
 			is_scripts_running = false;
 		}

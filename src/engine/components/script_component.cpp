@@ -1,7 +1,7 @@
 #include "script_component.h"
 
 namespace Engine {
-	tl::expected<ScriptComponent, sol::error> build_script_component(sol::state& sol_state, std::filesystem::path script_filepath) {
+	tl::expected<ScriptComponent, sol::error> ScriptComponent::build(sol::state& sol_state, std::filesystem::path script_filepath) {
 		auto result = sol_state.script_file(script_filepath.string(), [](lua_State*, sol::protected_function_result pfr) {
 			return pfr;
 			});

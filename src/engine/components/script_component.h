@@ -9,7 +9,7 @@ namespace Engine {
 	struct ScriptComponent {
 		sol::table sol_module{};
 		std::filesystem::path filepath{};
+
+		static tl::expected<ScriptComponent, sol::error> build(sol::state& sol_state, std::filesystem::path script_filepath);
 	};
-	
-	tl::expected<ScriptComponent, sol::error> build_script_component(sol::state& sol_state, std::filesystem::path script_filepath);
 }
