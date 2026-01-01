@@ -64,6 +64,19 @@ void tag_invoke(ImReflect::ImInput_t, const char* label, glm::vec3& value, ImSet
 	/* Check hovered, activated, etc*/
 	ImReflect::Detail::check_input_states(t_response);
 }
+glm::vec3 glm_clamp_scale(glm::vec3 scale, float scale_min)
+{
+	if (std::abs(scale.x) < scale_min) {
+		scale.x = scale_min;
+	}
+	if (std::abs(scale.y) < scale_min) {
+		scale.y = scale_min;
+	}
+	if (std::abs(scale.z) < scale_min) {
+		scale.z = scale_min;
+	}
+	return scale;
+}
 void tag_invoke(ImReflect::ImInput_t, const char* label, glm::mat4& value, ImSettings& settings, ImResponse& response) {
 	auto& t_response = response.get<glm::mat4>();
 
@@ -82,15 +95,7 @@ void tag_invoke(ImReflect::ImInput_t, const char* label, glm::mat4& value, ImSet
 	changed |= ImGui::DragFloat3("scale", glm::value_ptr(scale));
 	if (changed) { t_response.changed(); }
 
-	if (std::abs(scale.x) < 0.01) {
-		scale.x = 0.01;
-	}
-	if (std::abs(scale.y) < 0.01) {
-		scale.y = 0.01;
-	}
-	if (std::abs(scale.z) < 0.01) {
-		scale.z = 0.01;
-	}
+	scale = glm_clamp_scale(scale, 0.0001);
 	value = glm::recompose(scale, glm::quat(glm::radians(rotation_euler_angle)), translation, skew, perspective);
 
 	/* Check hovered, activated, etc*/
