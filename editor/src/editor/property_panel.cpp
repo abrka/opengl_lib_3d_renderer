@@ -45,6 +45,7 @@ namespace Editor {
 			assert(is_null);
 			if (!is_null.cast<bool>()) {
 				ImGui::PushID(i);
+				ImGui::Spacing();
 				if (ImGui::Button("[-] Remove Component")) {
 					entt::meta_func remove_component_fn = type.func(Reflect::remove_component_func_name);
 					assert(remove_component_fn);
