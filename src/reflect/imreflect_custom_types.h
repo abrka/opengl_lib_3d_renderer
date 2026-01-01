@@ -65,33 +65,6 @@ void tag_invoke(ImReflect::ImInput_t, const char* label, glm::vec3& value, ImSet
 	ImReflect::Detail::check_input_states(t_response);
 }
 
-glm::mat4 glm_clamp_scale(glm::mat4 transform, float scale_min)
-{
-	if (std::abs(transform[0].x) <= scale_min) {
-		transform[0].x = scale_min;
-	}
-	if (std::abs(transform[1].y) <= scale_min) {
-		transform[1].y = scale_min;
-	}
-	if (std::abs(transform[2].z) <= scale_min) {
-		transform[2].z = scale_min;
-	}
-	return transform;
-}
-
-glm::vec3 glm_clamp_scale_vec3(glm::vec3 scale, float scale_min)
-{
-	if (std::abs(scale.x) <= scale_min) {
-		scale.x = scale_min;
-	}
-	if (std::abs(scale.y) <= scale_min) {
-		scale.y = scale_min;
-	}
-	if (std::abs(scale.z) <= scale_min) {
-		scale.z = scale_min;
-	}
-	return scale;
-}
 
 void tag_invoke(ImReflect::ImInput_t, const char* label, glm::mat4& value, ImSettings& settings, ImResponse& response) {
 	auto& t_response = response.get<glm::mat4>();
