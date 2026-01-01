@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <memory>
 #include <map>
+#include <string>
 
 #include <tl/expected.hpp>
 #include <glm/glm.hpp>
@@ -26,11 +27,13 @@ namespace AssetBuilder {
 		std::shared_ptr<GL3D::Texture> texture{};
 	};
 	struct Material {
-		std::map<std::string, Texture> uniforms_texture{};
 		std::map<std::string, int> uniforms_int{};
 		std::map<std::string, float> uniforms_float{};
 		std::map<std::string, glm::vec3> uniforms_vec3{};
 		std::map<std::string, glm::mat4> uniforms_mat4{};
+		std::map<std::string, std::string> uniforms_string{};
+		std::map<std::string, Texture> uniforms_texture{};
+
 		void set_uniform(const std::string& name, int value) {
 			uniforms_int[name] = value;
 		}
@@ -45,6 +48,48 @@ namespace AssetBuilder {
 		}
 		void set_uniform(const std::string& name, Texture value) {
 			uniforms_texture[name] = value;
+		}
+		void set_uniform(const std::string& name, std::string value) {
+			uniforms_string[name] = value;
+		}
+		template<typename T>
+		const T* get_uniform(const std::string& name) const {
+			assert(false);
+		}
+		template<>
+		const int* get_uniform<int>(const std::string& name) const {
+			if (uniforms_int.contains(name)) {
+				return &uniforms_int.at(name);
+			}
+			return nullptr;
+		}
+		template<>
+		const std::string* get_uniform<std::string>(const std::string& name) const {
+			if (uniforms_string.contains(name)) {
+				return &uniforms_string.at(name);
+			}
+			return nullptr;
+		}
+		template<>
+		const glm::vec3* get_uniform<glm::vec3>(const std::string& name) const {
+			if (uniforms_vec3.contains(name)) {
+				return &uniforms_vec3.at(name);
+			}
+			return nullptr;
+		}
+		template<>
+		const glm::mat4* get_uniform<glm::mat4>(const std::string& name) const {
+			if (uniforms_mat4.contains(name)) {
+				return &uniforms_mat4.at(name);
+			}
+			return nullptr;
+		}
+		template<>
+		const Texture* get_uniform<Texture>(const std::string& name) const {
+			if (uniforms_texture.contains(name)) {
+				return &uniforms_texture.at(name);
+			}
+			return nullptr;
 		}
 	};
 	struct Node;
