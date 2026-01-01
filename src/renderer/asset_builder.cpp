@@ -26,8 +26,6 @@ namespace AssetBuilder {
 		}
 		return num_floats_per_attribute;
 	}
-
-
 	std::vector<std::filesystem::path> get_all_texture_paths_from_type(const aiMaterial* ai_material, const aiTextureType ai_texture_type) {
 		std::vector<std::filesystem::path> texture_paths{};
 		auto num_textures = ai_material->GetTextureCount(ai_texture_type);
@@ -42,41 +40,41 @@ namespace AssetBuilder {
 		}
 		return texture_paths;
 	}
-
 	std::string ai_texture_type_to_uniform_name(const aiTextureType tex_type) {
 		static std::map<aiTextureType, std::string> map
 		{
-			{ aiTextureType_NONE				   , "u_texture_none"					},
-			{ aiTextureType_DIFFUSE				   , "u_texture_diffuse"				},
-			{ aiTextureType_SPECULAR			   , "u_texture_specular"				},
-			{ aiTextureType_AMBIENT				   , "u_texture_ambient"				},
-			{ aiTextureType_EMISSIVE			   , "u_texture_emissive"				},
-			{ aiTextureType_HEIGHT				   , "u_texture_height"					},
-			{ aiTextureType_NORMALS				   , "u_texture_normals"				},
-			{ aiTextureType_SHININESS			   , "u_texture_shininess"				},
-			{ aiTextureType_OPACITY				   , "u_texture_opacity"				},
-			{ aiTextureType_DISPLACEMENT		   , "u_texture_displacement"			},
-			{ aiTextureType_LIGHTMAP			   , "u_texture_lightmap"				},
-			{ aiTextureType_REFLECTION			   , "u_texture_reflection"				},
-			{ aiTextureType_BASE_COLOR			   , "u_texture_base_color"				},
-			{ aiTextureType_NORMAL_CAMERA		   , "u_texture_normal_camera"			},
-			{ aiTextureType_EMISSION_COLOR		   , "u_texture_emission_color"			},
-			{ aiTextureType_METALNESS 			   , "u_texture_metalness"				},
-			{ aiTextureType_DIFFUSE_ROUGHNESS	   , "u_texture_diffuse_roughness"		},
-			{ aiTextureType_AMBIENT_OCCLUSION 	   , "u_texture_ambient_occlusion"		},
-			{ aiTextureType_UNKNOWN 			   , "u_texture_unknown"				},
-			{ aiTextureType_SHEEN 				   , "u_texture_sheen"					},
-			{ aiTextureType_CLEARCOAT			   , "u_texture_clearcoat"				},
-			{ aiTextureType_TRANSMISSION		   , "u_texture_transmission"			},
-			{ aiTextureType_MAYA_BASE			   , "u_texture_maya_base"				},
-			{ aiTextureType_MAYA_SPECULAR		   , "u_texture_maya_specular"			},
-			{ aiTextureType_MAYA_SPECULAR_COLOR	   , "u_texture_maya_specular_color"	},
-			{ aiTextureType_MAYA_SPECULAR_ROUGHNESS, "u_texture_maya_specular_roughness"},
-			{ aiTextureType_ANISOTROPY			   , "u_texture_anisotropy"				},
-			{ aiTextureType_GLTF_METALLIC_ROUGHNESS, "u_texture_gltf_metallic_roughness"}
+			{ aiTextureType_NONE				   , "texture_none"					},
+			{ aiTextureType_DIFFUSE				   , "texture_diffuse"				},
+			{ aiTextureType_SPECULAR			   , "texture_specular"				},
+			{ aiTextureType_AMBIENT				   , "texture_ambient"				},
+			{ aiTextureType_EMISSIVE			   , "texture_emissive"				},
+			{ aiTextureType_HEIGHT				   , "texture_height"					},
+			{ aiTextureType_NORMALS				   , "texture_normals"				},
+			{ aiTextureType_SHININESS			   , "texture_shininess"				},
+			{ aiTextureType_OPACITY				   , "texture_opacity"				},
+			{ aiTextureType_DISPLACEMENT		   , "texture_displacement"			},
+			{ aiTextureType_LIGHTMAP			   , "texture_lightmap"				},
+			{ aiTextureType_REFLECTION			   , "texture_reflection"				},
+			{ aiTextureType_BASE_COLOR			   , "texture_base_color"				},
+			{ aiTextureType_NORMAL_CAMERA		   , "texture_normal_camera"			},
+			{ aiTextureType_EMISSION_COLOR		   , "texture_emission_color"			},
+			{ aiTextureType_METALNESS 			   , "texture_metalness"				},
+			{ aiTextureType_DIFFUSE_ROUGHNESS	   , "texture_diffuse_roughness"		},
+			{ aiTextureType_AMBIENT_OCCLUSION 	   , "texture_ambient_occlusion"		},
+			{ aiTextureType_UNKNOWN 			   , "texture_unknown"				},
+			{ aiTextureType_SHEEN 				   , "texture_sheen"					},
+			{ aiTextureType_CLEARCOAT			   , "texture_clearcoat"				},
+			{ aiTextureType_TRANSMISSION		   , "texture_transmission"			},
+			{ aiTextureType_MAYA_BASE			   , "texture_maya_base"				},
+			{ aiTextureType_MAYA_SPECULAR		   , "texture_maya_specular"			},
+			{ aiTextureType_MAYA_SPECULAR_COLOR	   , "texture_maya_specular_color"	},
+			{ aiTextureType_MAYA_SPECULAR_ROUGHNESS, "texture_maya_specular_roughness"},
+			{ aiTextureType_ANISOTROPY			   , "texture_anisotropy"				},
+			{ aiTextureType_GLTF_METALLIC_ROUGHNESS, "texture_gltf_metallic_roughness"}
 		};
 		return map.at(tex_type);
 	}
+
 	Material process_material(std::filesystem::path model_dir, const aiMaterial* ai_material, const std::map<std::filesystem::path, std::shared_ptr<GL3D::Texture>>& textures) {
 		Material mat{};
 
@@ -95,13 +93,46 @@ namespace AssetBuilder {
 			std::string texture_uniform_name = ai_texture_type_to_uniform_name(tex_type);
 			auto texture = textures.at(texture_path);
 			assert(texture);
-			mat.set_uniform(texture_uniform_name, Texture{ i_valid, texture });
+			mat.set_uniform("u_material." + texture_uniform_name, Texture{ i_valid, texture });
+			mat.set_uniform("u_material.has_" + texture_uniform_name, 1);
 			i_valid++;
+		}
+
+		aiColor4D ai_base_color{};
+		aiReturn ret = ai_material->Get(AI_MATKEY_BASE_COLOR, ai_base_color);
+		if (ret == aiReturn_SUCCESS) {
+			glm::vec4 color = assimp_vec4_to_glm_vec4(ai_base_color);
+			mat.set_uniform("u_material.base_color", glm::vec3(color));
+		}
+
+		aiColor4D ai_ambient_color{};
+		ret = ai_material->Get(AI_MATKEY_COLOR_AMBIENT, ai_ambient_color);
+		if (ret == aiReturn_SUCCESS) {
+			glm::vec4 color = assimp_vec4_to_glm_vec4(ai_ambient_color);
+			mat.set_uniform("u_material.ambient_color", glm::vec3(color));
+		}
+
+		aiColor4D ai_specular_color{};
+		ret = ai_material->Get(AI_MATKEY_COLOR_SPECULAR, ai_specular_color);
+		if (ret == aiReturn_SUCCESS) {
+			glm::vec4 color = assimp_vec4_to_glm_vec4(ai_specular_color);
+			mat.set_uniform("u_material.specular_color", glm::vec3(color));
+		}
+
+		aiColor4D ai_emissive_color{};
+		ret = ai_material->Get(AI_MATKEY_COLOR_EMISSIVE, ai_emissive_color);
+		if (ret == aiReturn_SUCCESS) {
+			glm::vec4 color = assimp_vec4_to_glm_vec4(ai_emissive_color);
+			mat.set_uniform("u_material.emissive_color", glm::vec3(color));
+		}
+
+		ai_real ai_shininess{};
+		ret = ai_material->Get(AI_MATKEY_SHININESS, ai_shininess);
+		if (ret == aiReturn_SUCCESS) {
+			mat.set_uniform("u_material.specular_strength", ai_shininess);
 		}
 		return mat;
 	}
-
-
 
 	Mesh process_mesh(std::filesystem::path model_dir, const aiScene* ai_scene, const aiMesh* ai_mesh, const std::map<std::filesystem::path, std::shared_ptr<GL3D::Texture>>& textures, Node& node) {
 		std::vector<VertexAttrib> vertex_attribs{};

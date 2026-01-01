@@ -11,3 +11,11 @@ glm::mat4 assimp_matrix_to_glm_matrix(const aiMatrix4x4& from)
 	to[0][3] = from.d1; to[1][3] = from.d2; to[2][3] = from.d3; to[3][3] = from.d4;
 	return to;
 }
+glm::vec4 assimp_vec4_to_glm_vec4(const aiColor4D& from) {
+	glm::vec4 to{};
+	to.r = from.r;
+	to.g = from.g;
+	to.b = from.b;
+	to.a = from.a;
+	return to;
+}

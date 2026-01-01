@@ -1,17 +1,30 @@
 #version 330 core
 
-
-uniform sampler2D u_texture_diffuse;
-
 struct Camera {
 	vec3 position;
 };
 uniform Camera u_camera;
 
 struct Material{
+	vec3 base_color;
+	
+	vec3 ambient_color;
+	sampler2D texture_ambient;
+
+	vec3 diffuse_color;
+	sampler2D texture_diffuse;
+	int has_texture_diffuse;
+
+	vec3 specular_color;
+	sampler2D texture_specular;
+
+	vec3 emissive_color;
+	sampler2D texture_emissive;
+
 	float ambient_strength;
 	float diffuse_strength;
 	float specular_strength;
+
 	float specular_alpha;
 };
 uniform Material u_material;
@@ -42,7 +55,10 @@ out vec4 FragColor;
 
 void main()
 {   
-	vec3 diffuse_texture_color = texture2D(u_texture_diffuse, fs_in.tex_coord).xyz;
+	vec3 diffuse_texture_color = u_material.base_color;
+	if (bool(u_material.has_texture_diffuse)){
+		 diffuse_texture_color *= texture2D(u_material.texture_diffuse, fs_in.tex_coord).xyz;
+	}
 
 	vec3 ambient_point_light = vec3(0.0);
 	vec3 diffuse_point_light = vec3(0.0);
