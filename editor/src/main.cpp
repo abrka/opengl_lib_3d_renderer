@@ -4,10 +4,11 @@
 #include "engine/components/components.h"
 #include "engine/systems/systems.h"
 #include "engine/loaders/loaders.h"
-#include "reflect/reflect.h"
 #include "editor/editor.h"
 #include "renderer/renderer.h"
 #include "input/input.h"
+#include "reflect/reflect.h"
+#include "reflect/reflect_sol.h"
 
 static bool cursor_state_changed = false;
 static float mouse_sensitivity = 0.005f;

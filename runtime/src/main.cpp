@@ -11,6 +11,7 @@
 #include "engine/systems/script_system.h"
 #include "input/input.h"
 #include "reflect/reflect.h"
+#include "reflect/reflect_sol.h"
 
 
 int main() {

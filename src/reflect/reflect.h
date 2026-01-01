@@ -1,6 +1,5 @@
 #pragma once
-
-#include <sol/sol.hpp>
+#include <sol/forward.hpp>
 #include <entt/fwd.hpp>
 
 #include "engine/components/components.h"
@@ -69,5 +68,4 @@ namespace Reflect {
 			.template func<&sol_add_component<T>>(sol_add_component_func_name);
 	}
 	void register_all_components();
-	void register_sol_usertypes(sol::state& sol_state);
 }
