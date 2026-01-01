@@ -56,41 +56,6 @@ namespace AssetBuilder {
 		const T* get_uniform(const std::string& name) const {
 			assert(false);
 		}
-		template<>
-		const int* get_uniform<int>(const std::string& name) const {
-			if (uniforms_int.contains(name)) {
-				return &uniforms_int.at(name);
-			}
-			return nullptr;
-		}
-		template<>
-		const std::string* get_uniform<std::string>(const std::string& name) const {
-			if (uniforms_string.contains(name)) {
-				return &uniforms_string.at(name);
-			}
-			return nullptr;
-		}
-		template<>
-		const glm::vec3* get_uniform<glm::vec3>(const std::string& name) const {
-			if (uniforms_vec3.contains(name)) {
-				return &uniforms_vec3.at(name);
-			}
-			return nullptr;
-		}
-		template<>
-		const glm::mat4* get_uniform<glm::mat4>(const std::string& name) const {
-			if (uniforms_mat4.contains(name)) {
-				return &uniforms_mat4.at(name);
-			}
-			return nullptr;
-		}
-		template<>
-		const Texture* get_uniform<Texture>(const std::string& name) const {
-			if (uniforms_texture.contains(name)) {
-				return &uniforms_texture.at(name);
-			}
-			return nullptr;
-		}
 	};
 	struct Node;
 	struct Mesh {

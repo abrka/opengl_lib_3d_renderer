@@ -19,6 +19,42 @@
 #include "texture_builder.h"
 
 namespace AssetBuilder {
+	template<>
+	const int* Material::get_uniform<int>(const std::string& name) const {
+		if (uniforms_int.contains(name)) {
+			return &uniforms_int.at(name);
+		}
+		return nullptr;
+	}
+	template<>
+	const std::string* Material::get_uniform<std::string>(const std::string& name) const {
+		if (uniforms_string.contains(name)) {
+			return &uniforms_string.at(name);
+		}
+		return nullptr;
+	}
+	template<>
+	const glm::vec3* Material::get_uniform<glm::vec3>(const std::string& name) const {
+		if (uniforms_vec3.contains(name)) {
+			return &uniforms_vec3.at(name);
+		}
+		return nullptr;
+	}
+	template<>
+	const glm::mat4* Material::get_uniform<glm::mat4>(const std::string& name) const {
+		if (uniforms_mat4.contains(name)) {
+			return &uniforms_mat4.at(name);
+		}
+		return nullptr;
+	}
+	template<>
+	const Texture* Material::get_uniform<Texture>(const std::string& name) const {
+		if (uniforms_texture.contains(name)) {
+			return &uniforms_texture.at(name);
+		}
+		return nullptr;
+	}
+
 	std::vector<int> get_num_floats_per_attribute(const std::vector<VertexAttrib>& vertex_attribs) {
 		std::vector<int> num_floats_per_attribute{};
 		for (const auto& vertex_attrib : vertex_attribs) {
