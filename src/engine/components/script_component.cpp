@@ -19,19 +19,6 @@ namespace Engine {
 			assert(ret);
 		}
 	}
-	static tl::expected<void,sol::error> call_sol_module_init_function(sol::table& sol_module)
-	{
-		sol::function sol_init_fn = sol_module["init"];
-		if (!sol_init_fn.valid()) {
-			return tl::make_unexpected(sol::error{ "lua module does not have an init function" });
-		}
-		auto sol_ret = sol_init_fn.call(sol_module);
-		if (!sol_ret.valid()) {
-			sol::error sol_err = sol_ret;
-			return tl::make_unexpected(sol_err);
-		}
-		return {};
-	}
 	tl::expected<ScriptComponent, sol::error> ScriptComponent::build(entt::registry& entt_registry, sol::state& sol_state, std::filesystem::path script_filepath, entt::entity entity) {
 		auto result = sol_state.script_file(script_filepath.string(), [](lua_State*, sol::protected_function_result pfr) {
 			return pfr;
@@ -45,10 +32,6 @@ namespace Engine {
 			return tl::make_unexpected(sol::error{ "lua script does not return a module table" });
 		}
 		set_sol_module_variables(sol_module, entt_registry, entity);
-		auto result_init = call_sol_module_init_function(sol_module);
-		if (!result_init) {
-			return tl::make_unexpected(result_init.error());
-		}
 		return ScriptComponent{ std::move(sol_module) };
 	}
 }

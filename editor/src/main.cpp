@@ -24,11 +24,11 @@ int main() {
 
 	entt::registry entt_registry{};
 	Reflect::register_all_components();
-	
+
 	GLExternalRAII::Window window{ 800, 800, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR };
 	window.key_callback = [&window](int key, int scancode, int action, int mods) {
 		key_callback(window.glfw_window, key, scancode, action, mods);
-	};
+		};
 
 	Input::Input input_system{ *window.glfw_window };
 	sol_state["Input"] = &input_system;
@@ -37,7 +37,7 @@ int main() {
 	Renderer::Renderer3D renderer{ window, entt_registry };
 	window.framebuffer_size_callback = [&renderer](int width, int height) {
 		renderer.on_window_resize(width, height);
-	};
+		};
 
 	entt::entity root_entity = entt_registry.create();
 	entt_registry.emplace<Engine::NameComponent>(root_entity, "root");
@@ -55,7 +55,7 @@ int main() {
 
 	renderer.custom_imgui_render_function = [&editor](Renderer::Renderer3D& renderer) {
 		editor.render();
-	};
+		};
 
 	entt::resource_cache<AssetBuilder::Scene, Engine::MeshLoader> mesh_cache{};
 	entt::resource_cache<GL3D::ShaderProgram, Engine::ShaderLoader> shader_cache{};
