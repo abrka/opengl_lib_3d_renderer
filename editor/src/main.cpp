@@ -32,7 +32,6 @@ int main() {
 
 	Input::Input input_system{ *window.glfw_window };
 	sol_state["Input"] = &input_system;
-	input_system.disable_cursor();
 
 	Renderer::Renderer3D renderer{ window, entt_registry };
 	window.framebuffer_size_callback = [&renderer](int width, int height) {
