@@ -37,6 +37,9 @@ int main() {
 
 	Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive> serializer{};
 	const char* filepath_c_str = tinyfd_openFileDialog("Scene File", NULL, 0, NULL, NULL, 0);
+	if (!filepath_c_str) {
+		return -1;
+	}
 	std::string filepath_str{ filepath_c_str };
 	std::ifstream ifs{ filepath_str };
 	serializer.load(entt_registry, ifs);
