@@ -76,6 +76,6 @@ void main()
 	vec3 diffuse_tot = diffuse_point_light;
 	vec3 specular_tot = specular_point_light;
 
-	vec3 color = diffuse_texture_color * (ambient_tot + diffuse_tot + specular_tot); 
+	vec3 color = diffuse_texture_color * (ambient_tot + diffuse_tot) + specular_tot; 
 	FragColor = vec4(color, 1.0);
 }
