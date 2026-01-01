@@ -24,8 +24,8 @@ namespace Renderer {
 			update_uniforms(shader, material.uniforms_mat4);
 		}
 		void draw_mesh(const AssetBuilder::Mesh& mesh, const AssetBuilder::Material& material, const GL3D::ShaderProgram& shader) {
-			update_all_uniforms(mesh.material, shader); // first set mesh specific uniforms like textures
-			update_all_uniforms(material, shader); // then set MeshComponent specific uniforms like ambient strength
+			update_all_uniforms(material, shader); // First set MeshComponent specific uniforms like ambient strength
+			update_all_uniforms(mesh.material, shader); // then set mesh specific uniforms like textures
 			mesh.mesh->draw(shader);
 		}
 		void render_scene(const AssetBuilder::Scene& scene, const AssetBuilder::Material& material, const GL3D::ShaderProgram& shader) {
