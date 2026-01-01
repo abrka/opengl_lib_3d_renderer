@@ -12,9 +12,6 @@
 #include "input/input.h"
 #include "reflect/reflect.h"
 
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
-
 
 int main() {
 	sol::state sol_state{};

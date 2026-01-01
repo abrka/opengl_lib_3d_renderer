@@ -9,9 +9,6 @@
 #include "renderer/renderer.h"
 #include "input/input.h"
 
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
-
 static bool cursor_state_changed = false;
 static float mouse_sensitivity = 0.005f;
 static float cam_speed = 0.02f;
