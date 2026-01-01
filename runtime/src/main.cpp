@@ -47,14 +47,13 @@ int main() {
 	entt::resource_cache<AssetBuilder::Scene, Engine::MeshLoader> mesh_cache{};
 	entt::resource_cache<GL3D::ShaderProgram, Engine::ShaderLoader> shader_cache{};
 
+	Engine::script_load_system(entt_registry, sol_state);
+	Engine::mesh_load_system(entt_registry, mesh_cache);
+	Engine::shader_load_system(entt_registry, shader_cache);
 	Engine::script_system_init(entt_registry);
 
 	while (window.is_running()) {
 		double prev_time = glfwGetTime();
-
-		Engine::script_load_system(entt_registry, sol_state);
-		Engine::mesh_load_system(entt_registry, mesh_cache);
-		Engine::shader_load_system(entt_registry, shader_cache);
 		Engine::script_system_tick(entt_registry, sol_state);
 		renderer.render();
 		double current_time = glfwGetTime();
