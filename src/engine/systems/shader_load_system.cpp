@@ -16,13 +16,17 @@ namespace Engine {
 			if (shader_info.vertex_filepath.empty()) {
 				continue;
 			}
+			if (!shader_info.requires_reload) {
+				continue;
+			}
 			entt::hashed_string hash{ (shader_info.vertex_filepath.string() + shader_info.fragment_filepath.string()).c_str() };
 			auto result = cache.load(hash, shader_info.fragment_filepath, shader_info.vertex_filepath).first->second;
 			if (!result) {
 				std::cerr << "[ERROR][ENGINE][SHADER LOAD SYSTEM]: " << Engine::ShaderLoader::get_last_error().err_msg << "\n";
 				continue;
 			}
-			entt_registry.emplace<Engine::ShaderComponent>(entity, Engine::ShaderComponent{ result });
+			entt_registry.emplace_or_replace<Engine::ShaderComponent>(entity, Engine::ShaderComponent{ result });
+			shader_info.requires_reload = false;
 		}
 	}
 }

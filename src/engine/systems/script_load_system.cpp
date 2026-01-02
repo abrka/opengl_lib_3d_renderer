@@ -9,9 +9,12 @@
 namespace Engine {
 	void script_load_system(entt::registry& entt_registry, sol::state& sol_state)
 	{
-		auto entt_view_script_infos = entt_registry.view<Engine::ScriptInfoComponent>(entt::exclude<Engine::ScriptComponent>);
+		auto entt_view_script_infos = entt_registry.view<Engine::ScriptInfoComponent>();
 		for (auto [entity, script_info] : entt_view_script_infos.each()) {
 			if (script_info.filepath.empty()) {
+				continue;
+			}
+			if (!script_info.requires_reload) {
 				continue;
 			}
 			auto script_component_result = Engine::ScriptComponent::build(entt_registry, sol_state, script_info.filepath, entity);
@@ -19,7 +22,8 @@ namespace Engine {
 				std::cerr << "[ERROR][ENGINE][SCRIPT LOAD SYSTEM]: " << script_component_result.error().what() << "\n";
 				continue;
 			}
-			entt_registry.emplace<Engine::ScriptComponent>(entity, *script_component_result);
+			entt_registry.emplace_or_replace<Engine::ScriptComponent>(entity, *script_component_result);
+			script_info.requires_reload = false;
 		}
 	}
 }

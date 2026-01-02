@@ -19,12 +19,54 @@ IMGUI_REFLECT(Renderer::Camera, position, orientation, fov, near_plane_dist, far
 IMGUI_REFLECT(Engine::CameraComponent, camera)
 IMGUI_REFLECT(Renderer::PointLight, color, ambient_strength, diffuse_strength, specular_strength)
 IMGUI_REFLECT(Engine::PointLightComponent, light)
-IMGUI_REFLECT(Engine::ScriptInfoComponent, filepath)
-IMGUI_REFLECT(Engine::MeshInfoComponent, filepath)
-IMGUI_REFLECT(Engine::ShaderInfoComponent, vertex_filepath, fragment_filepath)
 IMGUI_REFLECT(AssetBuilder::Material, uniforms_int, uniforms_float, uniforms_vec3, uniforms_mat4)
 IMGUI_REFLECT(Engine::MaterialComponent, material)
 
+void tag_invoke(ImReflect::ImInput_t, const char* label, Engine::MeshInfoComponent& value, ImSettings& settings, ImResponse& response) {
+	auto& t_response = response.get<Engine::MeshInfoComponent>();
+	ImGui::Indent();
+	auto response_fp = ImReflect::Input("filepath", value.filepath);
+	ImGui::Unindent();
+	bool changed = false;
+	if (response_fp.get<std::filesystem::path>().is_changed()) {
+		changed = true;
+		value.requires_reload = true;
+	}
+	if (changed) { t_response.changed(); }
+	/* Check hovered, activated, etc*/
+	ImReflect::Detail::check_input_states(t_response);
+}
+
+void tag_invoke(ImReflect::ImInput_t, const char* label, Engine::ShaderInfoComponent& value, ImSettings& settings, ImResponse& response) {
+	auto& t_response = response.get<Engine::ShaderInfoComponent>();
+	ImGui::Indent();
+	auto response_vert = ImReflect::Input("vertex filepath", value.vertex_filepath);
+	auto response_frag = ImReflect::Input("fragment filepath", value.fragment_filepath);
+	ImGui::Unindent();
+	bool changed = false;
+	if (response_vert.get<std::filesystem::path>().is_changed() || response_frag.get<std::filesystem::path>().is_changed()) {
+		changed = true;
+		value.requires_reload = true;
+	}
+	if (changed) { t_response.changed(); }
+	/* Check hovered, activated, etc*/
+	ImReflect::Detail::check_input_states(t_response);
+}
+
+void tag_invoke(ImReflect::ImInput_t, const char* label, Engine::ScriptInfoComponent& value, ImSettings& settings, ImResponse& response) {
+	auto& t_response = response.get<Engine::ScriptInfoComponent>();
+	ImGui::Indent();
+	auto response_fp = ImReflect::Input("filepath", value.filepath);
+	ImGui::Unindent();
+	bool changed = false;
+	if (response_fp.get<std::filesystem::path>().is_changed()) {
+		changed = true;
+		value.requires_reload = true;
+	}
+	if (changed) { t_response.changed(); }
+	/* Check hovered, activated, etc*/
+	ImReflect::Detail::check_input_states(t_response);
+}
 
 void tag_invoke(ImReflect::ImInput_t, const char* label, std::filesystem::path& value, ImSettings& settings, ImResponse& response) {
 	auto& t_response = response.get<std::filesystem::path>();

@@ -13,5 +13,6 @@ namespace Engine {
 	struct ShaderInfoComponent {
 		std::filesystem::path vertex_filepath{default_vertex_shader};
 		std::filesystem::path fragment_filepath{default_fragment_shader};
+		bool requires_reload{ true };
 	};
 }
