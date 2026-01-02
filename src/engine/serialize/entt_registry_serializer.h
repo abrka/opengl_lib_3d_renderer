@@ -29,9 +29,17 @@ namespace Engine {
 			snapshot.get<entt::entity>(archive);
 			snapshot_get_fn(archive, snapshot);
 		}
-		void save(entt::registry& entt_registry, std::ostream& os) {
-			OutputArchive archive{ os };
-			save(entt_registry, archive);
+		tl::expected<void, std::string> save(entt::registry& entt_registry, std::ostream& os) {
+			try
+			{
+				OutputArchive archive{ os };
+				save(entt_registry, archive);
+			}
+			catch (const std::exception& e)
+			{
+				return tl::make_unexpected(std::string{ e.what() });
+			}
+			return {};
 		}
 
 		void load(entt::registry& entt_registry, InputArchive& archive) {
@@ -40,9 +48,17 @@ namespace Engine {
 			snapshot_loader.get<entt::entity>(archive);
 			snapshot_loader_get_fn(archive, snapshot_loader);
 		}
-		void load(entt::registry& entt_registry, std::istream& is) {
-			InputArchive archive{ is };
-			load(entt_registry, archive);
+		tl::expected<void,std::string> load(entt::registry& entt_registry, std::istream& is) {
+			try
+			{
+				InputArchive archive{ is };
+				load(entt_registry, archive);
+			}
+			catch (const std::exception& e)
+			{
+				return tl::make_unexpected(std::string{ e.what() });
+			}
+			return {};
 		}
 	};
 }
