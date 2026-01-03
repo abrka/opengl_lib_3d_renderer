@@ -20,6 +20,14 @@
         "glfw-binding",
         "opengl3-binding"
       ]
+    },
+    {
+      "name": "joltphysics",
+      "features": [
+        "debugrenderer",
+        "profiler",
+        "rtti"
+      ]
     }
   ]
 }
