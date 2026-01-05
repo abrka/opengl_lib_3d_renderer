@@ -16,7 +16,7 @@
 #include <ImGuizmo.h>
 
 namespace Editor {
-	Editor3D::Editor3D(entt::registry& entt_registry,sol::state& sol_state, Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive>& serializer) : entt_registry(&entt_registry),sol_state(&sol_state), hierarchical_panel(entt_registry), component_panel(entt_registry), serializer(serializer) {
+	Editor3D::Editor3D(entt::registry& entt_registry, sol::state& sol_state, Physics::World& physics_world, Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive>& serializer) : entt_registry(&entt_registry), sol_state(&sol_state), physics_world(&physics_world), hierarchical_panel(entt_registry), component_panel(entt_registry), serializer(serializer) {
 
 	};
 
@@ -32,6 +32,7 @@ namespace Editor {
 		}
 		if (is_physics_running) {
 			Engine::physics_body_system_tick(*entt_registry);
+			physics_world->tick(1.0f / 60.0f);
 		}
 	}
 

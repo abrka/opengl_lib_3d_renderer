@@ -54,7 +54,7 @@ int main() {
 	Engine::add_child(entt_registry, root_entity, camera_entity);
 
 	Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive> serializer{};
-	Editor::Editor3D editor{ entt_registry,sol_state, serializer };
+	Editor::Editor3D editor{ entt_registry,sol_state,physics_world,serializer };
 
 	renderer.custom_imgui_render_function = [&editor](Renderer::Renderer3D& renderer) {
 		editor.render();
@@ -75,7 +75,6 @@ int main() {
 		Engine::mesh_load_system(entt_registry, mesh_cache);
 		Engine::shader_load_system(entt_registry, shader_cache);
 		Engine::physics_body_load_system(entt_registry, physics_world);
-		physics_world.tick(1.0f / 60.0f);
 		renderer.render();
 
 		double current_time = glfwGetTime();

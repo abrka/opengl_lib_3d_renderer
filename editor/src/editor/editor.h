@@ -13,13 +13,15 @@ namespace Renderer {
 namespace Editor {
 	class Editor3D {
 	public:
-		Editor3D(entt::registry& entt_registry, sol::state& sol_state, Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive>& serializer);
+		Editor3D(entt::registry& entt_registry, sol::state& sol_state,Physics::World& physics_world, Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive>& serializer);
 		void render();
 		void render_top_bar();
 	private:
-		entt::registry* entt_registry;
+		entt::registry* entt_registry{};
+		sol::state* sol_state{};
+		Physics::World* physics_world{};
 		Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive> serializer;
-		sol::state* sol_state;
+		
 		HierarchicalPanel hierarchical_panel;
 		PropertyPanel component_panel;
 
