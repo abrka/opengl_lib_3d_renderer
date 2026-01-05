@@ -3,6 +3,7 @@
 #include <glm/gtc/quaternion.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <entt/entt.hpp>
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/Body/Body.h>
@@ -20,6 +21,13 @@ namespace Engine {
 	static JPH::Quat glm_quat_to_jph_quat(const glm::quat& glm_quat) {
 		return JPH::Quat{ glm_quat.x, glm_quat.y, glm_quat.z, glm_quat.w };
 	};
+	static glm::vec3 jph_vec3_to_glm_vec3(const JPH::RVec3& jph_vec3) {
+		return glm::vec3{ jph_vec3.GetX(), jph_vec3.GetY(), jph_vec3.GetZ()};
+	}
+	static glm::quat jph_quat_to_glm_quat(const JPH::Quat& jph_quat) {
+		return glm::quat{ jph_quat.GetX(), jph_quat.GetY(), jph_quat.GetZ(), jph_quat.GetW()};
+	};
+
 	static glm::mat4 jph_mat4_to_glm_mat4(const JPH::RMat44& jph_mat4)
 	{
 		return glm::mat4{
@@ -54,8 +62,13 @@ namespace Engine {
 	{
 		auto entt_view_bodies = entt_registry.view<Engine::PhysicsBodyComponent, Engine::TransformComponent>();
 		for (auto [entity, body, transform] : entt_view_bodies.each()) {
-			JPH::RMat44 jph_transform = body.body->jph_body->GetWorldTransform();
-			transform.transform = jph_mat4_to_glm_mat4(jph_transform);
+			auto jph_position = body.body->jph_body->GetPosition();
+			auto position = jph_vec3_to_glm_vec3(jph_position);
+			auto jph_rotation = body.body->jph_body->GetRotation();
+			auto rotation = jph_quat_to_glm_quat(jph_rotation);
+
+			auto new_transform = glm::translate(glm::toMat4(rotation), position);
+			transform.transform = new_transform;
 		}
 	}
 }
