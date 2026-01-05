@@ -14,3 +14,5 @@
 #include "script_component.h"
 #include "script_info_component.h"
 #include "material_component.h"
+#include "physics_body_component.h"
+#include "physics_body_info_component.h"

@@ -16,5 +16,6 @@ namespace Engine {
 		snapshot.template get<Engine::ShaderInfoComponent>(archive);
 		snapshot.template get<Engine::ScriptInfoComponent>(archive);
 		snapshot.template get<Engine::MaterialComponent>(archive);
+		snapshot.template get<Engine::PhysicsBodyInfoComponent>(archive);
 	}
 }

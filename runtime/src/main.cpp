@@ -8,8 +8,8 @@
 #include "engine/loaders/loaders.h"
 #include "engine/systems/systems.h"
 #include "engine/serialize/entt_registry_serializer.h"
-#include "engine/systems/script_system.h"
 #include "input/input.h"
+#include "physics_wrapper/world.h"
 #include "reflect/reflect.h"
 #include "reflect/reflect_sol.h"
 
@@ -18,6 +18,8 @@ int main() {
 	sol::state sol_state{};
 	sol_state.open_libraries(sol::lib::base, sol::lib::package);
 	Reflect::register_sol_usertypes(sol_state);
+
+	Physics::World physics_world{};
 
 	entt::registry entt_registry{};
 	Reflect::register_all_components();
@@ -51,11 +53,15 @@ int main() {
 	Engine::script_load_system(entt_registry, sol_state);
 	Engine::mesh_load_system(entt_registry, mesh_cache);
 	Engine::shader_load_system(entt_registry, shader_cache);
+	Engine::physics_body_load_system(entt_registry, physics_world);
 	Engine::script_system_init(entt_registry);
+	
 
 	while (window.is_running()) {
 		double prev_time = glfwGetTime();
 		Engine::script_system_tick(entt_registry, sol_state);
+		Engine::physics_body_system_tick(entt_registry);
+		physics_world.tick(1.0f / 60.0f);
 		renderer.render();
 		double current_time = glfwGetTime();
 		double delta = current_time - prev_time;

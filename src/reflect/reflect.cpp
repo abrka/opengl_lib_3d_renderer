@@ -13,5 +13,6 @@ namespace Reflect {
 		register_component<Engine::MeshInfoComponent>("MeshInfoComponent");
 		register_component<Engine::ShaderInfoComponent>("ShaderInfoComponent");
 		register_component<Engine::ScriptInfoComponent>("ScriptInfoComponent");
+		register_component<Engine::PhysicsBodyInfoComponent>("PhysicsBodyInfoComponent");
 	}
 }

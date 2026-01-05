@@ -68,6 +68,26 @@ void tag_invoke(ImReflect::ImInput_t, const char* label, Engine::ScriptInfoCompo
 	ImReflect::Detail::check_input_states(t_response);
 }
 
+void tag_invoke(ImReflect::ImInput_t, const char* label, JPH::ShapeSettings& value, ImSettings& settings, ImResponse& response) {
+	auto& t_response = response.get<JPH::ShapeSettings>();
+	ImGui::Indent();
+	ImGui::Text("Not Implemented Yet");
+	ImGui::Unindent();
+	/* Check hovered, activated, etc*/
+	ImReflect::Detail::check_input_states(t_response);
+}
+
+void tag_invoke(ImReflect::ImInput_t, const char* label, Engine::PhysicsBodyInfoComponent& value, ImSettings& settings, ImResponse& response) {
+	auto& t_response = response.get<Engine::PhysicsBodyInfoComponent>();
+	ImGui::Indent();
+	ImReflect::Input("layer", value.layer);
+	ImReflect::Input("motion type", value.motion_type);
+	ImReflect::Input("collison shape", value.shape_settings);
+	ImGui::Unindent();
+	/* Check hovered, activated, etc*/
+	ImReflect::Detail::check_input_states(t_response);
+}
+
 void tag_invoke(ImReflect::ImInput_t, const char* label, std::filesystem::path& value, ImSettings& settings, ImResponse& response) {
 	auto& t_response = response.get<std::filesystem::path>();
 	bool changed = false;
@@ -119,7 +139,8 @@ void tag_invoke(ImReflect::ImInput_t, const char* label, glm::mat4& value, ImSet
 	glm::vec3 skew{};
 	glm::vec4 perspective{};
 
-	glm::decompose(value, scale, rotation, translation, skew, perspective);
+	bool success = glm::decompose(value, scale, rotation, translation, skew, perspective);
+	assert(success && "glm decompose was not successfull");
 
 	changed |= ImGui::DragFloat3("translation", glm::value_ptr(translation));
 	auto rotation_euler_angle = glm::degrees(glm::eulerAngles(rotation));

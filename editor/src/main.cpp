@@ -7,6 +7,7 @@
 #include "editor/editor.h"
 #include "renderer/renderer.h"
 #include "input/input.h"
+#include "physics_wrapper/world.h"
 #include "reflect/reflect.h"
 #include "reflect/reflect_sol.h"
 
@@ -22,6 +23,8 @@ int main() {
 	sol::state sol_state{};
 	sol_state.open_libraries(sol::lib::base, sol::lib::package);
 	Reflect::register_sol_usertypes(sol_state);
+
+	Physics::World physics_world{};
 
 	entt::registry entt_registry{};
 	Reflect::register_all_components();
@@ -51,7 +54,7 @@ int main() {
 	Engine::add_child(entt_registry, root_entity, camera_entity);
 
 	Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive> serializer{};
-	Editor::Editor3D editor{entt_registry,sol_state, serializer};
+	Editor::Editor3D editor{ entt_registry,sol_state, serializer };
 
 	renderer.custom_imgui_render_function = [&editor](Renderer::Renderer3D& renderer) {
 		editor.render();
@@ -67,10 +70,12 @@ int main() {
 		for (auto [entity, camera_component] : entt_view_camera.each()) {
 			process_input_for_camera_movement(window.glfw_window, camera_component.camera);
 		}
-	
+
 		Engine::script_load_system(entt_registry, sol_state);
 		Engine::mesh_load_system(entt_registry, mesh_cache);
 		Engine::shader_load_system(entt_registry, shader_cache);
+		Engine::physics_body_load_system(entt_registry, physics_world);
+		physics_world.tick(1.0f / 60.0f);
 		renderer.render();
 
 		double current_time = glfwGetTime();

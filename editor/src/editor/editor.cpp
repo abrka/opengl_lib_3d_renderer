@@ -7,7 +7,7 @@
 #include <tinyfiledialogs/tinyfiledialogs.h>
 
 #include "engine/components/components.h"
-#include "engine/systems/script_system.h"
+#include "engine/systems/systems.h"
 #include "editor/hierarchical_panel.h"
 #include "editor/property_panel.h"
 
@@ -30,6 +30,9 @@ namespace Editor {
 		if (is_scripts_running) {
 			Engine::script_system_tick(*entt_registry, *sol_state);
 		}
+		if (is_physics_running) {
+			Engine::physics_body_system_tick(*entt_registry);
+		}
 	}
 
 	void Editor3D::render_top_bar()
@@ -39,11 +42,13 @@ namespace Editor {
 			if (ImGui::Button("[Run]")) {
 				Engine::script_system_init(*entt_registry);
 				is_scripts_running = true;
+				is_physics_running = true;
 			}
 		}
 		else {
 			if (ImGui::Button("[Pause]")) {
 				is_scripts_running = false;
+				is_physics_running = false;
 			}
 		}
 		ImGui::SameLine();
@@ -51,11 +56,13 @@ namespace Editor {
 			// TODO: first we need to reset the scene by loading it from file again
 			Engine::script_system_init(*entt_registry);
 			is_scripts_running = true;
+			is_physics_running = true;
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("[Stop]")) {
 			// TODO: first we need to reset the scene by loading it from file again
 			is_scripts_running = false;
+			is_physics_running = false;
 		}
 		ImGui::End();
 	}
@@ -83,8 +90,8 @@ namespace Editor {
 		}
 	}
 
-	void Editor3D::render_save_load_panel() {
-		ImGui::Begin("Serialize");
+	void Editor3D::render_save_button()
+	{
 		if (ImGui::Button("Save")) {
 			const char* filepath_c_str = tinyfd_saveFileDialog("Save scene to file", "", 0, NULL, NULL);
 			if (!filepath_c_str) {
@@ -99,7 +106,10 @@ namespace Editor {
 				serializer.save(*entt_registry, of);
 			}
 		}
-		ImGui::SameLine();
+	}
+
+	void Editor3D::render_load_button()
+	{
 		if (ImGui::Button("Load")) {
 			const char* filepath_c_str = tinyfd_openFileDialog("Load scene from file", "", 0, NULL, NULL, 0);
 			if (!filepath_c_str) {
@@ -112,6 +122,13 @@ namespace Editor {
 			}
 			serializer.load(*entt_registry, ifs);
 		}
+	}
+
+	void Editor3D::render_save_load_panel() {
+		ImGui::Begin("Serialize");
+		render_save_button();
+		ImGui::SameLine();
+		render_load_button();
 		ImGui::End();
 	}
 }

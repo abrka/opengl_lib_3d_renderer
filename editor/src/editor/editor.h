@@ -22,8 +22,12 @@ namespace Editor {
 		sol::state* sol_state;
 		HierarchicalPanel hierarchical_panel;
 		PropertyPanel component_panel;
-		bool is_scripts_running{ false };
 
+		bool is_scripts_running{ false };
+		bool is_physics_running{ false };
+
+		void render_save_button();
+		void render_load_button();
 		void render_save_load_panel();
 		void render_imguizmo();
 	};

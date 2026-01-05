@@ -110,6 +110,10 @@ namespace Engine {
 	void serialize(Archive& archive, MaterialComponent& t) {
 		archive(cereal::make_nvp("material", t.material));
 	}
+	template<class Archive>
+	void serialize(Archive& archive, PhysicsBodyInfoComponent& t) {
+		archive(cereal::make_nvp("motion_type", t.motion_type), cereal::make_nvp("layer", t.layer));
+	}
 }
 
 namespace Renderer {

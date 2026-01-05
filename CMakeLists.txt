@@ -44,6 +44,9 @@ target_link_libraries(abrka_game_engine PUBLIC sol2::sol2)
 find_package(tinyfiledialogs CONFIG REQUIRED)
 target_link_libraries(abrka_game_engine PUBLIC tinyfiledialogs::tinyfiledialogs)
 
+find_package(Jolt CONFIG REQUIRED)
+target_link_libraries(abrka_game_engine PUBLIC Jolt::Jolt)
+
 option(ABRKA_GAME_ENGINE_BUILD_DOCS "Build Documentation" ON)
 if(${ABRKA_GAME_ENGINE_BUILD_DOCS})
     add_subdirectory(docs)
