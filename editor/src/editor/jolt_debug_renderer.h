@@ -1,12 +1,13 @@
 #pragma once
 
+#include <optional>
 #include <string_view>
 #include <Jolt/Jolt.h>
 #include <Jolt/Renderer/DebugRendererSimple.h>
 #include <entt/fwd.hpp>
 #include <imgui.h>
 #include "renderer/camera.h"
-#include <GL3D/shader_program.h>
+
 
 namespace Editor {
     
@@ -19,6 +20,6 @@ namespace Editor {
     private:
         entt::registry* entt_registry{};
         Renderer::Camera* get_camera();
-        ImVec2 transform_jph_point_to_imgui_point(const JPH::Vec3& jph_point);
+        std::optional<ImVec2> transform_jph_point_to_imgui_point(const JPH::Vec3& jph_point);
     };
 }

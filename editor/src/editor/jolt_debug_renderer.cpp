@@ -31,18 +31,33 @@ namespace Editor {
 	void JoltDebugRenderer::DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor)
 	{
 		auto* draw_list = ImGui::GetBackgroundDrawList();
-		draw_list->AddLine(transform_jph_point_to_imgui_point(inFrom), transform_jph_point_to_imgui_point(inTo), inColor.GetUInt32());
+		auto v1 = transform_jph_point_to_imgui_point(inFrom);
+		auto v2 = transform_jph_point_to_imgui_point(inTo);
+		if (!v1 || !v2) {
+			return;
+		}
+		draw_list->AddLine(*v1, *v2, inColor.GetUInt32());
 	}
 	void JoltDebugRenderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, ECastShadow inCastShadow)
 	{
 		auto* draw_list = ImGui::GetBackgroundDrawList();
-		draw_list->AddTriangle(transform_jph_point_to_imgui_point(inV1), transform_jph_point_to_imgui_point(inV2), transform_jph_point_to_imgui_point(inV3), inColor.GetUInt32());
+		auto v1 = transform_jph_point_to_imgui_point(inV1);
+		auto v2 = transform_jph_point_to_imgui_point(inV2);
+		auto v3 = transform_jph_point_to_imgui_point(inV3);
+		if (!v1 || !v2 || !v3) {
+			return;
+		}
+		draw_list->AddTriangleFilled(*v1, *v2, *v3, inColor.GetUInt32());
 	}
 
 	void JoltDebugRenderer::DrawText3D(JPH::RVec3Arg inPosition, const std::string_view& inString, JPH::ColorArg inColor, float inHeight)
 	{
 		auto* draw_list = ImGui::GetBackgroundDrawList();
-		draw_list->AddText(transform_jph_point_to_imgui_point(inPosition), inColor.GetUInt32(), inString.data());
+		auto pos = transform_jph_point_to_imgui_point(inPosition);
+		if (!pos) {
+			return;
+		}
+		draw_list->AddText(*pos, inColor.GetUInt32(), inString.data());
 	}
 	Renderer::Camera* JoltDebugRenderer::get_camera()
 	{
@@ -52,18 +67,18 @@ namespace Editor {
 		}
 		return nullptr;
 	}
-	ImVec2 JoltDebugRenderer::transform_jph_point_to_imgui_point(const JPH::Vec3& jph_point)
+	std::optional<ImVec2> JoltDebugRenderer::transform_jph_point_to_imgui_point(const JPH::Vec3& jph_point)
 	{
 		glm::vec3 point = jph_vec3_to_glm_vec3(jph_point);
 		auto* camera = get_camera();
 		if (!camera) {
-			return {};
+			return std::nullopt;
 		}
 
 		glm::vec4 point_clip_space = camera->get_projection_matrix() * camera->get_view_matrix() * glm::vec4{ point, 1.0f };
 		glm::vec4 point_ndc = point_clip_space / point_clip_space.w;
 		if (point_ndc.z < -1.0f || point_ndc.z > 1.0f) {
-			return {};
+			return std::nullopt;
 		}
 
 		auto [screen_width, screen_height] = ImGui::GetMainViewport()->Size;
