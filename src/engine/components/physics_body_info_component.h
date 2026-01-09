@@ -12,7 +12,7 @@ namespace Engine {
 		JPH::ObjectLayer layer{};
 
 		PhysicsBodyInfoComponent() {
-			shape_settings = std::make_unique<JPH::BoxShapeSettings>(JPH::RVec3{0.5f,0.5f,0.5f});
+			shape_settings = std::make_unique<JPH::BoxShapeSettings>(JPH::RVec3{0.1f, 0.1f, 0.1f});
 			shape_settings->SetEmbedded();
 			motion_type = JPH::EMotionType::Dynamic;
 			layer = Physics::Layers::MOVING;

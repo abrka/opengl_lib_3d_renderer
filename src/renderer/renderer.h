@@ -22,13 +22,14 @@ namespace Renderer {
 	class Renderer3D : public GLRenderer::RendererBase
 	{
 	public:
-		entt::registry* entt_registry{};
 		std::function<void(Renderer3D&)> custom_imgui_render_function{};
+		std::function<void(Renderer3D&)> custom_render_function{};
 		Renderer3D(GLExternalRAII::Window& window, entt::registry& entt_registry);
 		void on_window_resize(int width, int height);
 		void render_user() override;
 		virtual ~Renderer3D();
 	private:
+		entt::registry* entt_registry{};
 		std::unique_ptr<GL3D::Mesh> screen_quad_mesh{};
 		std::unique_ptr<GL3D::ShaderProgram> screen_shader{};
 		std::unique_ptr<GL3D::Framebuffer> framebuffer{};

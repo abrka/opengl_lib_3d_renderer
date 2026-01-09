@@ -68,9 +68,9 @@ namespace Renderer {
 		glEnable(GL_BLEND); // enable blending function
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+		auto [screen_width, screen_height] = window->get_width_and_height();
 		auto entt_view_camera = entt_registry->view<Engine::CameraComponent>();
 		for (auto [entity, camera_component] : entt_view_camera.each()) {
-			auto [screen_width, screen_height] = window->get_width_and_height();
 			camera_component.camera.aspect_ratio = (float)screen_width / (float)screen_height;
 		}
 
@@ -79,6 +79,9 @@ namespace Renderer {
 		detail::set_mvp_uniforms_system(*entt_registry);
 		detail::set_camera_uniform_system(*entt_registry);
 		detail::render_mesh_system(*entt_registry);
+		if (custom_render_function) {
+			custom_render_function(*this);
+		}
 
 		framebuffer->unbind();
 

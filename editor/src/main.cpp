@@ -56,9 +56,12 @@ int main() {
 	Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive> serializer{};
 	Editor::Editor3D editor{ entt_registry,sol_state,physics_world,serializer };
 
-	renderer.custom_imgui_render_function = [&editor](Renderer::Renderer3D& renderer) {
+	renderer.custom_imgui_render_function = [&editor](Renderer::Renderer3D&) {
 		editor.render();
 		};
+	renderer.custom_render_function = [&editor](Renderer::Renderer3D&) {
+		editor.render_jolt_debug();
+	};
 
 	entt::resource_cache<AssetBuilder::Scene, Engine::MeshLoader> mesh_cache{};
 	entt::resource_cache<GL3D::ShaderProgram, Engine::ShaderLoader> shader_cache{};

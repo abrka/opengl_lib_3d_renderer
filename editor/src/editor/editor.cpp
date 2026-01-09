@@ -5,6 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <entt/entt.hpp>
 #include <tinyfiledialogs/tinyfiledialogs.h>
+#include <Jolt/Physics/PhysicsSystem.h>
 
 #include "engine/components/components.h"
 #include "engine/systems/systems.h"
@@ -16,7 +17,7 @@
 #include <ImGuizmo.h>
 
 namespace Editor {
-	Editor3D::Editor3D(entt::registry& entt_registry, sol::state& sol_state, Physics::World& physics_world, Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive>& serializer) : entt_registry(&entt_registry), sol_state(&sol_state), physics_world(&physics_world), hierarchical_panel(entt_registry), component_panel(entt_registry), serializer(serializer) {
+	Editor3D::Editor3D(entt::registry& entt_registry, sol::state& sol_state, Physics::World& physics_world, Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive>& serializer) : entt_registry(&entt_registry), sol_state(&sol_state), physics_world(&physics_world), hierarchical_panel(entt_registry), component_panel(entt_registry), serializer(serializer), jolt_debug_renderer(entt_registry) {
 
 	};
 
@@ -89,6 +90,30 @@ namespace Editor {
 			auto& camera = camera_component.camera;
 			ImGuizmo::Manipulate(glm::value_ptr(camera.get_view_matrix()), glm::value_ptr(camera.get_projection_matrix()), ImGuizmo::OPERATION::UNIVERSAL, ImGuizmo::MODE::LOCAL, glm::value_ptr(transform_comp->transform));
 		}
+	}
+	static JPH::Vec3 glm_vec3_to_jph_vec3(const glm::vec3& glm_vec3) {
+		return JPH::Vec3{ glm_vec3.x, glm_vec3.y, glm_vec3.z };
+	}
+
+	void Editor3D::render_jolt_debug()
+	{
+		JPH::BodyManager::DrawSettings settings{};
+		settings.mDrawBoundingBox = true;
+		settings.mDrawCenterOfMassTransform = true;
+		settings.mDrawShape = true;
+		settings.mDrawShapeWireframe = true;
+		settings.mDrawVelocity = true;
+		settings.mDrawSleepStats = true;
+		settings.mDrawVelocity = true;
+		settings.mDrawWorldTransform = true;
+
+		auto entt_view_camera = entt_registry->view<const Engine::CameraComponent>();
+		for (auto [entity, camera_component] : entt_view_camera.each()) {
+			auto& camera = camera_component.camera;
+			jolt_debug_renderer.SetCameraPos(glm_vec3_to_jph_vec3(camera.position));
+		};
+		physics_world->jph_physics_system->DrawBodies(settings, &jolt_debug_renderer);
+		jolt_debug_renderer.NextFrame();
 	}
 
 	void Editor3D::render_save_button()

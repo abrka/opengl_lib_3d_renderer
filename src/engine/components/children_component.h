@@ -1,9 +1,6 @@
 #pragma once
 
 #include <vector>
-#pragma once
-
-#include <vector>
 #include <entt/fwd.hpp>
 #include "parent_component.h"
 
