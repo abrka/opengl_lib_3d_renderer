@@ -16,8 +16,6 @@ namespace Editor {
 	public:
 		Editor3D(entt::registry& entt_registry, sol::state& sol_state, Physics::World& physics_world, Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive>& serializer);
 		void render();
-		void render_jolt_debug();
-
 	private:
 		entt::registry* entt_registry{};
 		sol::state* sol_state{};
@@ -36,6 +34,7 @@ namespace Editor {
 		void render_load_button();
 		void render_save_load_panel();
 		void render_imguizmo();
-
+		void render_jolt_shape_of_selected_entity();
+		void render_jolt_debug();
 	};
 }

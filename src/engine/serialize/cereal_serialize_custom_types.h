@@ -27,7 +27,7 @@ namespace cereal {
 }
 namespace glm {
 	template<class Archive>
-	void serialize(Archive& archive, glm::mat4& t) {
+	void serialize(Archive& archive, mat4& t) {
 		archive(
 			cereal::make_nvp("v0", t[0]),
 			cereal::make_nvp("v1", t[1]),
@@ -36,7 +36,7 @@ namespace glm {
 		);
 	}
 	template<class Archive>
-	void serialize(Archive& archive, glm::vec4& t) {
+	void serialize(Archive& archive, vec4& t) {
 		archive(
 			cereal::make_nvp("x", t.x),
 			cereal::make_nvp("y", t.y),
@@ -45,7 +45,7 @@ namespace glm {
 		);
 	}
 	template<class Archive>
-	void serialize(Archive& archive, glm::vec3& t) {
+	void serialize(Archive& archive, vec3& t) {
 		archive(
 			cereal::make_nvp("x", t.x),
 			cereal::make_nvp("y", t.y),
@@ -112,7 +112,10 @@ namespace Engine {
 	}
 	template<class Archive>
 	void serialize(Archive& archive, PhysicsBodyInfoComponent& t) {
-		archive(cereal::make_nvp("motion_type", t.motion_type), cereal::make_nvp("layer", t.layer));
+		archive(
+			cereal::make_nvp("motion_type", t.motion_type),
+			cereal::make_nvp("layer", t.layer)
+		);
 	}
 }
 

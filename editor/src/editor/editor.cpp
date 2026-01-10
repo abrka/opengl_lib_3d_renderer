@@ -6,15 +6,15 @@
 #include <entt/entt.hpp>
 #include <tinyfiledialogs/tinyfiledialogs.h>
 #include <Jolt/Physics/PhysicsSystem.h>
+#include <imgui.h>
+#include <imgui_internal.h>
+#include <ImGuizmo.h>
 
 #include "engine/components/components.h"
 #include "engine/systems/systems.h"
 #include "editor/hierarchical_panel.h"
 #include "editor/property_panel.h"
-
-#include <imgui.h>
-#include <imgui_internal.h>
-#include <ImGuizmo.h>
+#include "utils/jph_math_to_glm_math.h"
 
 namespace Editor {
 	Editor3D::Editor3D(entt::registry& entt_registry, sol::state& sol_state, Physics::World& physics_world, Engine::EnttRegistrySerializer<cereal::XMLInputArchive, cereal::XMLOutputArchive>& serializer) : entt_registry(&entt_registry), sol_state(&sol_state), physics_world(&physics_world), hierarchical_panel(entt_registry), component_panel(entt_registry), serializer(serializer), jolt_debug_renderer(entt_registry) {
@@ -28,12 +28,39 @@ namespace Editor {
 		hierarchical_panel.render();
 		component_panel.render(hierarchical_panel.selected_entity);
 		render_imguizmo();
+
+		render_jolt_shape_of_selected_entity();
+
 		if (is_scripts_running) {
 			Engine::script_system_tick(*entt_registry, *sol_state);
 		}
 		if (is_physics_running) {
-			Engine::physics_body_system_tick(*entt_registry);
 			physics_world->tick(1.0f / 60.0f);
+			Engine::physics_body_system_tick(*entt_registry);
+			render_jolt_debug();
+		}
+	}
+
+	void Editor3D::render_jolt_shape_of_selected_entity()
+	{
+		if (!hierarchical_panel.selected_entity) {
+			return;
+		}
+		Engine::TransformComponent* transform_comp = entt_registry->try_get<Engine::TransformComponent>(hierarchical_panel.selected_entity.value());
+		if (!transform_comp) {
+			return;
+		}
+		Engine::PhysicsBodyInfoComponent* physics_body_info = entt_registry->try_get<Engine::PhysicsBodyInfoComponent>(hierarchical_panel.selected_entity.value());
+		if (!physics_body_info) {
+			return;
+		}
+		JPH::Mat44 transform = glm_mat4_to_jph_mat4(transform_comp->transform);
+
+		assert(physics_body_info->shape_settings);
+		physics_body_info->shape_settings->ClearCachedResult();
+		auto shape_result = physics_body_info->shape_settings->Create();
+		if (shape_result.IsValid()) {
+			shape_result.Get()->Draw(&jolt_debug_renderer, transform, JPH::Vec3{ 1.0f,1.0f,1.0f }, JPH::Color::sRed, true, true);
 		}
 	}
 

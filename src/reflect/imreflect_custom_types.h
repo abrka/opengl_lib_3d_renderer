@@ -21,6 +21,7 @@ IMGUI_REFLECT(Renderer::PointLight, color, ambient_strength, diffuse_strength, s
 IMGUI_REFLECT(Engine::PointLightComponent, light)
 IMGUI_REFLECT(AssetBuilder::Material, uniforms_int, uniforms_float, uniforms_vec3, uniforms_mat4)
 IMGUI_REFLECT(Engine::MaterialComponent, material)
+IMGUI_REFLECT(Engine::PhysicsBodyInfoComponent, layer, motion_type, shape_settings)
 
 void tag_invoke(ImReflect::ImInput_t, const char* label, Engine::MeshInfoComponent& value, ImSettings& settings, ImResponse& response) {
 	auto& t_response = response.get<Engine::MeshInfoComponent>();
@@ -68,21 +69,18 @@ void tag_invoke(ImReflect::ImInput_t, const char* label, Engine::ScriptInfoCompo
 	ImReflect::Detail::check_input_states(t_response);
 }
 
-void tag_invoke(ImReflect::ImInput_t, const char* label, JPH::ShapeSettings& value, ImSettings& settings, ImResponse& response) {
-	auto& t_response = response.get<JPH::ShapeSettings>();
-	ImGui::Indent();
-	ImGui::Text("Not Implemented Yet");
-	ImGui::Unindent();
-	/* Check hovered, activated, etc*/
-	ImReflect::Detail::check_input_states(t_response);
-}
 
 void tag_invoke(ImReflect::ImInput_t, const char* label, Engine::PhysicsBodyInfoComponent& value, ImSettings& settings, ImResponse& response) {
 	auto& t_response = response.get<Engine::PhysicsBodyInfoComponent>();
+	ImGui::SeparatorText(label);
 	ImGui::Indent();
 	ImReflect::Input("layer", value.layer);
 	ImReflect::Input("motion type", value.motion_type);
-	ImReflect::Input("collison shape", value.shape_settings);
+	assert(value.shape_settings);
+	if (auto* shape_settings = dynamic_cast<JPH::BoxShapeSettings*>(value.shape_settings.get())) {
+		ImReflect::Input("half extent", shape_settings->mHalfExtent);
+		ImReflect::Input("convex radius", shape_settings->mConvexRadius);
+	}
 	ImGui::Unindent();
 	/* Check hovered, activated, etc*/
 	ImReflect::Detail::check_input_states(t_response);
@@ -126,7 +124,16 @@ void tag_invoke(ImReflect::ImInput_t, const char* label, glm::vec3& value, ImSet
 	/* Check hovered, activated, etc*/
 	ImReflect::Detail::check_input_states(t_response);
 }
+void tag_invoke(ImReflect::ImInput_t, const char* label, JPH::Vec3& value, ImSettings& settings, ImResponse& response) {
+	auto& t_response = response.get<JPH::Vec3>();
 
+	bool changed = ImGui::DragFloat3(label, value.mF32);
+	value.mF32[3] = value.mF32[2]; // make sure the w component and z component are equal since jolt requires this
+	if (changed) { t_response.changed(); }
+
+	/* Check hovered, activated, etc*/
+	ImReflect::Detail::check_input_states(t_response);
+}
 
 void tag_invoke(ImReflect::ImInput_t, const char* label, glm::mat4& value, ImSettings& settings, ImResponse& response) {
 	auto& t_response = response.get<glm::mat4>();

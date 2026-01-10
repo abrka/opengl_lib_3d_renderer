@@ -6,6 +6,9 @@
 
 #include <entt/entt.hpp>
 #include <cereal/archives/xml.hpp>
+#include <Jolt/Jolt.h>
+#include <Jolt/ObjectStream/ObjectStreamTextIn.h>
+#include <Jolt/ObjectStream/ObjectStreamTextOut.h>
 
 #include "engine/loaders/mesh_loader.h"
 #include "engine/loaders/shader_loader.h"
@@ -34,6 +37,7 @@ namespace Engine {
 			{
 				OutputArchive archive{ os };
 				save(entt_registry, archive);
+				
 			}
 			catch (const std::exception& e)
 			{
