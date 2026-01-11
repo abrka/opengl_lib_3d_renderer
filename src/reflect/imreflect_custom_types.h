@@ -78,8 +78,14 @@ void tag_invoke(ImReflect::ImInput_t, const char* label, Engine::PhysicsBodyInfo
 	ImReflect::Input("motion type", value.motion_type);
 	assert(value.shape_settings);
 	if (auto* shape_settings = dynamic_cast<JPH::BoxShapeSettings*>(value.shape_settings.get())) {
-		ImReflect::Input("half extent", shape_settings->mHalfExtent);
-		ImReflect::Input("convex radius", shape_settings->mConvexRadius);
+		ImGui::SeparatorText("Collision Shape");
+		ImGui::Indent();
+		auto response_1 = ImReflect::Input("half extent", shape_settings->mHalfExtent);
+		auto response_2 = ImReflect::Input("convex radius", shape_settings->mConvexRadius);
+		if (response_1.get<JPH::Vec3>().is_changed() || response_2.get<float>().is_changed()) {
+			value.requires_reload = true;
+		}
+		ImGui::Unindent();
 	}
 	ImGui::Unindent();
 	/* Check hovered, activated, etc*/

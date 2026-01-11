@@ -26,15 +26,26 @@ namespace Editor {
 		PropertyPanel component_panel;
 		JoltDebugRenderer jolt_debug_renderer;
 
-		bool is_scripts_running{ false };
-		bool is_physics_running{ false };
+		std::optional<std::filesystem::path> last_saved_scene{};
+
+		enum class GameState {
+			RUNNING,
+			PAUSED,
+			STOPPED
+		};
+		GameState game_state{ GameState::STOPPED };
+
+		void reload_scene_from_last_saved_file();
+		void save_scene_to_last_saved_file();
+		void save_scene_popup();
 
 		void render_top_bar();
+		void render_stop_scene_button();
 		void render_save_button();
 		void render_load_button();
 		void render_save_load_panel();
 		void render_imguizmo();
-		void render_jolt_shape_of_selected_entity();
+		void render_jolt_shape_of_entity(entt::entity entity);
 		void render_jolt_debug();
 	};
 }

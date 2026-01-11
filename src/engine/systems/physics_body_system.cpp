@@ -18,8 +18,11 @@
 namespace Engine {
 	void physics_body_load_system(entt::registry& entt_registry, Physics::World& physics_world)
 	{
-		auto entt_view_bodies = entt_registry.view<Engine::PhysicsBodyInfoComponent, Engine::TransformComponent>(entt::exclude<Engine::PhysicsBodyComponent>);
+		auto entt_view_bodies = entt_registry.view<Engine::PhysicsBodyInfoComponent, Engine::TransformComponent>();
 		for (auto [entity, body_info, transform] : entt_view_bodies.each()) {
+			if (!body_info.requires_reload) {
+				continue;
+			}
 			glm::vec3 scale{};
 			glm::quat rotation{};
 			glm::vec3 translation{};
@@ -33,6 +36,7 @@ namespace Engine {
 			JPH::BodyCreationSettings settings{ body_info.shape_settings.get() ,jph_position,jph_rotation, body_info.motion_type, body_info.layer};
 			auto body = std::make_unique<Physics::Body>(physics_world, settings);
 			entt_registry.emplace_or_replace<Engine::PhysicsBodyComponent>(entity, Engine::PhysicsBodyComponent{ std::move(body) });
+			body_info.requires_reload = false;
 		}
 	}
 	void physics_body_system_tick(entt::registry& entt_registry)

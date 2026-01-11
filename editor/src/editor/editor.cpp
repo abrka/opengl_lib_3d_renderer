@@ -28,29 +28,36 @@ namespace Editor {
 		hierarchical_panel.render();
 		component_panel.render(hierarchical_panel.selected_entity);
 		render_imguizmo();
+		
+		bool is_physics_running = (game_state == GameState::RUNNING);
+		bool is_scripts_running = (game_state == GameState::RUNNING);
 
-		render_jolt_shape_of_selected_entity();
+		if (!is_physics_running) {
+			auto entt_view_physics_bodies = entt_registry->view<Engine::PhysicsBodyInfoComponent, Engine::TransformComponent>();
+			for (auto entity : entt_view_physics_bodies) {
+				render_jolt_shape_of_entity(entity);
+			}
+		}
 
 		if (is_scripts_running) {
 			Engine::script_system_tick(*entt_registry, *sol_state);
 		}
 		if (is_physics_running) {
-			physics_world->tick(1.0f / 60.0f);
 			Engine::physics_body_system_tick(*entt_registry);
+			physics_world->tick(1.0f / 60.0f);
+		}
+		if (is_physics_running || (game_state == GameState::PAUSED)) {
 			render_jolt_debug();
 		}
 	}
 
-	void Editor3D::render_jolt_shape_of_selected_entity()
+	void Editor3D::render_jolt_shape_of_entity(entt::entity entity)
 	{
-		if (!hierarchical_panel.selected_entity) {
-			return;
-		}
-		Engine::TransformComponent* transform_comp = entt_registry->try_get<Engine::TransformComponent>(hierarchical_panel.selected_entity.value());
+		Engine::TransformComponent* transform_comp = entt_registry->try_get<Engine::TransformComponent>(entity);
 		if (!transform_comp) {
 			return;
 		}
-		Engine::PhysicsBodyInfoComponent* physics_body_info = entt_registry->try_get<Engine::PhysicsBodyInfoComponent>(hierarchical_panel.selected_entity.value());
+		Engine::PhysicsBodyInfoComponent* physics_body_info = entt_registry->try_get<Engine::PhysicsBodyInfoComponent>(entity);
 		if (!physics_body_info) {
 			return;
 		}
@@ -67,33 +74,63 @@ namespace Editor {
 	void Editor3D::render_top_bar()
 	{
 		ImGui::Begin("Topbar");
-		if (!is_scripts_running) {
+		if (game_state != GameState::RUNNING) {
 			if (ImGui::Button("[Run]")) {
+				if (game_state != GameState::PAUSED) {
+					reload_scene_from_last_saved_file();
+				}
 				Engine::script_system_init(*entt_registry);
-				is_scripts_running = true;
-				is_physics_running = true;
+				game_state = GameState::RUNNING;
 			}
 		}
 		else {
 			if (ImGui::Button("[Pause]")) {
-				is_scripts_running = false;
-				is_physics_running = false;
+				game_state = GameState::PAUSED;
 			}
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("[Restart]")) {
-			// TODO: first we need to reset the scene by loading it from file again
+			reload_scene_from_last_saved_file();
 			Engine::script_system_init(*entt_registry);
-			is_scripts_running = true;
-			is_physics_running = true;
+			game_state = GameState::RUNNING;
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("[Stop]")) {
-			// TODO: first we need to reset the scene by loading it from file again
-			is_scripts_running = false;
-			is_physics_running = false;
-		}
+		render_stop_scene_button();
 		ImGui::End();
+	}
+
+	void Editor3D::render_stop_scene_button()
+	{
+		if (ImGui::Button("[Stop]")) {
+			reload_scene_from_last_saved_file();
+			game_state = GameState::STOPPED;
+		}
+	}
+
+	void Editor3D::reload_scene_from_last_saved_file()
+	{
+		if (!last_saved_scene) {
+			save_scene_popup();
+		}
+		std::ifstream ifs(*last_saved_scene);
+		if (!ifs) {
+			return;
+		}
+		serializer.load(*entt_registry, ifs);
+	}
+
+	void Editor3D::save_scene_to_last_saved_file()
+	{
+		if (!last_saved_scene) {
+			save_scene_popup();
+		}
+		std::ofstream of(*last_saved_scene);
+		if (!of) {
+			return;
+		}
+		{
+			serializer.save(*entt_registry, of);
+		}
 	}
 
 	void Editor3D::render_imguizmo()
@@ -146,19 +183,26 @@ namespace Editor {
 	void Editor3D::render_save_button()
 	{
 		if (ImGui::Button("Save")) {
-			const char* filepath_c_str = tinyfd_saveFileDialog("Save scene to file", "", 0, NULL, NULL);
-			if (!filepath_c_str) {
-				return;
-			}
-			std::string filepath_str{ filepath_c_str };
-			std::ofstream of(filepath_str);
-			if (!of) {
-				return;
-			}
-			{
-				serializer.save(*entt_registry, of);
-			}
+			save_scene_popup();
 		}
+	}
+
+	void Editor3D::save_scene_popup()
+	{
+		const char* filepath_c_str = tinyfd_saveFileDialog("Save scene to file", "", 0, NULL, NULL);
+		if (!filepath_c_str) {
+			return;
+		}
+		std::string filepath_str{ filepath_c_str };
+		std::ofstream of(filepath_str);
+		if (!of) {
+			return;
+		}
+		{
+			serializer.save(*entt_registry, of);
+		}
+		last_saved_scene = filepath_str;
+		game_state = GameState::STOPPED;
 	}
 
 	void Editor3D::render_load_button()
@@ -174,6 +218,7 @@ namespace Editor {
 				return;
 			}
 			serializer.load(*entt_registry, ifs);
+			last_saved_scene = filepath_str;
 		}
 	}
 
