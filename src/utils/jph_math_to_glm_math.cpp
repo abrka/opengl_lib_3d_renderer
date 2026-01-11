@@ -20,7 +20,7 @@ glm::vec3 jph_vec3_to_glm_vec3(const JPH::RVec3& jph_vec3) {
 	return glm::vec3{ jph_vec3.GetX(), jph_vec3.GetY(), jph_vec3.GetZ() };
 }
 glm::quat jph_quat_to_glm_quat(const JPH::Quat& jph_quat) {
-	return glm::quat{ jph_quat.GetX(), jph_quat.GetY(), jph_quat.GetZ(), jph_quat.GetW() };
+	return glm::quat{ jph_quat.GetW(), jph_quat.GetX(), jph_quat.GetY(), jph_quat.GetZ() };
 };
 
 glm::mat4 jph_mat4_to_glm_mat4(const JPH::RMat44& jph_mat4)
