@@ -1,5 +1,6 @@
 #include "physics_body_system.h"
 
+#include <iostream>
 #include <glm/gtc/quaternion.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_decompose.hpp>
@@ -29,11 +30,17 @@ namespace Engine {
 			glm::vec3 skew{};
 			glm::vec4 perspective{};
 			glm::decompose(transform.transform, scale, rotation, translation, skew, perspective);
-			JPH::Vec3 jph_position{glm_vec3_to_jph_vec3(translation)};
-			JPH::Quat jph_rotation{glm_quat_to_jph_quat(rotation)};
+			JPH::Vec3 jph_position{ glm_vec3_to_jph_vec3(translation) };
+			JPH::Quat jph_rotation{ glm_quat_to_jph_quat(rotation) };
 
 			assert(body_info.shape_settings);
-			JPH::BodyCreationSettings settings{ body_info.shape_settings.get() ,jph_position,jph_rotation, body_info.motion_type, body_info.layer};
+			body_info.shape_settings->ClearCachedResult();
+			auto shape = body_info.shape_settings->Create();
+			if (shape.HasError()) {
+				std::cout << "[ERROR][ENGINE][PHYSICS BODY SYSTEM]: " << shape.GetError() << "\n";
+				continue;
+			}
+			JPH::BodyCreationSettings settings{ shape.Get(),jph_position,jph_rotation, body_info.motion_type, body_info.layer };
 			auto body = std::make_unique<Physics::Body>(physics_world, settings);
 			entt_registry.emplace_or_replace<Engine::PhysicsBodyComponent>(entity, Engine::PhysicsBodyComponent{ std::move(body) });
 			body_info.requires_reload = false;
