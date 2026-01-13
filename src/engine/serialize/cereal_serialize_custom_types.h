@@ -4,6 +4,7 @@
 #include <cereal/cereal.hpp>
 #include <cereal/types/vector.hpp> 
 #include <cereal/types/map.hpp>
+#include <cereal/types/memory.hpp>
 #include "engine/components/components.h"
 
 
@@ -114,10 +115,37 @@ namespace Engine {
 	void serialize(Archive& archive, PhysicsBodyInfoComponent& t) {
 		archive(
 			cereal::make_nvp("motion_type", t.motion_type),
-			cereal::make_nvp("layer", t.layer)
+			cereal::make_nvp("layer", t.layer),
+			cereal::make_nvp("shape_settings", t.shape_settings)
 		);
 	}
 }
+
+namespace JPH {
+	template<class Archive>
+	void save(Archive& archive, ShapeSettings const& t) {
+		std::ostringstream os{};
+		{
+			ObjectStreamTextOut stream_out{ os };
+			stream_out.Write(&t, t.GetRTTI());
+		}
+		std::string s = os.str();
+		archive(cereal::make_nvp("jolt_str", s));
+	}
+	template<class Archive>
+	void load(Archive& archive, ShapeSettings& t) {
+		std::string in_str{};
+		archive(cereal::make_nvp("jolt_str", in_str));
+		std::istringstream is{ in_str };
+		JPH::ShapeSettings* settings{};
+		assert(ObjectStreamTextIn::sReadObject<JPH::ShapeSettings>(is, settings));
+		memcpy(&t, settings, settings->GetRTTI()->GetSize());
+	}
+}
+
+CEREAL_REGISTER_TYPE(JPH::ShapeSettings)
+CEREAL_REGISTER_TYPE(JPH::BoxShapeSettings)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(JPH::ShapeSettings, JPH::BoxShapeSettings)
 
 namespace Renderer {
 	template<class Archive>
