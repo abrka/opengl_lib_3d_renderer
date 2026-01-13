@@ -40,7 +40,7 @@ namespace Engine {
 				std::cout << "[ERROR][ENGINE][PHYSICS BODY SYSTEM]: " << shape.GetError() << "\n";
 				continue;
 			}
-			JPH::BodyCreationSettings settings{ shape.Get(),jph_position,jph_rotation, body_info.motion_type, body_info.layer };
+			JPH::BodyCreationSettings settings{ shape.Get(),jph_position,jph_rotation, body_info.motion_type, static_cast<JPH::ObjectLayer>(body_info.layer) };
 			auto body = std::make_unique<Physics::Body>(physics_world, settings);
 			entt_registry.emplace_or_replace<Engine::PhysicsBodyComponent>(entity, Engine::PhysicsBodyComponent{ std::move(body) });
 			body_info.requires_reload = false;

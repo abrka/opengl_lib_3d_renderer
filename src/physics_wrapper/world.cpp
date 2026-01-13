@@ -42,9 +42,9 @@ namespace Physics {
 		{
 			switch (inObject1)
 			{
-			case Layers::NON_MOVING:
-				return inObject2 == Layers::MOVING; // Non moving only collides with moving
-			case Layers::MOVING:
+			case static_cast<JPH::ObjectLayer>(Layer::NON_MOVING):
+				return inObject2 == static_cast<JPH::ObjectLayer>(Layer::MOVING); // Non moving only collides with moving
+			case static_cast<JPH::ObjectLayer>(Layer::MOVING):
 				return true; // Moving collides with everything
 			default:
 				JPH_ASSERT(false);
@@ -66,8 +66,8 @@ namespace Physics {
 		BPLayerInterfaceImpl()
 		{
 			// Create a mapping table from object to broad phase layer
-			mObjectToBroadPhase[Layers::NON_MOVING] = BroadPhaseLayers::NON_MOVING;
-			mObjectToBroadPhase[Layers::MOVING] = BroadPhaseLayers::MOVING;
+			mObjectToBroadPhase[static_cast<int>(Layer::NON_MOVING)] = BroadPhaseLayers::NON_MOVING;
+			mObjectToBroadPhase[static_cast<int>(Layer::MOVING)] = BroadPhaseLayers::MOVING;
 		}
 
 		virtual JPH::uint GetNumBroadPhaseLayers() const override
@@ -77,7 +77,7 @@ namespace Physics {
 
 		virtual JPH::BroadPhaseLayer GetBroadPhaseLayer(JPH::ObjectLayer inLayer) const override
 		{
-			JPH_ASSERT(inLayer < Layers::NUM_LAYERS);
+			JPH_ASSERT(inLayer < static_cast<int>(Layer::NUM_LAYERS));
 			return mObjectToBroadPhase[inLayer];
 		}
 
@@ -94,7 +94,7 @@ namespace Physics {
 #endif // JPH_EXTERNAL_PROFILE || JPH_PROFILE_ENABLED
 
 	private:
-		JPH::BroadPhaseLayer					mObjectToBroadPhase[Layers::NUM_LAYERS];
+		JPH::BroadPhaseLayer mObjectToBroadPhase[static_cast<int>(Layer::NUM_LAYERS)];
 	};
 
 	/// Class that determines if an object layer can collide with a broadphase layer
@@ -105,9 +105,9 @@ namespace Physics {
 		{
 			switch (inLayer1)
 			{
-			case Layers::NON_MOVING:
+			case static_cast<JPH::ObjectLayer>(Layer::NON_MOVING):
 				return inLayer2 == BroadPhaseLayers::MOVING;
-			case Layers::MOVING:
+			case static_cast<JPH::ObjectLayer>(Layer::MOVING):
 				return true;
 			default:
 				JPH_ASSERT(false);
